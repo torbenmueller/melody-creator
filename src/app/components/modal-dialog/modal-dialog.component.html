@@ -1,0 +1,21 @@
+<i class="fas fa-times close-icon" mat-dialog-close></i>
+<h1 mat-dialog-title>{{ data.title }}</h1>
+<div mat-dialog-content>
+	<p>{{ data.message }}</p>
+</div>
+@if (data.title === 'Confirm Deletion') {
+	<div class="modal-footer">
+		<button type="button" class="btn btn-danger me-2" mat-dialog-close>No</button>
+		<button type="button" class="btn btn-success" (click)="onConfirm()">Yes</button>
+	</div>
+}
+@if (data.title === 'Automatically logged out') {
+	<div class="modal-footer">
+		<button type="button" class="btn btn-dark" mat-dialog-close routerLink="/auth/login">Login</button>
+	</div>
+}
+@if (data.title === 'An error occurred!') {
+	<div class="modal-footer">
+		<button class="btn btn-secondary" mat-dialog-close>Close</button>
+	</div>
+}

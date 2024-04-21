@@ -1,0 +1,13 @@
+.bgr-bottom {
+	background-color: #999;
+	height: 11.5rem;
+	width: 100%;
+	margin: 0;
+	text-align: center;
+}
+
+a {
+	text-decoration: inherit;
+	color: var(--bs-body-color);
+	cursor: pointer;
+}

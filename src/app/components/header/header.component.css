@@ -1,0 +1,50 @@
+h1 {
+	/* display: inline-block; */
+	font-size: 4rem;
+}
+
+/* img {
+	display: inline-block;
+  } */
+
+.content {
+	display: flex;
+	height: 15rem;
+	justify-content: center;
+	align-items: center;
+	/* flex-wrap: wrap; */
+}
+
+.bgr-top {
+	background-color: #FFED00;
+	height: 17.5rem;
+	width: 100%;
+	font-family: 'Amatic SC', cursive;
+	font-weight: bold;
+	margin: 0 0 20px 0;
+	overflow: hidden;
+	/* box-shadow: 0 5px 20px #757575; */
+	border-bottom: 2px solid #000;
+}
+
+.image-top {
+	/* height: 25vh; */
+	height: 15rem;
+}
+
+.my-auto {
+	background-color: #FFED00;
+}
+
+@media (max-width: 600px) {
+	.image-top {
+		max-width: 37%;
+		height: auto;
+	}
+}
+
+@media (max-width: 768px) {
+	.header-title {
+		font-size: clamp(2rem, 10vw, 4rem);
+	}
+}

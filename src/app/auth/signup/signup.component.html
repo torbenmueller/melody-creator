@@ -1,0 +1,71 @@
+<div class="form-signin">
+	<!-- <form>
+		<div class="mb-3">
+			<label for="exampleInputEmail1" class="form-label">Email address</label>
+			<input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+			<div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+		</div>
+		<div class="mb-3">
+			<label for="exampleInputPassword1" class="form-label">Password</label>
+			<input type="password" class="form-control" id="exampleInputPassword1">
+		</div>
+		<div class="mb-3 form-check">
+			<input type="checkbox" class="form-check-input" id="exampleCheck1">
+			<label class="form-check-label" for="exampleCheck1">Check me out</label>
+		</div>
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</form> -->
+
+	<form (submit)="onSignup(signupForm)" #signupForm="ngForm">
+		<div class="text-center">
+			<i class="fas fa-user-plus sign-in-icon"></i>
+			<h1 class="h3 mb-3 fw-normal">Please sign up</h1>
+		</div>
+		<div class="mb-3">
+			<label for="floatingInput">Email address</label>
+			<input name="email" type="email" ngModel class="form-control" id="floatingInput" placeholder="E-Mail"
+				#emailInput="ngModel" required>
+			@if (!emailInput.valid && emailInput.touched) {
+				<span class="password-hints">Please enter a valid email!</span>
+			}
+		</div>
+		<div class="mb-3">
+			<label for="floatingPassword">Password</label>
+			<div class="relative">
+				<input name="password" [type]="showPassword ? 'text' : 'password'" class="form-control password-input"
+					id="floatingPassword" placeholder="Password" [(ngModel)]="password" required>
+				<i [class]="showPassword ? 'fas fa-eye' : 'fas fa-eye-slash'" class="show-password-icon"
+					(click)="togglePasswordVisibility()"></i>
+			</div>
+		</div>
+		<div class="password-strength">
+			<progress [value]="passwordStrengthPercent" [max]="100"></progress>
+		</div>
+		<div class="password-hints">
+			<ul>
+				@if (!isEightCharachtersOrGreater) {
+					<li>8 characters required.</li>
+				}
+				@if (!hasOneCapitalLetterOrMore) {
+					<li>1 capital letter required.</li>
+				}
+				@if (!hasOneNumberOrMore) {
+					<li>1 number required.</li>
+				}
+				@if (!hasOneSpecialCharacterOrMore) {
+					<li>1 special character required.</li>
+				}
+			</ul>
+		</div>
+		@if (!isLoading) {
+			<button class="w-100 btn btn-lg btn-success" type="submit" [disabled]="!signupForm.valid">Sign up</button>
+		}
+		<div class="text-center">
+			@if (isLoading) {
+				<div class="spinner-border" role="status">
+					<span class="sr-only">Loading...</span>
+				</div>
+			}
+		</div>
+	</form>
+</div>

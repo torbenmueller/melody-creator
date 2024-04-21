@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const checkAuth = require('../middleware/check-auth');
+const MelodiesController = require('../controllers/melodies');
+
+router.post('', checkAuth, MelodiesController.saveMelody);
+router.get('', checkAuth, MelodiesController.loadMelodies);
+router.get('/modes', checkAuth, MelodiesController.getModes);
+router.delete('/:id', checkAuth, MelodiesController.deleteMelody);
+router.get('/midi/:id', checkAuth, MelodiesController.getMidiFile);
+
+module.exports = router;

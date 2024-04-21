@@ -1,1 +1,342 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+	--background-color: #eee;
+	--dashboard-blue-bg: #194EFF;
+	--dashboard-orange-bg: #FFBE0D;
+}
+
+body {
+	margin: 0;
+	font-family: Roboto, "Helvetica Neue", sans-serif;
+	background-color: var(--background-color) !important;
+}
+
+body .modal-open {
+	padding-right: 0;
+}
+
+.col-md-4 {
+	padding: 0;
+}
+
+.content {
+	background-color: #FFED00;
+	padding: 20px;
+}
+
+.fit-image {
+	width: 100%;
+	object-fit: cover;
+}
+
+.hand {
+	cursor: pointer;
+}
+
+.underline {
+	text-decoration: underline;
+}
+
+.sign-in-icon {
+	color: #999;
+	font-size: 5rem;
+}
+
+.spinner-border {
+	/* margin: auto; */
+	width: 3rem;
+	height: 3rem;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active{
+	-webkit-box-shadow: 0 0 0 30px white inset !important;
+	font-size: 1rem;
+}
+
+input.ng-invalid.ng-touched {
+	border: 1px solid red;
+}
+
+.title {
+	/* margin-bottom: 16px; */
+	margin-bottom: 0;
+	font-family: 'Pacifico', cursive;
+}
+
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.width-100 {
+	width: 100%;
+}
+
+.block {
+	display: block;
+}
+
+.inline-block {
+	display: inline-block;
+}
+
+.text-center {
+	text-align: center;
+}
+
+.text-right {
+	text-align: end;
+}
+
+.list-style-none {
+	list-style-type: none;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.form-signin {
+	/* width: 100%; */
+	/* max-width: 330px; */
+	width: 330px;
+	padding: 15px;
+	margin: auto;
+	font-weight: 400;
+}
+
+.form-signin .form-floating:focus-within {
+	z-index: 2;
+}
+
+.forgot-password {
+	cursor: pointer;
+	display: inline-block;
+}
+
+.show-password-icon {
+	cursor: pointer;
+	position: absolute;
+	top: 50%;
+	transform: translate(0, -50%);
+	right: 5%;
+}
+
+.form-control.password-input {
+	padding-right: 15%;
+}
+
+.no-margin {
+	margin: 0 !important;
+}
+
+.relative {
+	position: relative;
+}
+
+.absolute {
+	position: absolute;
+}
+
+.black {
+	color: #000;
+}
+
+.opacity-half {
+	opacity: 0.5;
+}
+
+.fs-38 {
+	font-size: 38px;
+}
+
+.mrn-5px {
+	margin-right: -5px;
+}
+
+progress {
+	border-radius: 10px;
+	width: 100%;
+	height: 15px;
+}
+
+progress::-webkit-progress-bar {
+	background-color: #eee;
+	border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+	background-color: var(--dashboard-blue-bg);
+	border-radius: 10px;
+}
+
+progress::-moz-progress-bar {
+	background-color: var(--dashboard-blue-bg);
+	border-radius: 10px;
+}
+
+.flex-container {
+	display: flex;
+}
+
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
+.flex-container-center {
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	align-items: center;
+}
+
+.flex-center {
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+}
+
+.flex-col-space-between {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.flex-space-between {
+	display: flex;
+	justify-content: space-between;
+}
+
+.center-v {
+	display: flex;
+	align-items: center;
+}
+
+.center-h {
+	display: flex;
+	justify-content: center;
+}
+
+.subheadline {
+	font-size: 1rem;
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+.white-color {
+	color: #fff;
+}
+
+.black-color {
+	color: #000;
+}
+
+.dashboard-text {
+	font-size: 1rem;
+}
+
+.dashboard-number {
+	font-size: 2rem;
+	font-weight: bold;
+}
+
+.dashboard-mode {
+	display: inline-block;
+	background-color: lightgreen;
+	border-radius: 5px;
+	text-align: center;
+	font-weight: bold;
+	padding: 5px 10px;
+	margin: 0 5px 5px 0;
+}
+
+.grey-bg {
+	background-color: #fff;
+	border: 1px solid grey;
+}
+
+.blue-bg {
+	background-color: var(--dashboard-blue-bg);
+	border: 1px solid var(--dashboard-blue-bg);
+	color: #fff;
+}
+
+.orange-bg {
+	background-color: var(--dashboard-orange-bg);
+	border: 1px solid var(--dashboard-orange-bg);
+}
+
+.box {
+	border-radius: 10px;
+	padding: 20px;
+}
+
+.height-100 {
+	height: 100%;
+}
+
+.big-icon {
+	font-size: 1.8rem;
+	margin-left: 1rem;
+	color: grey;
+}
+
+.title-row {
+	margin-bottom: 1.5rem;
+}
+
+.mb-12 {
+	margin-bottom: 12px;
+}
+
+.mb-28 {
+	margin-bottom: 28px;
+}
+
+.w-100 {
+	width: 100%;
+}
+
+.custom-tooltip {
+	position: relative;
+}
+
+.custom-tooltip .tooltiptext {
+	width: 120px;
+	background-color: #000;
+	color: #fff;
+	text-align: center;
+	border-radius: 6px;
+	padding: 5px 0;
+	position: absolute;
+	z-index: 1;
+	top: 130%;
+	left: 50%;
+	margin-left: -60px;
+	font-size: 1rem;
+	opacity: 0;
+	transition: opacity 1s 1s;
+	pointer-events: none;
+}
+
+.custom-tooltip .tooltiptext::after {
+	content: "";
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: transparent transparent #000 transparent;
+}
+
+.custom-tooltip:hover .tooltiptext {
+	opacity: 1;
+}
