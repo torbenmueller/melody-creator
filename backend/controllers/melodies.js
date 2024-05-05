@@ -25,7 +25,7 @@ exports.loadMelodies = (req, res, next) => {
 	const pageSize = +req.query.pagesize;
 	const currentPage = +req.query.page;
 	const sortByType = req.query.sort_by_type;
-	const order = req.query.order;
+	const order = parseInt(req.query.order);
 	// let melodyQuery = Melody.find({ creator: req.userData.userId }).sort({ time: -1 });
 	let melodyQuery = Melody.find({ creator: req.userData.userId });
 	let fetchedMelodies;

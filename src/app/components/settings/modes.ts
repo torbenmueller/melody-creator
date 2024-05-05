@@ -22,7 +22,7 @@ export class Modes {
 	getRootkey(key: string, mode: string) {
 		let chromaticScale =  this.chromaticFlatScale;
 		if (this.sharpKeys.includes(key)) chromaticScale = this.chromaticSharpScale;
-		let rootKey = chromaticScale.indexOf(key) + this.keyIndices[mode];
+		let rootKey = chromaticScale.indexOf(key) + this.keyIndices[mode as keyof typeof this.keyIndices];
 		if (rootKey < 0) return chromaticScale[chromaticScale.length + rootKey];
 		return chromaticScale[rootKey % chromaticScale.length];
 	}

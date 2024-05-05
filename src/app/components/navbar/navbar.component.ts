@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../auth/auth.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
@@ -16,37 +17,47 @@ import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   userIsAuthenticated: boolean = false;
-  private authListenerSubs: Subscription | undefined;
+  private authListenerSubs!: Subscription;
 
   timeLeft: number = 0;
   countdown: any;
   minutes: number = 0;
   seconds: number = 0;
 
-  constructor(private authService: AuthService, private dialog: MatDialog) {}
+  constructor(
+    private authService: AuthService,
+    private dialog: MatDialog,
+    @Inject(DOCUMENT) private document: Document
+  ) {}
 
   ngOnInit(): void {
     this.userIsAuthenticated = this.authService.getIsAuth();
+    console.log("this.userIsAuthenticated", this.userIsAuthenticated);
     this.authListenerSubs = this.authService
       .getAuthStatusListener()
       .subscribe((isAuthenticated) => {
         this.userIsAuthenticated = isAuthenticated;
         if (isAuthenticated) {
-          let expiration = JSON.parse(localStorage.getItem('expiration') as string);
-          let expirationTime = new Date(expiration).getTime();
-          let now = new Date().getTime();
-          this.timeLeft = expirationTime - now;
-          this.countDown();
+          const localStorage = this.document.defaultView?.localStorage;
+          if (localStorage) {
+            /* let expiration = JSON.parse(localStorage.getItem('expiration') as string); */
+            let expiration = localStorage.getItem('expiration');
+            console.log("expiration", expiration);
+            /* let expirationTime = new Date(expiration).getTime(); */
+            let now = new Date().getTime();
+            /* this.timeLeft = expirationTime - now; */
+            /* this.countDown(); */
+          }
         }
       });
   }
 
   ngOnDestroy(): void {
-    /* this.authListenerSubs.unsubscribe(); */
+    this.authListenerSubs.unsubscribe();
   }
 
   onLogout() {
-    /* this.authService.logout(); */
+    this.authService.logout();
     clearInterval(this.countdown);
     this.minutes = 0;
     this.seconds = 0;

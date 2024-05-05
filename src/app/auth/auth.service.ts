@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -8,6 +8,7 @@ import { AuthData } from './auth-data';
 import { ToastrService } from 'ngx-toastr';
 import { EditEmailModel } from '../interfaces/edit-email-model';
 import { EditPasswordModel } from '../interfaces/edit-password-model';
+import { DOCUMENT } from '@angular/common';
 
 const BACKEND_URL = environment.apiUrl + "/user";
 
@@ -16,15 +17,16 @@ const BACKEND_URL = environment.apiUrl + "/user";
 })
 export class AuthService {
   private isAuthenticated: boolean = false;
-  private token: string | undefined;
+  private token!: string;
   private tokenTimer: any;
   private authStatusListener = new Subject<boolean>();
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    // private toastr: ToastrService,
-    private userService: UserService
+    /* private toastr: ToastrService, */
+    private userService: UserService,
+    @Inject(DOCUMENT) private document: Document
   ) {}
 
   getToken() {
@@ -55,7 +57,7 @@ export class AuthService {
     return this.http
       .delete<{ message: string; userId: string }>(BACKEND_URL + '/delete-user')
       .subscribe((data) => {
-        // this.toastr.success(data.message);
+        /* this.toastr.success(data.message); */
         this.logout();
       });
   }
@@ -138,7 +140,7 @@ export class AuthService {
   }
 
   logout() {
-    this.token = undefined;
+    this.token = '';
     this.isAuthenticated = false;
     this.authStatusListener.next(false);
     clearTimeout(this.tokenTimer);
@@ -187,19 +189,30 @@ export class AuthService {
   }
 
   private saveAuthData(token: string, expirationDate: Date) {
-    localStorage.setItem('token', token);
-    localStorage.setItem('expiration', expirationDate.toISOString());
-    this.authStatusListener.next(true);
+    const localStorage = this.document.defaultView?.localStorage;
+    if (localStorage) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('expiration', expirationDate.toISOString());
+      this.authStatusListener.next(true);
+    }
   }
 
   private clearAuthData() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('expiration');
+    const localStorage = this.document.defaultView?.localStorage;
+    if (localStorage) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('expiration');
+    }
   }
 
   private getAuthData() {
-    const token = localStorage.getItem('token');
-    const expirationDate = localStorage.getItem('expiration');
+    const localStorage = this.document.defaultView?.localStorage;
+    let token;
+    let expirationDate;
+    if (localStorage) {
+      token = localStorage.getItem('token');
+      expirationDate = localStorage.getItem('expiration');
+    }
     if (!token || !expirationDate) {
       return;
     }

@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { FooterComponent } from './components/footer/footer.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
+import { AuthService } from './auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -13,12 +14,17 @@ import { HeaderComponent } from './components/header/header.component';
     RouterOutlet,
     NavbarComponent,
     HeaderComponent,
-    FooterComponent
-    
+    FooterComponent,
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
 export class AppComponent {
   title = 'melody-creator';
+
+  constructor(public authService: AuthService) {}
+
+  ngOnInit(): void {
+    this.authService.autoAuthUser();
+  }
 }

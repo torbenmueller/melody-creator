@@ -1,0 +1,71 @@
+.btn-primary {
+	background-color: #FC5F23;
+}
+
+mat-paginator {
+	background-color: var(--background-color);
+	margin-top: 1rem;
+}
+
+.disabled {
+	pointer-events: none;
+	/* color: #BDBDBD; */
+}
+
+.enabled {
+	pointer-events: auto;
+}
+
+#overlay {
+	position: fixed;
+	display: none;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0,0,0,0.7);
+	z-index: 2;
+	cursor: pointer;
+	/* backdrop-filter: blur(6px); */
+}
+
+  #text{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	font-size: 50px;
+	color: white;
+	transform: translate(-50%,-50%);
+	-ms-transform: translate(-50%,-50%);
+}
+
+.space-between {
+	display: flex;
+	align-content: space-between;
+}
+
+.right {
+	text-align: right;
+}
+
+.badge {
+	font-size: 1rem;
+}
+
+.modal {
+	--bs-modal-header-border-width: 0;
+	--bs-modal-footer-border-width: 0;
+	/* overflow: inherit !important; */
+}
+
+/* body .modal-open[style] {
+	overflow: scroll !important;
+	padding-right: 0 !important;
+} */
+
+/* .modal-open {
+	overflow-y: scroll !important;
+	padding-right: 0 !important;
+} */

@@ -2,13 +2,13 @@ import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-imprint',
+  selector: 'app-privacy-policy',
   standalone: true,
   imports: [],
-  templateUrl: './imprint.component.html',
-  styleUrl: './imprint.component.css'
+  templateUrl: './privacy-policy.component.html',
+  styleUrl: './privacy-policy.component.css'
 })
-export class ImprintComponent implements OnInit {
+export class PrivacyPolicyComponent implements OnInit {
   constructor(@Inject(DOCUMENT) private document: Document) { }
 
   ngOnInit(): void {

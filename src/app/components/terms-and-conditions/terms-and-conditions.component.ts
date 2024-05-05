@@ -2,13 +2,13 @@ import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-imprint',
+  selector: 'app-terms-and-conditions',
   standalone: true,
   imports: [],
-  templateUrl: './imprint.component.html',
-  styleUrl: './imprint.component.css'
+  templateUrl: './terms-and-conditions.component.html',
+  styleUrl: './terms-and-conditions.component.css'
 })
-export class ImprintComponent implements OnInit {
+export class TermsAndConditionsComponent implements OnInit {
   constructor(@Inject(DOCUMENT) private document: Document) { }
 
   ngOnInit(): void {

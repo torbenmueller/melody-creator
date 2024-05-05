@@ -5,6 +5,8 @@ import { Modes } from '../components/settings/modes';
 import { Observable, Subject } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
+import { MarnonicMinorModifications } from '../interfaces/marnonic-minor-modifications';
 
 const BACKEND_URL = environment.apiUrl + "/melodies";
 
@@ -12,12 +14,12 @@ const BACKEND_URL = environment.apiUrl + "/melodies";
   providedIn: 'root'
 })
 export class CreationService {
-  settings!: Settings;
+	settings!: Settings;
 	scale: any;
 	melody!: any[];
 	keepMelody = [];
 	maxInterval: number = 4;
-	intervalCheck = [];
+	intervalCheck: number[] = [];
 
 	sampler = new Tone.Sampler({
 		urls: {
@@ -43,7 +45,7 @@ export class CreationService {
 		"Bb4", "B4", "C5", "Db5", "D5", "Eb5", "E5", "F5", "Gb5", "G5", "Ab5", "A5", "Bb5", "B5", "C6", "Db6", "D6"
 	];
 
-	harmonicMinorModifications = {
+	harmonicMinorModifications: MarnonicMinorModifications = {
 		'Db': {'C3': 'B#3', 'C4': 'B#4', 'C5': 'B#5'},
 		'D': {'Db3': 'C#3', 'Db4': 'C#4', 'Db5': 'C#5'},
 		'F#': {'F3': 'E#3', 'F4': 'E#4', 'F5': 'E#5'},
@@ -102,10 +104,18 @@ export class CreationService {
 		this.http.post<{message: string}>(BACKEND_URL, post)
 			.subscribe((responseData) => {
 				this.router.navigate(['/melodies']);
-				this.settings = undefined;
-				this.melody = undefined;
+				this.setValuesToEmptyString(this.settings);
+				this.melody = [];
 				this.getScoreData();
 			});
+	}
+
+	setValuesToEmptyString(obj: { [key: string]: any }) {
+		for (let key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				obj[key] = '';
+			}
+		}
 	}
 
 	getMelodies(melodiesPerPage: number, currentPage: number, sortByType: string, order: number ) {
@@ -140,7 +150,7 @@ export class CreationService {
 	}
 
 	generateScaleIndexes(index: number, mode: string | number) {
-		return this.scaleIndices[mode].map((x: any) => x + index);
+		return this.scaleIndices[mode as keyof typeof this.scaleIndices].map((x: any) => x + index);
 	}
 
 	generateScale(indices: any[]) {
@@ -157,17 +167,17 @@ export class CreationService {
 			"B5": "Cb5"
 		}
 		indices.forEach((element: string | number) => {
-			scale.push(wholeRange[element]);
+			scale.push(wholeRange[element as keyof typeof wholeRange]);
 		});
 		if (this.rootKey === "F#") {
 			scale = scale.map(item => {
-				if (replacementsFSharp[item]) return replacementsFSharp[item];
+				if (replacementsFSharp[item as keyof typeof replacementsFSharp]) return replacementsFSharp[item as keyof typeof replacementsFSharp];
 				return item;
 			});
 		}
 		if (this.rootKey === "Gb") {
 			scale = scale.map(item => {
-				if (replacementsGFlat[item]) return replacementsGFlat[item];
+				if (replacementsGFlat[item as keyof typeof replacementsGFlat]) return replacementsGFlat[item as keyof typeof replacementsGFlat];
 				return item;
 			});
 		}
@@ -222,8 +232,8 @@ export class CreationService {
 		}
 
 		for (let key of Object.keys(scaleIndices)) {
-			for (let i = 0; i < scaleIndices[key].length; i++) {
-				scaleIndices[key][i] += 1;
+			for (let i = 0; i < scaleIndices[key as keyof typeof scaleIndices].length; i++) {
+				scaleIndices[key as keyof typeof scaleIndices][i] += 1;
 			}
 		}
 		console.log(scaleIndices);

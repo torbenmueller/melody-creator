@@ -26,20 +26,14 @@
 							<i class="fas fa-music ms-2"></i>
 						</div>
 						<p class="settings-box-header">{{settings.scale}}</p>
-						<div class="dropdown">
-							<div class="width-100">
-								<i class="fas fa-chevron-down hand" data-bs-toggle="dropdown" aria-expanded="false"></i>
-								<div class="dropdown-menu">
-									<a class="dropdown-item hand" *ngFor="let scale of scales" (click)="selectScale(scale)">{{ scale }}</a>
-								</div>
-							</div>
-						</div>
-						<!-- <select class="form-select" id="scale" required [(ngModel)]="settings.scale" name="scale">
+						<select class="form-select" id="scale" required [(ngModel)]="settings.scale" name="scale">
 							<option value="" [selected]="settings.scale" disabled>Select a scale</option>
-							<option *ngFor="let scale of scales" [value]="scale">
-								{{scale}}
-							</option>
-						</select> -->
+							@for (scale of scales; track scale) {
+								<option [value]="scale">
+									{{scale}}
+								</option>
+							}
+						</select>
 					</div>
 					<div class="settings-box orange-bg me-3">
 						<div class="black-color">
@@ -47,20 +41,14 @@
 							<i class="fas fa-music ms-2"></i>
 						</div>
 						<p class="settings-box-header">{{settings.key}}</p>
-						<div class="dropdown">
-							<div class="width-100">
-								<i class="fas fa-chevron-down hand" data-bs-toggle="dropdown" aria-expanded="false"></i>
-								<div class="dropdown-menu">
-									<a class="dropdown-item hand" *ngFor="let key of keys" (click)="selectKey(key)">{{ key }}</a>
-								</div>
-							</div>
-						</div>
-						<!-- <select class="form-select" id="key" required [(ngModel)]="settings.key" name="key">
-							<option value="" [selected]="settings.scale" disabled>Select a key</option>
-							<option *ngFor="let key of keys" [value]="key">
-								{{key}}
-							</option>
-						</select> -->
+						<select class="form-select" id="key" required [(ngModel)]="settings.key" name="key">
+							<option value="" [selected]="settings.key" disabled>Select a key</option>
+							@for (key of keys; track key) {
+								<option [value]="key">
+									{{key}}
+								</option>
+							}
+						</select>
 					</div>
 					<div class="settings-box blue-bg me-3">
 						<div class="white-color">
@@ -69,10 +57,12 @@
 						</div>
 						<p class="settings-box-header">{{settings.bar}}</p>
 						<select class="form-select" id="bars" required [(ngModel)]="settings.bar" name="bar">
-							<option value="" [selected]="settings.scale" disabled>Select bars</option>
-							<option *ngFor="let bar of bars" [value]="bar">
-								{{bar}}
-							</option>
+							<option value="" [selected]="settings.bar" disabled>Select bars</option>
+							@for (bar of bars; track bar) {
+								<option [value]="bar">
+									{{bar}}
+								</option>
+							}
 						</select>
 					</div>
 					<div class="settings-box blue-bg me-3">
@@ -82,10 +72,12 @@
 						</div>
 						<p class="settings-box-header">{{settings.complex}}</p>
 						<select class="form-select" id="complexity" required [(ngModel)]="settings.complex" name="complex">
-							<option value="" [selected]="settings.scale" disabled>Select complexity</option>
-							<option *ngFor="let complex of complexity" [value]="complex">
-								{{complex}}
-							</option>
+							<option value="" [selected]="settings.complex" disabled>Select complexity</option>
+							@for (complex of complexity; track complex) {
+								<option [value]="complex">
+									{{complex}}
+								</option>
+							}
 						</select>
 					</div>
 					<div class="settings-box blue-bg me-3">
@@ -95,10 +87,12 @@
 						</div>
 						<p class="settings-box-header">{{settings.beat}}</p>
 						<select class="form-select" id="beats" required [(ngModel)]="settings.beat" name="beat">
-							<option value="" [selected]="settings.scale" disabled>Select a beat</option>
-							<option *ngFor="let beat of beats" [value]="beat">
-								{{beat}}
-							</option>
+							<option value="" [selected]="settings.beat" disabled>Select a beat</option>
+							@for (beat of beats; track beat) {
+								<option [value]="beat">
+									{{beat}}
+								</option>
+							}
 						</select>
 					</div>
 					<div class="settings-box blue-bg">

@@ -1,0 +1,78 @@
+.pricing-box {
+	/* display: inline-block; */
+	position: relative;
+	width: 300px;
+	border-radius: 20px;
+	border: 1px solid grey;
+	overflow: hidden;
+}
+
+.free, .pro {
+	height: 350px;
+	background-color: #fff;
+	padding: 10px;
+}
+
+.recommended {
+	height: 400px;
+	background-color: #9B12B3;
+	margin: 0 20px;
+	color: #fff;
+	padding: 60px 10px 10px;
+}
+
+.free:before, .pro:before, .recommended:before {
+	content: "";
+	position: absolute;
+	top: -50px;
+	right: -10px;
+	width: 60px;
+	height: 140px;
+	transform: rotate(-45deg);
+	background-color: #ececec;
+}
+
+.free:after, .pro:after, .recommended:after {
+	position: absolute;
+	font-size: 20px;
+	font-weight: bold;
+	text-transform: uppercase;
+	right: 10px;
+	transform:rotate(45deg);
+}
+
+.free:after {
+	content: "Free";
+}
+
+.pro:after {
+	content: "Pro";
+}
+
+.recommended:after {
+	content: "Start";
+	color: #000;
+	top: 15px;
+	right: 0;
+}
+
+.pricing-headline {
+	font-size: 2rem;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-align: center;
+}
+
+.number-of-melodies {
+	text-align: center;
+	line-height: 0.5;
+}
+
+.btn-outline-warning {
+	color: #000 !important;
+	font-weight: bold !important;
+}
+
+.btn-warning {
+	font-weight: bold !important;
+}
