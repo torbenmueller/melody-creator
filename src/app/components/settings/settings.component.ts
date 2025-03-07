@@ -4,11 +4,13 @@ import { Subscription } from 'rxjs';
 import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
 import { FormsModule } from '@angular/forms';
+import { ScoreComponent } from '../score/score.component';
+import * as Tone from 'tone';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ScoreComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -94,8 +96,13 @@ export class SettingsComponent {
     this.melodyDescription = this.setDescription(this.settings);
   }
 
-  replay() {
+  play() {
+  //attach a click listener to a play button
+  document.querySelector("playMelody")?.addEventListener("click", async () => {
+    await Tone.start();
+    console.log("audio is ready");
     this.creationService.playMelody();
+  });
   }
 
   save() {

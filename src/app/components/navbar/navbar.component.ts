@@ -9,15 +9,13 @@ import { DOCUMENT } from '@angular/common';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [
-    RouterLink, RouterLinkActive
-  ],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   userIsAuthenticated: boolean = false;
-  private authListenerSubs!: Subscription;
+  private authListenerSubs: Subscription = new Subscription;
 
   timeLeft: number = 0;
   countdown: any;
@@ -31,25 +29,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log("Hello 1!");
     this.userIsAuthenticated = this.authService.getIsAuth();
-    console.log("this.userIsAuthenticated", this.userIsAuthenticated);
-    this.authListenerSubs = this.authService
-      .getAuthStatusListener()
+    this.authListenerSubs = this.authService.getAuthStatusListener()
       .subscribe((isAuthenticated) => {
+        console.log("Hello 2!");
         this.userIsAuthenticated = isAuthenticated;
         if (isAuthenticated) {
           const localStorage = this.document.defaultView?.localStorage;
           if (localStorage) {
-            /* let expiration = JSON.parse(localStorage.getItem('expiration') as string); */
-            let expiration = localStorage.getItem('expiration');
-            console.log("expiration", expiration);
-            /* let expirationTime = new Date(expiration).getTime(); */
+            let expiration = JSON.parse(localStorage.getItem('expiration') as string);
+            /* let expiration = localStorage.getItem('expiration'); */
+            console.log('expiration', expiration);
+            let expirationTime = new Date(expiration).getTime();
             let now = new Date().getTime();
-            /* this.timeLeft = expirationTime - now; */
-            /* this.countDown(); */
+            this.timeLeft = expirationTime - now;
+            this.countDown();
           }
         }
       });
+      console.log("this.authListenerSubs", this.authListenerSubs);
   }
 
   ngOnDestroy(): void {

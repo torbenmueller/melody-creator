@@ -10,7 +10,7 @@ import { DatePipe, NgClass } from '@angular/common';
 @Component({
   selector: 'app-my-melodies',
   standalone: true,
-  imports: [NgClass, DatePipe, MatPaginatorModule],
+  imports: [NgClass, DatePipe, MatPaginator, MatPaginatorModule],
   templateUrl: './my-melodies.component.html',
   styleUrl: './my-melodies.component.css'
 })
@@ -42,7 +42,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
 
   constructor(
     public creationService: CreationService,
-    /* private toastr: ToastrService, */
+    private toastr: ToastrService,
     private dialog: MatDialog
   ) { }
 
@@ -70,6 +70,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     this.melodiesSub = this.creationService.getMelodiesUpdateListener()
       .subscribe((data: {melodies: any, melodiesCount: number}) => {
         this.melodies = data.melodies;
+        console.log("this.melodies", this.melodies);
         this.totalMelodies = data.melodiesCount;
         this.isLoading = false;
       });
@@ -117,7 +118,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
         return; */
       }
       this.creationService.getMelodies(this.melodiesPerPage, this.currentPage, this.sortByType, this.order);
-      /* this.showSuccess(); */
+      this.showSuccess();
     }, () => {
       this.isLoading = false;
     });
@@ -129,9 +130,9 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     this.openConfirmationDialog();
   }
 
-  /* showSuccess() {
+  showSuccess() {
     this.toastr.success('The melody was deleted successfully!');
-  } */
+  }
 
   isLessThanThreeDaysAgo(time: string | number | Date) {
     const date = new Date(time).getTime();

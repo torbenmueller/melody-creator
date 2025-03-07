@@ -5,10 +5,11 @@ const Melody = require('../models/melody');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
+require('dotenv').config();
 
 const transporter = nodemailer.createTransport(sendgridTransport({
 	auth: {
-		api_key: ''
+		api_key: process.env.SENDGRID_API_KEY
 	}
 }));
 
@@ -29,8 +30,12 @@ exports.createUser = (req, res, next) => {
 					});
 					return transporter.sendMail({
 						to: req.body.email,
-						from: 'torben.jan.mueller@gmail.com',
+						from: {
+							from: 'Melody Creator',
+							email: 'torben.jan.mueller@gmail.com',
+						},
 						subject: 'Signup succeeded',
+						text: 'You successfully signed up.',
 						html: `
 							<p>You successfully signed up.</p>
 						`
@@ -79,7 +84,8 @@ exports.loginUser = async (req, res, next) => {
 		);
 		res.status(200).json({
 			token: token,
-			expiresIn: 3600,
+			/* expiresIn: 3600, */
+			expiresIn: 10,
 			userId: fetchedUser._id
 		});
 

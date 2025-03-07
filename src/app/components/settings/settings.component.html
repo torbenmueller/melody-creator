@@ -154,9 +154,9 @@
 			
 				<div class="text-center my-4">
 					<button [disabled]="isPlaying" type="submit" id="create" class="btn btn-dark">Create</button>
-					<button [disabled]="isPlaying || melody === undefined && intervals === undefined" type="button" (click)="replay()" class="btn btn-dark ms-2 me-2">Replay</button>
+					<button [disabled]="isPlaying || melody === undefined && intervals === undefined" type="button" (click)="play()" class="btn btn-dark ms-2 me-2">Play</button>
 					@if (userIsAuthenticated) {
-						<button [disabled]="isPlaying || melody === undefined && intervals === undefined" type="button" (click)="save()" class="btn btn-dark">Save</button>
+						<button id="playMelody" [disabled]="isPlaying || melody === undefined && intervals === undefined" type="button" (click)="save()" class="btn btn-dark">Save</button>
 					}
 				</div>
 			</form>
@@ -166,6 +166,6 @@
 				<p>{{melodyDescription}}</p>
 			</div>
 		}
-		<!-- <app-score></app-score> -->
+		<app-score></app-score>
 	</div>
 </div>

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { UserService } from '../services/user.service';
@@ -19,12 +19,13 @@ export class AuthService {
   private isAuthenticated: boolean = false;
   private token!: string;
   private tokenTimer: any;
-  private authStatusListener = new Subject<boolean>();
+  /* private authStatusListener = new Subject<boolean>(); */
+  private authStatusListener = new Observable<boolean>();
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    /* private toastr: ToastrService, */
+    private toastr: ToastrService,
     private userService: UserService,
     @Inject(DOCUMENT) private document: Document
   ) {}
@@ -38,7 +39,9 @@ export class AuthService {
   }
 
   getAuthStatusListener() {
-    return this.authStatusListener.asObservable();
+    console.log("getAuthStatusListener");
+    /* return this.authStatusListener.asObservable(); */
+    return this.authStatusListener;
   }
 
   createUser(email: string, password: string) {
@@ -57,7 +60,7 @@ export class AuthService {
     return this.http
       .delete<{ message: string; userId: string }>(BACKEND_URL + '/delete-user')
       .subscribe((data) => {
-        /* this.toastr.success(data.message); */
+        this.toastr.success(data.message);
         this.logout();
       });
   }
@@ -66,7 +69,7 @@ export class AuthService {
     const editEmailModel: EditEmailModel = { email: email };
     this.http.put(`${BACKEND_URL}/update-email`, editEmailModel).subscribe(
       (response) => {
-        /* this.toastr.success(response['message']); */
+        this.toastr.success(Object.values(response)[0]);
         this.userService.getUser();
         // this.router.navigate(['/']);
       },
@@ -85,7 +88,7 @@ export class AuthService {
       .put(`${BACKEND_URL}/update-password`, editPasswordModel)
       .subscribe(
         (response) => {
-          /* this.toastr.success(response['message']); */
+          this.toastr.success(Object.values(response)[0]);
           // this.router.navigate(['/']);
         },
         (error) => {

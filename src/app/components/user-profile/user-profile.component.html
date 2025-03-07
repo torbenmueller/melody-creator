@@ -95,7 +95,7 @@
 			@if (numberOfModes === 0) {
 				<p class="no-margin">No scales have been used yet.</p>
 			}
-			@for (mode of modes; track mode) {
+			@for (mode of modes; track mode.key) {
 				<div class="mb-2">
 					<div class="flex-space-between">
 						<p class="no-margin">{{mode.key}}</p>

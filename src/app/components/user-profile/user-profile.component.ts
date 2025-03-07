@@ -3,7 +3,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
 import { UserService } from '../../services/user.service';
-/* import { CreationService } from '../../services/creation.service'; */
+import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -16,11 +16,11 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class UserProfileComponent implements OnInit, OnDestroy {
   private userSub!: Subscription;
-  /* private modesSub!: Subscription;
-  private melodiesSub!: Subscription; */
+  private modesSub!: Subscription;
+  private melodiesSub!: Subscription;
 
   user: any;
-  modes: any;
+  modes: any = {};
   numberOfModes: number = 0;
   modesMaxValue: number = 0;
   melodies: any = [];
@@ -35,21 +35,21 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   constructor(
     private userService: UserService,
-    /* public creationService: CreationService, */
+    public creationService: CreationService,
     public authService: AuthService,
     private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     this.getUser();
-   /*  this.getMelodies();
-    this.getModes(); */
+    this.getMelodies();
+    this.getModes();
   }
 
   ngOnDestroy(): void {
     this.userSub.unsubscribe();
-    /* this.modesSub.unsubscribe();
-    this.melodiesSub.unsubscribe(); */
+    this.modesSub.unsubscribe();
+    this.melodiesSub.unsubscribe();
   }
 
   getUser() {
@@ -64,7 +64,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       });
   }
 
-  /* getMelodies() {
+  getMelodies() {
     this.isLoading = true;
     this.creationService.getMelodies(10, 1, 'time', -1);
     this.melodiesSub = this.creationService
@@ -82,10 +82,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       .getModesUpdateListener()
       .subscribe((data: { message: string; modes: any }) => {
         this.modes = data.modes.modeValues;
+        console.log("this.modes", this.modes);
         this.numberOfModes = Object.keys(this.modes).length;
         this.modesMaxValue = data.modes.maxValue;
       });
-  } */
+  }
 
   openConfirmationDialog(): void {
     const dialogRef = this.dialog.open(ModalDialogComponent, {

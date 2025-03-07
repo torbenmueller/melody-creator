@@ -31,22 +31,25 @@
 					<span>For security reasons you will be logged out in {{seconds}} seconds. </span>
 					<a class="hand underline header-link" (click)="stayLoggedIn()">Stay logged in</a>
 				</div>
+			}
+			<span style="color: red;margin-right: 5px;">{{userIsAuthenticated}}</span>
+			<span style="color: red;margin-right: 5px;">minutes: {{minutes}}</span>
+			<span style="color: red;margin-right: 5px;">seconds: {{seconds}}</span>
+			<form class="d-flex">
+				@if (userIsAuthenticated) {
+				<a class="navbar-brand custom-tooltip" routerLink="/user-profile">
+					<i class="fas fa-user"></i>
+					<span class="tooltiptext">User profile</span>
+				</a>
 				}
-				<form class="d-flex">
-					@if (userIsAuthenticated) {
-						<a class="navbar-brand custom-tooltip" routerLink="/user-profile">
-							<i class="fas fa-user"></i>
-							<span class="tooltiptext">User profile</span>
-						</a>
-					}
-					@if (!userIsAuthenticated) {
-						<button class="btn btn-dark my-2 my-sm-0" routerLink="/auth/login">Login</button>
-						<button class="btn btn-dark my-2 my-sm-0 ms-2" routerLink="/auth/signup">Signup</button>
-					}
-					@if (userIsAuthenticated) {
-						<button class="btn btn-dark my-2 my-sm-0 ms-2" (click)="onLogout()">Logout</button>
-					}
-				</form>
+				@if (!userIsAuthenticated) {
+				<button class="btn btn-dark my-2 my-sm-0" routerLink="/auth/login">Login</button>
+				<button class="btn btn-dark my-2 my-sm-0 ms-2" routerLink="/auth/signup">Signup</button>
+				}
+				@if (userIsAuthenticated) {
+				<button class="btn btn-dark my-2 my-sm-0 ms-2" (click)="onLogout()">Logout</button>
+				}
+			</form>
 		</div>
 	</div>
 </nav>

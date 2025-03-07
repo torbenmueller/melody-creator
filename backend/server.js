@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 
 const melodiesRoutes = require('./routes/melodies');
 const userRoutes = require('./routes/user');
+require('dotenv').config();
 
 const connectToDatabase = async () => {
 	try {
