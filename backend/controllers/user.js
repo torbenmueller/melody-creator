@@ -84,8 +84,8 @@ exports.loginUser = async (req, res, next) => {
 		);
 		res.status(200).json({
 			token: token,
-			/* expiresIn: 3600, */
-			expiresIn: 10,
+			expiresIn: 3600,
+			/* expiresIn: 10, */
 			userId: fetchedUser._id
 		});
 

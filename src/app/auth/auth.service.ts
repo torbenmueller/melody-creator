@@ -19,8 +19,8 @@ export class AuthService {
   private isAuthenticated: boolean = false;
   private token!: string;
   private tokenTimer: any;
-  /* private authStatusListener = new Subject<boolean>(); */
-  private authStatusListener = new Observable<boolean>();
+  private authStatusListener = new Subject<boolean>();
+  /* private authStatusListener = new Observable<boolean>(); */
 
   constructor(
     private http: HttpClient,
@@ -39,9 +39,8 @@ export class AuthService {
   }
 
   getAuthStatusListener() {
-    console.log("getAuthStatusListener");
-    /* return this.authStatusListener.asObservable(); */
-    return this.authStatusListener;
+    return this.authStatusListener.asObservable();
+    /* return this.authStatusListener; */
   }
 
   createUser(email: string, password: string) {
@@ -114,6 +113,7 @@ export class AuthService {
             this.isAuthenticated = true;
             // this.authStatusListener.next(true);
             const now = new Date();
+            console.log("expiresInDuration", expiresInDuration);
             const expirationDate = new Date(
               now.getTime() + expiresInDuration * 1000
             );

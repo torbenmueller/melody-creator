@@ -48,7 +48,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           }
         }
       });
-      console.log("this.authListenerSubs", this.authListenerSubs);
+      /* console.log("this.authListenerSubs", this.authListenerSubs); */
   }
 
   ngOnDestroy(): void {
@@ -66,6 +66,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     let duration = this.timeLeft;
     this.countdown = setInterval(() => {
       duration = duration - 1000;
+      console.log("duration", duration);
       this.minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
       this.seconds = Math.floor((duration % (1000 * 60)) / 1000);
       if (duration < 1) {
