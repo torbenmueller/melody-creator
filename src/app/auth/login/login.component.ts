@@ -15,6 +15,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   user: any;
   isLoading: boolean = false;
   showPassword: boolean = false;
+  isAuthenticated: boolean = true;
   private authStatusSubscription!: Subscription;
 
   constructor(public authService: AuthService) {}
@@ -24,6 +25,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       .getAuthStatusListener()
       .subscribe((authStatus) => {
         this.isLoading = false;
+        this.isAuthenticated = authStatus;
       });
   }
 

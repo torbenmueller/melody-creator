@@ -2,6 +2,12 @@
 	--background-color: #eee;
 	--dashboard-blue-bg: #194EFF;
 	--dashboard-orange-bg: #FFBE0D;
+	--lightblue-color: #1998FF;
+	--darkblue-color: #2D19FF;
+	--cyan-color: #19E0FF;
+	--purple-color: #7819FF;
+	--pastellblue-color: #6F90FF;
+	--error-color: #f00;
 }
 
 body {
@@ -238,6 +244,10 @@ progress::-moz-progress-bar {
 	color: #000;
 }
 
+.transparent {
+	opacity: .5;
+}
+
 .dashboard-text {
 	font-size: 1rem;
 }
@@ -339,4 +349,8 @@ progress::-moz-progress-bar {
 
 .custom-tooltip:hover .tooltiptext {
 	opacity: 1;
+}
+
+.error-color {
+	color: var(--error-color);
 }

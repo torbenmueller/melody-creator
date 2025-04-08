@@ -21,7 +21,7 @@
 			<form (ngSubmit)="onSubmit()" #settingsForm="ngForm">
 				<div class="flex-space-between flex-wrap">
 					<div class="settings-box blue-bg me-3">
-						<div class="white-color">
+						<div class="white-color transparent">
 							<p class="subheadline inline-block mb-0">Scale</p>
 							<i class="fas fa-music ms-2"></i>
 						</div>
@@ -35,10 +35,10 @@
 							}
 						</select>
 					</div>
-					<div class="settings-box orange-bg me-3">
-						<div class="black-color">
+					<div class="settings-box purple-bg me-3">
+						<div class="white-color transparent">
 							<p class="subheadline inline-block mb-0">Key</p>
-							<i class="fas fa-music ms-2"></i>
+							<i class="fas fa-key ms-2"></i>
 						</div>
 						<p class="settings-box-header">{{settings.key}}</p>
 						<select class="form-select" id="key" required [(ngModel)]="settings.key" name="key">
@@ -50,10 +50,10 @@
 							}
 						</select>
 					</div>
-					<div class="settings-box blue-bg me-3">
-						<div class="white-color">
+					<div class="settings-box cyan-bg me-3">
+						<div class="black-color transparent">
 							<p class="subheadline inline-block mb-0">Bars</p>
-							<i class="fas fa-music ms-2"></i>
+							<i class="fas fa-hashtag ms-2"></i>
 						</div>
 						<p class="settings-box-header">{{settings.bar}}</p>
 						<select class="form-select" id="bars" required [(ngModel)]="settings.bar" name="bar">
@@ -65,10 +65,10 @@
 							}
 						</select>
 					</div>
-					<div class="settings-box blue-bg me-3">
-						<div class="white-color">
+					<div class="settings-box lightblue-bg me-3">
+						<div class="black-color transparent">
 							<p class="subheadline inline-block mb-0">Complexity</p>
-							<i class="fas fa-music ms-2"></i>
+							<i class="fas fa-project-diagram ms-2"></i>
 						</div>
 						<p class="settings-box-header">{{settings.complex}}</p>
 						<select class="form-select" id="complexity" required [(ngModel)]="settings.complex" name="complex">
@@ -80,10 +80,10 @@
 							}
 						</select>
 					</div>
-					<div class="settings-box blue-bg me-3">
-						<div class="white-color">
+					<div class="settings-box pastellblue-bg me-3">
+						<div class="black-color transparent">
 							<p class="subheadline inline-block mb-0">Beats</p>
-							<i class="fas fa-music ms-2"></i>
+							<i class="fas fa-heartbeat ms-2"></i>
 						</div>
 						<p class="settings-box-header">{{settings.beat}}</p>
 						<select class="form-select" id="beats" required [(ngModel)]="settings.beat" name="beat">
@@ -95,10 +95,10 @@
 							}
 						</select>
 					</div>
-					<div class="settings-box blue-bg">
-						<div class="white-color">
+					<div class="settings-box orange-bg">
+						<div class="black-color transparent">
 							<p class="subheadline inline-block mb-0">Name</p>
-							<i class="fas fa-music ms-2"></i>
+							<i class="fas fa-pen ms-2"></i>
 						</div>
 						<p class="settings-box-header">{{settings.name}}</p>
 						<input [(ngModel)]="settings.name" name="melodyName" type="text" class="form-control" id="inputMelodyName">

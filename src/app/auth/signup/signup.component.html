@@ -41,7 +41,10 @@
 			</ul>
 		</div>
 		@if (!isLoading) {
-			<button class="w-100 btn btn-lg btn-success" type="submit" [disabled]="!signupForm.valid">Sign up</button>
+			<button class="w-100 btn btn-lg btn-success mb-3" type="submit" [disabled]="!signupForm.valid">Sign up</button>
+		}
+		@if (!isAuthenticated) {
+			<span class="error-color">Invalid authentication credentials!</span>
 		}
 		<div class="text-center">
 			@if (isLoading) {

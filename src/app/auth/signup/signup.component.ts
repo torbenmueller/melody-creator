@@ -13,6 +13,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 export class SignupComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   showPassword: boolean = false;
+  isAuthenticated: boolean = true;
   private authStatusSubscription!: Subscription;
   private currentPassword: string = '';
   public passwordStrengthPercent: number = 0;
@@ -71,6 +72,7 @@ export class SignupComponent implements OnInit, OnDestroy {
       .getAuthStatusListener()
       .subscribe((authStatus) => {
         this.isLoading = false;
+        this.isAuthenticated = authStatus;
       });
   }
 

@@ -13,14 +13,37 @@ h3 {
 	/* height: 200px; */
 	border-radius: 10px;
 	padding: 10px;
+	border: 2px solid #000;
+	box-shadow: 5px 5px #000;
 }
 
-.blue-bg {
+/* .blue-bg {
 	background-color: var(--dashboard-blue-bg);
 }
 
 .orange-bg {
 	background-color: var(--dashboard-orange-bg);
+} */
+
+.lightblue-bg {
+	background-color: var(--lightblue-color);
+}
+
+.darkblue-bg {
+	background-color: var(--darkblue-color);
+}
+
+.cyan-bg {
+	background-color: var(--cyan-color);
+}
+
+.purple-bg {
+	background-color: var(--purple-color);
+	color: #fff;
+}
+
+.pastellblue-bg {
+	background-color: var(--pastellblue-color);
 }
 
 .settings-box-header {

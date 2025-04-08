@@ -95,13 +95,13 @@
 			@if (numberOfModes === 0) {
 				<p class="no-margin">No scales have been used yet.</p>
 			}
-			@for (mode of modes; track mode.key) {
+			@for (mode of modes; track mode) {
 				<div class="mb-2">
 					<div class="flex-space-between">
-						<p class="no-margin">{{mode.key}}</p>
-						<p class="no-margin">{{mode.value}}</p>
+						<p class="no-margin">{{mode[0]}}</p>
+						<p class="no-margin">{{mode[1]}}</p>
 					</div>
-					<progress [value]="mode.value" [max]="modesMaxValue"></progress>
+					<progress [value]="mode[1]" [max]="modesMaxValue"></progress>
 				</div>
 			}
 		</div>

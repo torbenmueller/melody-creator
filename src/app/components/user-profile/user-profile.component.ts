@@ -20,7 +20,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   private melodiesSub!: Subscription;
 
   user: any;
-  modes: any = {};
+  modes: any = [];
   numberOfModes: number = 0;
   modesMaxValue: number = 0;
   melodies: any = [];
@@ -81,7 +81,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.modesSub = this.userService
       .getModesUpdateListener()
       .subscribe((data: { message: string; modes: any }) => {
-        this.modes = data.modes.modeValues;
+        this.modes = Object.entries(data.modes.modeValues);
         console.log("this.modes", this.modes);
         this.numberOfModes = Object.keys(this.modes).length;
         this.modesMaxValue = data.modes.maxValue;
