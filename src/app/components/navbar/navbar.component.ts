@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../auth/auth.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
+import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { DOCUMENT } from '@angular/common';
 
 @Component({
@@ -29,26 +29,28 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log("Hello 1!");
     this.userIsAuthenticated = this.authService.getIsAuth();
+    console.log("1");
     this.authListenerSubs = this.authService.getAuthStatusListener()
-      .subscribe((isAuthenticated) => {
-        console.log("Hello 2!");
+    .subscribe((isAuthenticated) => {
+        console.log("2");
         this.userIsAuthenticated = isAuthenticated;
         if (isAuthenticated) {
+          console.log("3");
           const localStorage = this.document.defaultView?.localStorage;
           if (localStorage) {
+            console.log("4");
             let expiration = JSON.parse(localStorage.getItem('expiration') as string);
-            /* let expiration = localStorage.getItem('expiration'); */
-            console.log('expiration', expiration);
             let expirationTime = new Date(expiration).getTime();
             let now = new Date().getTime();
             this.timeLeft = expirationTime - now;
+            console.log("expirationTime", expirationTime);
+            console.log("now", now);
             this.countDown();
+            this.countdownTest(10);
           }
         }
       });
-      /* console.log("this.authListenerSubs", this.authListenerSubs); */
   }
 
   ngOnDestroy(): void {
@@ -60,6 +62,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
     clearInterval(this.countdown);
     this.minutes = 0;
     this.seconds = 0;
+  }
+
+  countdownTest(start: number): void {
+    const interval = setInterval(() => {
+      console.log("start", start);
+      start--;
+  
+      if (start < 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
   }
 
   countDown() {
@@ -82,8 +95,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   openConfirmationDialog(): void {
-    this.dialog.open(ModalDialogComponent, {
-      width: '300px',
+    this.dialog.open(MatModalComponent, {
+      width: '400px',
       data: {
         title: 'Automatically logged out',
         message:

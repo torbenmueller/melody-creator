@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { CreationService } from '../../services/creation.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
-import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
+import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { DatePipe, NgClass } from '@angular/common';
 
 @Component({
@@ -12,7 +12,7 @@ import { DatePipe, NgClass } from '@angular/common';
   standalone: true,
   imports: [NgClass, DatePipe, MatPaginator, MatPaginatorModule],
   templateUrl: './my-melodies.component.html',
-  styleUrl: './my-melodies.component.css'
+  styleUrl: './my-melodies.component.css',
 })
 export class MyMelodiesComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -27,7 +27,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   isPlaying!: boolean;
   melodyId: string = '';
   melodyName: string = '';
-  sortByType: string = "time";
+  sortByType: string = 'time';
   order: number = -1;
 
   dateAscending: boolean = false;
@@ -38,19 +38,26 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   beatAscending: boolean = false;
 
   filterBooleans: Array<boolean> = [false, false, false, false, false, false];
-  filterTypes: Array<string> = ["name", "key", "bar", "complex", "beat", "time"];
+  filterTypes: Array<string> = [
+    'name',
+    'key',
+    'bar',
+    'complex',
+    'beat',
+    'time',
+  ];
 
   constructor(
     public creationService: CreationService,
     private toastr: ToastrService,
     private dialog: MatDialog
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.load();
-    this.creationService.isPlaying.subscribe(e => {
-			this.isPlaying = e;
-		});
+    this.creationService.isPlaying.subscribe((e) => {
+      this.isPlaying = e;
+    });
   }
 
   ngOnDestroy(): void {
@@ -61,24 +68,37 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.currentPage = pageData.pageIndex + 1;
     this.melodiesPerPage = pageData.pageSize;
-    this.creationService.getMelodies(this.melodiesPerPage, this.currentPage, this.sortByType, this.order);
+    this.creationService.getMelodies(
+      this.melodiesPerPage,
+      this.currentPage,
+      this.sortByType,
+      this.order
+    );
   }
 
   load() {
     this.isLoading = true;
-    this.creationService.getMelodies(this.melodiesPerPage, this.currentPage, this.sortByType, this.order);
-    this.melodiesSub = this.creationService.getMelodiesUpdateListener()
-      .subscribe((data: {melodies: any, melodiesCount: number}) => {
+    this.creationService.getMelodies(
+      this.melodiesPerPage,
+      this.currentPage,
+      this.sortByType,
+      this.order
+    );
+    this.melodiesSub = this.creationService
+      .getMelodiesUpdateListener()
+      .subscribe((data: { melodies: any; melodiesCount: number }) => {
         this.melodies = data.melodies;
-        console.log("this.melodies", this.melodies);
+        console.log('this.melodies', this.melodies);
         this.totalMelodies = data.melodiesCount;
         this.isLoading = false;
       });
-	}
+  }
 
   downloadMidiFile(melodyId: any, melodyName: any) {
-    this.creationService.getMidiFile(melodyId).subscribe(response => {
-      const blob = new Blob([response.body as BlobPart], { type: 'audio/midi' });
+    this.creationService.getMidiFile(melodyId).subscribe((response) => {
+      const blob = new Blob([response.body as BlobPart], {
+        type: 'audio/midi',
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -93,16 +113,16 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     this.creationService.play(melody);
   }
 
-  openConfirmationDialog(): void {
-    const dialogRef = this.dialog.open(ModalDialogComponent, {
-      width: '300px',
+  openConfirmationDialog() {
+    const dialogRef = this.dialog.open(MatModalComponent, {
+      width: '400px',
       data: {
         title: 'Confirm Deletion',
         message: `Do you really want to delete "${this.melodyName}"?`,
       },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.delete();
       }
@@ -111,20 +131,28 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
 
   delete() {
     this.isLoading = true;
-    this.creationService.deleteMelody(this.melodyId).subscribe(item => {
-      if (this.melodiesPerPage * this.currentPage >= this.totalMelodies) {
-        this.paginator.firstPage();
-        /* this.showSuccess();
+    this.creationService.deleteMelody(this.melodyId).subscribe(
+      (item) => {
+        if (this.melodiesPerPage * this.currentPage >= this.totalMelodies) {
+          this.paginator.firstPage();
+          /* this.showSuccess();
         return; */
+        }
+        this.creationService.getMelodies(
+          this.melodiesPerPage,
+          this.currentPage,
+          this.sortByType,
+          this.order
+        );
+        this.showSuccess();
+      },
+      () => {
+        this.isLoading = false;
       }
-      this.creationService.getMelodies(this.melodiesPerPage, this.currentPage, this.sortByType, this.order);
-      this.showSuccess();
-    }, () => {
-      this.isLoading = false;
-    });
+    );
   }
 
-  openModal(melody: { _id: string; settings: { name: string; }; }) {
+  openModal(melody: { _id: string; settings: { name: string } }) {
     this.melodyId = melody._id;
     this.melodyName = melody.settings.name;
     this.openConfirmationDialog();
@@ -147,7 +175,12 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     this.sortByType = this.filterTypes[index];
     if (this.filterBooleans[index] === true) this.order = 1;
     else this.order = -1;
-    this.creationService.getMelodies(this.melodiesPerPage, this.currentPage, this.sortByType, this.order);
+    this.creationService.getMelodies(
+      this.melodiesPerPage,
+      this.currentPage,
+      this.sortByType,
+      this.order
+    );
   }
 
   toggleFilter(index: number) {

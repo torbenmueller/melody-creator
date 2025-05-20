@@ -5,6 +5,9 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
 import { AuthService } from './auth/auth.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatModalComponent } from './components/mat-modal/mat-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +18,9 @@ import { AuthService } from './auth/auth.service';
     NavbarComponent,
     HeaderComponent,
     FooterComponent,
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -22,9 +28,18 @@ import { AuthService } from './auth/auth.service';
 export class AppComponent {
   title = 'melody-creator';
 
-  constructor(public authService: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.authService.autoAuthUser();
+  }
+
+  openDialog() {
+    this.dialog.open(MatModalComponent, {
+      width: '400px'
+    });
   }
 }

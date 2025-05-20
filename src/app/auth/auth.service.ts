@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, Subject } from 'rxjs';
+import { catchError, map, Observable, Subject, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { UserService } from '../services/user.service';
@@ -40,7 +40,6 @@ export class AuthService {
 
   getAuthStatusListener() {
     return this.authStatusListener.asObservable();
-    /* return this.authStatusListener; */
   }
 
   createUser(email: string, password: string) {
@@ -96,34 +95,32 @@ export class AuthService {
       );
   }
 
-  loginUser(email: string, password: string) {
-    const authData: AuthData = { email: email, password: password };
-    this.http
-      .post<{ token: string; expiresIn: number }>(
-        `${BACKEND_URL}/login`,
-        authData
-      )
-      .subscribe(
-        (response) => {
+  loginUser(email: string, password: string): Observable<void> {
+    const authData: AuthData = { email, password };
+    return this.http
+      .post<{ token: string; expiresIn: number }>(`${BACKEND_URL}/login`, authData)
+      .pipe(
+        tap((response) => {
           const token = response.token;
           this.token = token;
           if (token) {
             const expiresInDuration = response.expiresIn;
             this.setAuthTimer(expiresInDuration);
             this.isAuthenticated = true;
-            // this.authStatusListener.next(true);
-            const now = new Date();
+            this.authStatusListener.next(true);
             console.log("expiresInDuration", expiresInDuration);
             const expirationDate = new Date(
-              now.getTime() + expiresInDuration * 1000
+              new Date().getTime() + expiresInDuration * 1000
             );
             this.saveAuthData(token, expirationDate);
             this.router.navigate(['/']);
           }
-        },
-        (error) => {
+        }),
+        catchError((error) => {
           this.authStatusListener.next(false);
-        }
+          return throwError(() => error);
+        }),
+        map(() => void 0)
       );
   }
 
@@ -134,6 +131,7 @@ export class AuthService {
     }
     const now = new Date();
     const expiresIn = authInformation.expirationDate.getTime() - now.getTime();
+    console.log("expiresIn", expiresIn);
     if (expiresIn > 0) {
       this.token = authInformation.token;
       this.isAuthenticated = true;
@@ -196,7 +194,7 @@ export class AuthService {
     if (localStorage) {
       localStorage.setItem('token', token);
       localStorage.setItem('expiration', expirationDate.toISOString());
-      this.authStatusListener.next(true);
+      // this.authStatusListener.next(true);
     }
   }
 

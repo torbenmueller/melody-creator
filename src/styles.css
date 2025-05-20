@@ -1,3 +1,5 @@
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
 :root {
 	--background-color: #eee;
 	--dashboard-blue-bg: #194EFF;

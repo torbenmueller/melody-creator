@@ -36,7 +36,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   onLogin(form: NgForm) {
     if (form.invalid) return;
     this.isLoading = true;
-    this.authService.loginUser(form.value.email, form.value.password);
+    this.authService.loginUser(form.value.email, form.value.password).subscribe({
+      next: () => {
+        console.log('Login successful');
+      },
+      error: (err) => {
+        console.log('Login failed', err);
+      }
+    });
   }
 
   togglePasswordVisibility() {

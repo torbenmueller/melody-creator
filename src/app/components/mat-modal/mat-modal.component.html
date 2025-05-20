@@ -1,0 +1,23 @@
+<h1 mat-dialog-title>{{ data.title }}</h1>
+<div mat-dialog-content>
+  <p>{{ data.message }}</p>
+</div>
+
+@switch (data.title) {
+  @case ('Confirm Deletion') {
+    <mat-dialog-actions>
+      <button type="button" class="btn btn-secondary me-2" mat-dialog-close>No</button>
+      <button type="button" class="btn btn-danger" (click)="onConfirm()">Yes</button>
+    </mat-dialog-actions>
+  }
+  @case ('Automatically logged out') {
+    <mat-dialog-actions>
+      <button type="button" class="btn btn-dark" mat-dialog-close routerLink="/auth/login">Login</button>
+    </mat-dialog-actions>
+  }
+  @case ('An error occurred!') {
+    <mat-dialog-actions>
+      <button class="btn btn-secondary" mat-dialog-close>Close</button>
+    </mat-dialog-actions>
+  }
+}

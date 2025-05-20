@@ -7,6 +7,7 @@ import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { MarnonicMinorModifications } from '../interfaces/marnonic-minor-modifications';
+import { ToastrService } from 'ngx-toastr';
 
 const BACKEND_URL = environment.apiUrl + "/melodies";
 
@@ -20,16 +21,19 @@ export class CreationService {
 	keepMelody = [];
 	maxInterval: number = 4;
 	intervalCheck: number[] = [];
+	sampler!: Tone.Sampler;
 
-	/* sampler = new Tone.Sampler({
-		urls: {
-			"C3": "piano_c3.mp3",
-			"C4": "piano_c4.mp3",
-			"C5": "piano_c5.mp3"
-		},
-		release: 1,
-		baseUrl: "../../assets/",
-	}).toDestination(); */
+	initSampler() {
+		this.sampler = new Tone.Sampler({
+			urls: {
+				"C3": "piano_c3.mp3",
+				"C4": "piano_c4.mp3",
+				"C5": "piano_c5.mp3"
+			},
+			release: 1,
+			baseUrl: "../../assets/",
+		}).toDestination();
+	}
 
 	harmonies = ["t", "s", "d", "tp"];
 
@@ -93,7 +97,8 @@ export class CreationService {
 
 	constructor(
 		private http: HttpClient,
-		private router: Router
+		private router: Router,
+		private toastr: ToastrService
 	) { }
 
 	addMelody(melody: object) {
@@ -103,10 +108,11 @@ export class CreationService {
 		}
 		this.http.post<{message: string}>(BACKEND_URL, post)
 			.subscribe((responseData) => {
-				this.router.navigate(['/melodies']);
+				/* this.router.navigate(['/melodies']);
 				this.setValuesToEmptyString(this.settings);
 				this.melody = [];
-				this.getScoreData();
+				this.getScoreData(); */
+				this.toastr.success(responseData.message);
 			});
 	}
 
@@ -417,7 +423,6 @@ export class CreationService {
 
 	setMelodyAndSettings() {
 		this.getScoreData();
-		/* this.playMelody(); */
 	}
 
 	getScoreData() {
@@ -431,26 +436,29 @@ export class CreationService {
 	}
 
 	playMelody() {
-		console.log("this.melody", this.melody);
+		this.initSampler();
 		const now = Tone.now();
 		let duration = 0;
 		let bpm = 120;
 		let tempo = (60 / bpm) * 4;
-		/* Tone.loaded().then(() => {
+
+		Tone.loaded().then(() => {
 			this.melody.forEach((tone, index) => {
 				this.sampler.triggerAttackRelease(this.melody[index].note, this.melody[index].time, now + duration);
-				duration += (1 / parseInt(this.melody[index].time.charAt(0))) * tempo;
+				duration += Tone.Time(this.melody[index].time).toSeconds();
 				this.isPlaying.next(true);
 			});
-		}); */
-		let timeLeft = Math.round(duration * 10) / 10;
-		let countdown = setInterval(() => {
-			if (timeLeft <= 0) {
-				clearInterval(countdown);
-				this.isPlaying.next(false);
-			}
-			timeLeft -= 1;
-		}, 1000)
+
+
+			let timeLeft = Math.round(duration * 10) / 10;
+			let countdown = setInterval(() => {
+				if (timeLeft <= 0) {
+					clearInterval(countdown);
+					this.isPlaying.next(false);
+				}
+				timeLeft -= 1;
+			}, 1000);
+		});
 	}
 
 	save() {

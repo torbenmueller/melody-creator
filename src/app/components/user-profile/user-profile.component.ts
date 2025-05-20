@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { ModalDialogComponent } from '../modal-dialog/modal-dialog.component';
+import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { UserService } from '../../services/user.service';
 import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
@@ -89,8 +89,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   openConfirmationDialog(): void {
-    const dialogRef = this.dialog.open(ModalDialogComponent, {
-      width: '300px',
+    const dialogRef = this.dialog.open(MatModalComponent, {
+      width: '400px',
       data: {
         title: 'Confirm Deletion',
         message: 'Do you really want to delete your account?',

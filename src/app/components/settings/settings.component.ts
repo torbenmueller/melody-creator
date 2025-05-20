@@ -96,13 +96,10 @@ export class SettingsComponent {
     this.melodyDescription = this.setDescription(this.settings);
   }
 
-  play() {
-  //attach a click listener to a play button
-  document.querySelector("playMelody")?.addEventListener("click", async () => {
+  async play(): Promise<void> {
     await Tone.start();
-    console.log("audio is ready");
+    console.log('audio is ready');
     this.creationService.playMelody();
-  });
   }
 
   save() {
