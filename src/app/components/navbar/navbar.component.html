@@ -3,7 +3,7 @@
 		<!-- <a class="navbar-brand" routerLink="/">
 			<img src="../../../assets/microphone-307365.svg" width="30" height="30" class="d-inline-block align-top me-1" alt="logo" loading="lazy">
 		  </a> -->
-		<a class="navbar-brand" routerLink="/">Melody Creator</a>
+		<a class="navbar-brand app-title bold" routerLink="/">Melody Creator</a>
 		<button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse"
 			data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
 			aria-label="Toggle navigation">
@@ -41,11 +41,11 @@
 						<i class="fas fa-user"></i>
 						<span class="tooltiptext">User profile</span>
 					</a>
-					<button class="btn btn-dark my-2 my-sm-0 ms-2" (click)="onLogout()">Logout</button>
+					<button class="btn primary-button my-2 my-sm-0" (click)="onLogout()">Logout</button>
 				}
 				@else {
-					<button class="btn btn-dark my-2 my-sm-0" routerLink="/auth/login">Login</button>
-					<button class="btn btn-dark my-2 my-sm-0 ms-2" routerLink="/auth/signup">Signup</button>
+					<button class="btn primary-button my-2 my-sm-0" routerLink="/auth/login">Login</button>
+					<button class="btn btn-light my-2 my-sm-0 ms-3" routerLink="/auth/signup">Signup</button>
 				}
 			</form>
 		</div>

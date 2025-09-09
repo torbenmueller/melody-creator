@@ -1,171 +1,144 @@
-<div class="row title-row">
-	<div class="col-12 center-v mb-2">
-		<h2 class="title">Home</h2>
-		<i class="fas fa-home big-icon"></i>
-	</div>
-	<div class="col-12">
-		<p>Choose your settings</p>
-	</div>
-	<!-- ToDo: Spinner Position -->
-	@if (isLoading) {
+<div class="container">
+	<div class="row title-row">
+		<div class="col-12">
+			<h2 class="purple-color">Customize Your Melody</h2>
+		</div>
+		<div class="col-12">
+			<p>Fine-tune your composition parameters</p>
+		</div>
+		<!-- ToDo: Spinner Position -->
+		@if (isLoading) {
 		<div class="col-12 center">
 			<div class="spinner-border" role="status">
 				<span class="sr-only">Loading...</span>
 			</div>
 		</div>
-	}
-</div>
-<div class="row">
-	<div class="col-12">
-		@if (!isLoading) {
+		}
+	</div>
+	<div class="row">
+		<div class="col-12">
+			@if (!isLoading) {
 			<form (ngSubmit)="onSubmit()" #settingsForm="ngForm">
-				<div class="flex-space-between flex-wrap">
-					<div class="settings-box blue-bg me-3">
-						<div class="white-color transparent">
-							<p class="subheadline inline-block mb-0">Scale</p>
-							<i class="fas fa-music ms-2"></i>
+				<div class="settings-grid">
+					<app-setting category="Scale" icon="fas fa-music" [settings]="settings" [options]="scales" (selectedOption)="onScaleChange($event)"></app-setting>
+					<!-- <div class="settings-box">
+						<div>
+							<p class="subheadline inline-block mb-0 white-color transparent">
+								Scale
+							</p>
+							<i class="fas fa-music ms-2 purple-color"></i>
 						</div>
-						<p class="settings-box-header">{{settings.scale}}</p>
-						<select class="form-select" id="scale" required [(ngModel)]="settings.scale" name="scale">
-							<option value="" [selected]="settings.scale" disabled>Select a scale</option>
-							@for (scale of scales; track scale) {
-								<option [value]="scale">
-									{{scale}}
-								</option>
-							}
-						</select>
+						<p class="settings-box-header">{{ settings.scale }}</p>
+						<app-dropdown [options]="scales" [selectedOption]="settings.scale"
+							(selectedOptionChange)="onScaleChange($event)" placeholder="Select a scale"
+							aria-label="Scale selector">
+						</app-dropdown>
+					</div> -->
+					<div class="settings-box">
+						<div>
+							<p class="subheadline inline-block mb-0 white-color transparent">
+								Key
+							</p>
+							<i class="fas fa-key ms-2 purple-color"></i>
+						</div>
+						<p class="settings-box-header">{{ settings.key }}</p>
+						<app-dropdown [options]="keys" [selectedOption]="settings.key"
+							(selectedOptionChange)="onKeyChange($event)" placeholder="Select a key"
+							aria-label="Key selector">
+						</app-dropdown>
 					</div>
-					<div class="settings-box purple-bg me-3">
-						<div class="white-color transparent">
-							<p class="subheadline inline-block mb-0">Key</p>
-							<i class="fas fa-key ms-2"></i>
+					<div class="settings-box">
+						<div>
+							<p class="subheadline inline-block mb-0 white-color transparent">
+								Bars
+							</p>
+							<i class="fas fa-hashtag ms-2 purple-color"></i>
 						</div>
-						<p class="settings-box-header">{{settings.key}}</p>
-						<select class="form-select" id="key" required [(ngModel)]="settings.key" name="key">
-							<option value="" [selected]="settings.key" disabled>Select a key</option>
-							@for (key of keys; track key) {
-								<option [value]="key">
-									{{key}}
-								</option>
-							}
-						</select>
-					</div>
-					<div class="settings-box cyan-bg me-3">
-						<div class="black-color transparent">
-							<p class="subheadline inline-block mb-0">Bars</p>
-							<i class="fas fa-hashtag ms-2"></i>
-						</div>
-						<p class="settings-box-header">{{settings.bar}}</p>
-						<select class="form-select" id="bars" required [(ngModel)]="settings.bar" name="bar">
-							<option value="" [selected]="settings.bar" disabled>Select bars</option>
+						<p class="settings-box-header">{{ settings.bar }}</p>
+						<select class="form-select" id="bars" required [(ngModel)]="settings.bar" name="bar"
+							aria-label="Bars">
+							<option value="" disabled>Select bars</option>
 							@for (bar of bars; track bar) {
-								<option [value]="bar">
-									{{bar}}
-								</option>
+							<option [value]="bar">
+								{{ bar }}
+							</option>
 							}
 						</select>
 					</div>
-					<div class="settings-box lightblue-bg me-3">
-						<div class="black-color transparent">
-							<p class="subheadline inline-block mb-0">Complexity</p>
-							<i class="fas fa-project-diagram ms-2"></i>
+					<div class="settings-box">
+						<div>
+							<p class="subheadline inline-block mb-0 white-color transparent">
+								Complexity
+							</p>
+							<i class="fas fa-project-diagram ms-2 purple-color"></i>
 						</div>
-						<p class="settings-box-header">{{settings.complex}}</p>
-						<select class="form-select" id="complexity" required [(ngModel)]="settings.complex" name="complex">
-							<option value="" [selected]="settings.complex" disabled>Select complexity</option>
+						<p class="settings-box-header">{{ settings.complex }}</p>
+						<select class="form-select" id="complexity" required [(ngModel)]="settings.complex"
+							name="complex" aria-label="Complexity">
+							<option value="" disabled>Select complexity</option>
 							@for (complex of complexity; track complex) {
-								<option [value]="complex">
-									{{complex}}
-								</option>
+							<option [value]="complex">
+								{{ complex }}
+							</option>
 							}
 						</select>
 					</div>
-					<div class="settings-box pastellblue-bg me-3">
-						<div class="black-color transparent">
-							<p class="subheadline inline-block mb-0">Beats</p>
-							<i class="fas fa-heartbeat ms-2"></i>
+					<div class="settings-box">
+						<div>
+							<p class="subheadline inline-block mb-0 white-color transparent">
+								Beats
+							</p>
+							<i class="fas fa-heartbeat ms-2 purple-color"></i>
 						</div>
-						<p class="settings-box-header">{{settings.beat}}</p>
-						<select class="form-select" id="beats" required [(ngModel)]="settings.beat" name="beat">
-							<option value="" [selected]="settings.beat" disabled>Select a beat</option>
+						<p class="settings-box-header">{{ settings.beat }}</p>
+						<select class="form-select" id="beats" required [(ngModel)]="settings.beat" name="beat"
+							aria-label="Beats">
+							<option value="" disabled>Select a beat</option>
 							@for (beat of beats; track beat) {
-								<option [value]="beat">
-									{{beat}}
-								</option>
+							<option [value]="beat">
+								{{ beat }}
+							</option>
 							}
 						</select>
 					</div>
-					<div class="settings-box orange-bg">
-						<div class="black-color transparent">
-							<p class="subheadline inline-block mb-0">Name</p>
-							<i class="fas fa-pen ms-2"></i>
+					<div class="settings-box">
+						<div>
+							<p class="subheadline inline-block mb-0 white-color transparent">
+								Name
+							</p>
+							<i class="fas fa-pen ms-2 purple-color"></i>
 						</div>
-						<p class="settings-box-header">{{settings.name}}</p>
-						<input [(ngModel)]="settings.name" name="melodyName" type="text" class="form-control" id="inputMelodyName">
+						<p class="settings-box-header">{{ settings.name }}</p>
+						<input [(ngModel)]="settings.name" name="melodyName" type="text" class="form-control"
+							id="inputMelodyName" aria-label="Melody Name" />
 					</div>
 				</div>
-				<!-- <div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text">Scale</span>
-					</div>
-					<select class="form-select" id="scale" required [(ngModel)]="settings.scale" name="scale">
-						<option *ngFor="let scale of scales" [value]="scale">
-							{{scale}}
-						</option>
-					</select>
-					<div class="input-group-prepend">
-						<span class="input-group-text">Key</span>
-					</div>
-					<select class="form-select" id="key" required [(ngModel)]="settings.key" name="key">
-						<option *ngFor="let key of keys" [value]="key">
-							{{key}}
-						</option>
-					</select>
-					<div class="input-group-prepend">
-						<span class="input-group-text">Bars</span>
-					</div>
-					<select class="form-select" id="bars" required [(ngModel)]="settings.bar" name="bar">
-						<option *ngFor="let bar of bars" [value]="bar">
-							{{bar}}
-						</option>
-					</select>
-					<div class="input-group-prepend">
-						<span class="input-group-text">Complexity</span>
-					</div>
-					<select class="form-select" id="complexity" required [(ngModel)]="settings.complex" name="complex">
-						<option *ngFor="let complex of complexity" [value]="complex">
-							{{complex}}
-						</option>
-					</select>
-					<div class="input-group-prepend">
-						<span class="input-group-text">Beats</span>
-					</div>
-					<select class="form-select" id="beats" required [(ngModel)]="settings.beat" name="beat">
-						<option *ngFor="let beat of beats" [value]="beat">
-							{{beat}}
-						</option>
-					</select>
-				</div> -->
-			
-				<!-- <label for="inputMelodyName" class="form-label mt-4">Melody name</label>
-				<div class="input-group" style="width: 50%">
-					<input [(ngModel)]="settings.name" name="melodyName" type="text" class="form-control" id="inputMelodyName">
-				</div> -->
-			
-				<div class="text-center my-4">
-					<button id="create" [disabled]="isPlaying" type="submit" class="btn btn-dark">Create</button>
-					<button id="playMelody" [disabled]="isPlaying || melody === undefined && intervals === undefined" type="button" (click)="play()" class="btn btn-dark ms-2 me-2">Play</button>
+				<div class="text-center mt-4">
+					<button id="create" [disabled]="isPlaying" type="submit" class="btn primary-button">
+						Create
+					</button>
+					<button id="playMelody" [disabled]="
+              isPlaying || (melody === undefined && intervals === undefined)
+            " type="button" (click)="play()" class="btn btn-light ms-3">
+						Play
+					</button>
 					@if (userIsAuthenticated) {
-						<button [disabled]="isPlaying || melody === undefined && intervals === undefined" type="button" (click)="save()" class="btn btn-dark">Save</button>
+					<button [disabled]="
+              isPlaying || (melody === undefined && intervals === undefined)
+            " type="button" (click)="save()" class="btn btn-success ms-3">
+						Save
+					</button>
 					}
 				</div>
 			</form>
-		}
-		@if (melody) {
+			} @if (melody) {
 			<div>
-				<p>{{melodyDescription}}</p>
+				<p>{{ melodyDescription }}</p>
 			</div>
-		}
-		<app-score></app-score>
+			}
+			<div class="white-bg">
+				<app-score></app-score>
+			</div>
+		</div>
 	</div>
 </div>

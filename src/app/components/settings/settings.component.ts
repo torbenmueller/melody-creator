@@ -1,16 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, HostListener } from '@angular/core';
 import { Settings } from '../../interfaces/settings';
 import { Subscription } from 'rxjs';
 import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
 import { FormsModule } from '@angular/forms';
 import { ScoreComponent } from '../score/score.component';
+import { DropdownComponent } from '../shared/dropdown/dropdown.component';
 import * as Tone from 'tone';
+import { SettingComponent } from "../shared/setting/setting.component";
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, ScoreComponent],
+  imports: [FormsModule, ScoreComponent, DropdownComponent, SettingComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -58,11 +60,14 @@ export class SettingsComponent {
   userIsAuthenticated: boolean = false;
   isPlaying: boolean = false;
 
+
   private authListenerSubs!: Subscription;
+Scale: any;
 
   constructor(
     public creationService: CreationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private elementRef: ElementRef
   ) {}
 
   ngOnInit(): void {
@@ -127,11 +132,11 @@ export class SettingsComponent {
     return description;
   }
 
-  selectScale(scale: string) {
+  onScaleChange(scale: string): void {
     this.settings.scale = scale;
   }
 
-  selectKey(key: string) {
+  onKeyChange(key: string): void {
     this.settings.key = key;
   }
 }

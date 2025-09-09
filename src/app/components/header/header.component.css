@@ -1,31 +1,21 @@
 h1 {
 	/* display: inline-block; */
 	font-size: 4rem;
+	line-height: 1;
 }
 
 /* img {
 	display: inline-block;
   } */
 
-.content {
-	display: flex;
-	height: 15rem;
-	justify-content: center;
-	align-items: center;
-	/* flex-wrap: wrap; */
-}
-
 .bgr-top {
-	background-color: #FFED00;
-	height: 17.5rem;
+	background-color: var(--background-color-3);
+	/* height: 17.5rem;
 	width: 100%;
 	font-family: 'Amatic SC', cursive;
 	font-weight: bold;
-	/* margin: 0 0 20px 0; */
 	margin: 0;
-	overflow: hidden;
-	/* box-shadow: 0 5px 20px #757575; */
-	border-bottom: 2px solid #000;
+	overflow: hidden; */
 }
 
 .image-top {
@@ -34,7 +24,15 @@ h1 {
 }
 
 .my-auto {
-	background-color: #FFED00;
+	background-color: var(--background-color-3);
+}
+
+.header-title {
+	width: 40rem
+}
+
+.container {
+	min-height: 0;
 }
 
 @media (max-width: 600px) {

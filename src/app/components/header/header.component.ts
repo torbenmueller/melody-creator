@@ -9,7 +9,5 @@ import { Component } from '@angular/core';
 })
 export class HeaderComponent {
 
-  title1: string = "Your next beautiful melody";
-  title2: string = "is just one click away!";
-
+  title: string = "Unleash Your Musical Creativity";
 }

@@ -1,6 +1,5 @@
 <app-navbar></app-navbar>
-<app-header></app-header>
-<div class="container">
-	<router-outlet />
-</div>
+<app-header *ngIf="router.url === '/'"></app-header>
+<router-outlet />
+<hr class="hr-style" />
 <app-footer></app-footer>

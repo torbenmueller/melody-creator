@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { FooterComponent } from './components/footer/footer.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { CommonModule } from '@angular/common';
@@ -26,11 +26,13 @@ import { MatModalComponent } from './components/mat-modal/mat-modal.component';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
+  /* [x: string]: any; */
   title = 'melody-creator';
 
   constructor(
     public authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public router: Router
   ) {}
 
   ngOnInit(): void {

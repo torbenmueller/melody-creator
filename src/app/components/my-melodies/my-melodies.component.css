@@ -1,10 +1,17 @@
-.btn-primary {
-	background-color: #FC5F23;
+mat-paginator {
+	/* background-color: var(--background-color);
+	color: var(--white-color); */
+	margin-top: 1rem;
+	color: red;
 }
 
-mat-paginator {
-	background-color: var(--background-color);
-	margin-top: 1rem;
+.mat-mdc-text-field-wrapper {
+	color: red;
+}
+
+mat-paginator .mat-mdc-paginator-container {
+	min-height: 48px !important;
+	color: red;
 }
 
 .disabled {
@@ -58,6 +65,24 @@ mat-paginator {
 	--bs-modal-header-border-width: 0;
 	--bs-modal-footer-border-width: 0;
 	/* overflow: inherit !important; */
+}
+
+.melodies-table {
+	border: 1px solid var(--border-color);
+	background-color: var(--background-color);
+}
+
+.card-header {
+	color: var(--white)
+}
+
+.melody-action {
+	opacity: 0.5;
+	transition: opacity 0.3s;
+}
+
+.melody-action:hover {
+	opacity: 1;
 }
 
 /* body .modal-open[style] {
