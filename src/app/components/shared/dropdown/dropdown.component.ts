@@ -14,43 +14,35 @@ import { CommonModule } from '@angular/common';
   templateUrl: './dropdown.component.html',
   styleUrls: ['./dropdown.component.css'],
 })
-export class DropdownComponent<T> {
-  @Input() options: T[] = [];
-  @Input() selectedOption: T | null = null;
-  @Input() placeholder: string = 'Select an option';
-  @Input() displayFn: (option: T) => string = (option: T) => String(option);
-
-  /* @Output() selectedOptionChange = new EventEmitter<T>(); */
-
+export class DropdownComponent {
+  @Input() options: string[] = [];
+  @Input() selectedOption: string | null = null;
+  @Input() placeholder: string = '';
+  @Input() ariaLabel: string = '';
+  
   @Output() selectedOptionChange = new EventEmitter<string>();
 
-  selectOption(option: T) {
-    this.selectedOptionChange.emit(this.displayFn(option));
+  isOpen = false;
+
+  selectOption(option: string): void {
+    this.selectedOption = option;
+    this.selectedOptionChange.emit(option);
     this.isOpen = false;
   }
-
-  isOpen = false;
 
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
   }
 
-  /* selectOption(option: T, event: Event): void {
-    event.stopPropagation();
-    this.selectedOption = option;
-    this.selectedOptionChange.emit(option);
-    this.isOpen = false;
-  } */
-
   @HostListener('document:click', ['$event'])
-  onClickOutside(event: Event) {
+  onClickOutside(event: Event): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.custom-dropdown')) {
       this.isOpen = false;
     }
   }
 
-  trackByFn(index: number, item: T): number {
-    return index;
+  trackByFn(index: number, item: string): string {
+    return `${index}-${item}`;
   }
 }

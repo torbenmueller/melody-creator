@@ -26,7 +26,6 @@ import { MatModalComponent } from './components/mat-modal/mat-modal.component';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
-  /* [x: string]: any; */
   title = 'melody-creator';
 
   constructor(

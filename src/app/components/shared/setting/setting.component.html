@@ -5,8 +5,13 @@
 		</p>
 		<i class="{{ icon }} ms-2 purple-color"></i>
 	</div>
-	<p class="settings-box-header">{{ settings.scale }}</p>
-	<app-dropdown [options]="options" [selectedOption]="settings.scale" (selectedOptionChange)="handleSelectedOptionChange($event)">
-		placeholder="Select a {{ category }}" aria-label="{{ category }} selector">
+	<p class="settings-box-header">{{ settings[setting] }}</p>
+	<app-dropdown
+		[options]="stringOptions"
+		[selectedOption]="settings[setting] !== undefined ? settings[setting].toString() : null"
+		(selectedOptionChange)="handleSelectedOptionChange($event)"
+		[placeholder]="'Select a ' + category"
+		[ariaLabel]="category + ' selector'"
+	>
 	</app-dropdown>
 </div>

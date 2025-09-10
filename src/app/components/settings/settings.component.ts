@@ -62,7 +62,7 @@ export class SettingsComponent {
 
 
   private authListenerSubs!: Subscription;
-Scale: any;
+  Scale: any;
 
   constructor(
     public creationService: CreationService,
@@ -138,5 +138,17 @@ Scale: any;
 
   onKeyChange(key: string): void {
     this.settings.key = key;
+  }
+
+  onBarChange(bar: string): void {
+    this.settings.bar = Number(bar);
+  }
+
+  onComplexityChange(complex: string): void {
+    this.settings.complex = complex;
+  }
+
+  onBeatChange(beat: string): void {
+    this.settings.beat = beat;
   }
 }

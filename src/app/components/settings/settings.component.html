@@ -20,87 +20,46 @@
 			@if (!isLoading) {
 			<form (ngSubmit)="onSubmit()" #settingsForm="ngForm">
 				<div class="settings-grid">
-					<app-setting category="Scale" icon="fas fa-music" [settings]="settings" [options]="scales" (selectedOption)="onScaleChange($event)"></app-setting>
-					<!-- <div class="settings-box">
-						<div>
-							<p class="subheadline inline-block mb-0 white-color transparent">
-								Scale
-							</p>
-							<i class="fas fa-music ms-2 purple-color"></i>
-						</div>
-						<p class="settings-box-header">{{ settings.scale }}</p>
-						<app-dropdown [options]="scales" [selectedOption]="settings.scale"
-							(selectedOptionChange)="onScaleChange($event)" placeholder="Select a scale"
-							aria-label="Scale selector">
-						</app-dropdown>
-					</div> -->
-					<div class="settings-box">
-						<div>
-							<p class="subheadline inline-block mb-0 white-color transparent">
-								Key
-							</p>
-							<i class="fas fa-key ms-2 purple-color"></i>
-						</div>
-						<p class="settings-box-header">{{ settings.key }}</p>
-						<app-dropdown [options]="keys" [selectedOption]="settings.key"
-							(selectedOptionChange)="onKeyChange($event)" placeholder="Select a key"
-							aria-label="Key selector">
-						</app-dropdown>
-					</div>
-					<div class="settings-box">
-						<div>
-							<p class="subheadline inline-block mb-0 white-color transparent">
-								Bars
-							</p>
-							<i class="fas fa-hashtag ms-2 purple-color"></i>
-						</div>
-						<p class="settings-box-header">{{ settings.bar }}</p>
-						<select class="form-select" id="bars" required [(ngModel)]="settings.bar" name="bar"
-							aria-label="Bars">
-							<option value="" disabled>Select bars</option>
-							@for (bar of bars; track bar) {
-							<option [value]="bar">
-								{{ bar }}
-							</option>
-							}
-						</select>
-					</div>
-					<div class="settings-box">
-						<div>
-							<p class="subheadline inline-block mb-0 white-color transparent">
-								Complexity
-							</p>
-							<i class="fas fa-project-diagram ms-2 purple-color"></i>
-						</div>
-						<p class="settings-box-header">{{ settings.complex }}</p>
-						<select class="form-select" id="complexity" required [(ngModel)]="settings.complex"
-							name="complex" aria-label="Complexity">
-							<option value="" disabled>Select complexity</option>
-							@for (complex of complexity; track complex) {
-							<option [value]="complex">
-								{{ complex }}
-							</option>
-							}
-						</select>
-					</div>
-					<div class="settings-box">
-						<div>
-							<p class="subheadline inline-block mb-0 white-color transparent">
-								Beats
-							</p>
-							<i class="fas fa-heartbeat ms-2 purple-color"></i>
-						</div>
-						<p class="settings-box-header">{{ settings.beat }}</p>
-						<select class="form-select" id="beats" required [(ngModel)]="settings.beat" name="beat"
-							aria-label="Beats">
-							<option value="" disabled>Select a beat</option>
-							@for (beat of beats; track beat) {
-							<option [value]="beat">
-								{{ beat }}
-							</option>
-							}
-						</select>
-					</div>
+					<app-setting
+						category="Scale"
+						icon="fas fa-music"
+						[settings]="settings"
+						setting="scale"
+						[options]="scales"
+						(selectedOption)="onScaleChange($event)">
+					</app-setting>
+					<app-setting
+						category="Key"
+						icon="fas fa-key"
+						[settings]="settings"
+						setting="key"
+						[options]="keys"
+						(selectedOption)="onKeyChange($event)">
+					</app-setting>
+					<app-setting
+						category="Bars"
+						icon="fas fa-hashtag"
+						[settings]="settings"
+						setting="bar"
+						[options]="bars"
+						(selectedOption)="onBarChange($event)">
+					</app-setting>
+					<app-setting
+						category="Complexity"
+						icon="fas fa-project-diagram"
+						[settings]="settings"
+						setting="complex"
+						[options]="complexity"
+						(selectedOption)="onComplexityChange($event)">
+					</app-setting>
+					<app-setting
+						category="Beats"
+						icon="fas fa-heartbeat"
+						[settings]="settings"
+						setting="beat"
+						[options]="beats"
+						(selectedOption)="onBeatChange($event)">
+					</app-setting>
 					<div class="settings-box">
 						<div>
 							<p class="subheadline inline-block mb-0 white-color transparent">
