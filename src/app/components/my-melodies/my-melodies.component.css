@@ -73,7 +73,12 @@ mat-paginator .mat-mdc-paginator-container {
 }
 
 .card-header {
-	color: var(--white)
+	color: var(--white);
+}
+
+.card-header,
+.list-group-item {
+	padding: 1rem;
 }
 
 .melody-action {

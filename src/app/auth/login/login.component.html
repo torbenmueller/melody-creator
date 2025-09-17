@@ -2,7 +2,9 @@
 	<div class="form-signin">
 		<form (submit)="onLogin(loginForm)" #loginForm="ngForm">
 			<div class="text-center">
-				<i class="fas fa-sign-in-alt sign-in-icon"></i>
+				<div class="icon-container">
+					<i class="fas fa-sign-in-alt sign-in-icon"></i>
+				</div>
 				<h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 			</div>
 			<div class="mb-3">
@@ -10,7 +12,7 @@
 				<input name="email" type="email" ngModel class="form-control" id="floatingInput" placeholder="E-Mail"
 					#emailInput="ngModel" required>
 			</div>
-			<div class="mb-3">
+			<div class="mb-40">
 				<label for="floatingPassword">Password</label>
 				<div class="relative">
 					<input name="password" [type]="showPassword ? 'text' : 'password'" ngModel
@@ -24,17 +26,19 @@
 				<button class="w-100 btn btn-lg btn-success mb-3" type="submit"
 					[disabled]="!loginForm.valid">Sign in</button>
 			}
+			@if (isLoading) {
+				<div class="text-center">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+				</div>
+			}
 			@if (!isAuthenticated) {
-				<p class="error-color">Wrong Email address or password</p>
+				<p class="text-center error-color">Wrong Email address or password</p>
 			}
 			<div class="text-center">
 				<a class="forgot-password" routerLink="/auth/forgot-password">Forgot password?</a>
 			</div>
-			@if (isLoading) {
-				<div class="spinner-border" role="status">
-					<span class="sr-only">Loading...</span>
-				</div>
-			}
 		</form>
 	</div>
 </div>

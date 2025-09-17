@@ -38,32 +38,41 @@ export class ScoreComponent implements OnInit {
     const VF = Vex.Flow;  
 
     const div = this.document.getElementById("score")! as HTMLDivElement;
-    const div2 = this.document.getElementById("score2")! as HTMLDivElement;
-    const div3 = this.document.getElementById("score3")! as HTMLDivElement;
-
+    
+    // Clear existing content
     if (div.hasChildNodes()) {
       div.removeChild(div.childNodes[0]);
     }
-    if (div2.hasChildNodes()) {
-      div2.removeChild(div2.childNodes[0]);
-    }
-    if (div3.hasChildNodes()) {
-      div3.removeChild(div3.childNodes[0]);
-    }
 
+    // Create first renderer (always needed)
     const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
     renderer.resize(1202, 120);
     const context = renderer.getContext();
-
-    const renderer2 = new VF.Renderer(div2, VF.Renderer.Backends.SVG);
-    if (this.melodySettings.bar > 2) renderer2.resize(1202, 120);
-    else renderer2.resize(0, 0);
-    const context2 = renderer2.getContext();
-
-    const renderer3 = new VF.Renderer(div3, VF.Renderer.Backends.SVG);
-    if (this.melodySettings.bar > 4) renderer3.resize(1202, 120);
-    else renderer3.resize(0, 0);
-    const context3 = renderer3.getContext();
+    
+    let context2: any = null;
+    let context3: any = null;
+    
+    // Only create second renderer if we have more than 2 bars
+    if (this.melodySettings.bar > 2) {
+      const div2 = this.document.getElementById("score2")! as HTMLDivElement;
+      if (div2.hasChildNodes()) {
+        div2.removeChild(div2.childNodes[0]);
+      }
+      const renderer2 = new VF.Renderer(div2, VF.Renderer.Backends.SVG);
+      renderer2.resize(1202, 120);
+      context2 = renderer2.getContext();
+      
+      // Only create third renderer if we have more than 4 bars
+      if (this.melodySettings.bar > 4) {
+        const div3 = this.document.getElementById("score3")! as HTMLDivElement;
+        if (div3.hasChildNodes()) {
+          div3.removeChild(div3.childNodes[0]);
+        }
+        const renderer3 = new VF.Renderer(div3, VF.Renderer.Backends.SVG);
+        renderer3.resize(1202, 120);
+        context3 = renderer3.getContext();
+      }
+    }
 
     this.createMeasures(this.melodySettings, context, context2, context3);
   }

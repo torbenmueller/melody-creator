@@ -4,7 +4,7 @@
 			<h2 class="purple-color">Customize Your Melody</h2>
 		</div>
 		<div class="col-12">
-			<p>Fine-tune your composition parameters</p>
+			<p class="white-color">Fine-tune your composition parameters</p>
 		</div>
 		<!-- ToDo: Spinner Position -->
 		@if (isLoading) {
@@ -20,45 +20,20 @@
 			@if (!isLoading) {
 			<form (ngSubmit)="onSubmit()" #settingsForm="ngForm">
 				<div class="settings-grid">
-					<app-setting
-						category="Scale"
-						icon="fas fa-music"
-						[settings]="settings"
-						setting="scale"
-						[options]="scales"
-						(selectedOption)="onScaleChange($event)">
+					<app-setting category="Scale" icon="fas fa-music" [settings]="settings" setting="scale"
+						[options]="scales" (selectedOption)="onScaleChange($event)">
 					</app-setting>
-					<app-setting
-						category="Key"
-						icon="fas fa-key"
-						[settings]="settings"
-						setting="key"
-						[options]="keys"
+					<app-setting category="Key" icon="fas fa-key" [settings]="settings" setting="key" [options]="keys"
 						(selectedOption)="onKeyChange($event)">
 					</app-setting>
-					<app-setting
-						category="Bars"
-						icon="fas fa-hashtag"
-						[settings]="settings"
-						setting="bar"
-						[options]="bars"
-						(selectedOption)="onBarChange($event)">
+					<app-setting category="Bars" icon="fas fa-hashtag" [settings]="settings" setting="bar"
+						[options]="bars" (selectedOption)="onBarChange($event)">
 					</app-setting>
-					<app-setting
-						category="Complexity"
-						icon="fas fa-project-diagram"
-						[settings]="settings"
-						setting="complex"
-						[options]="complexity"
-						(selectedOption)="onComplexityChange($event)">
+					<app-setting category="Complexity" icon="fas fa-project-diagram" [settings]="settings"
+						setting="complex" [options]="complexity" (selectedOption)="onComplexityChange($event)">
 					</app-setting>
-					<app-setting
-						category="Beats"
-						icon="fas fa-heartbeat"
-						[settings]="settings"
-						setting="beat"
-						[options]="beats"
-						(selectedOption)="onBeatChange($event)">
+					<app-setting category="Beats" icon="fas fa-heartbeat" [settings]="settings" setting="beat"
+						[options]="beats" (selectedOption)="onBeatChange($event)">
 					</app-setting>
 					<div class="settings-box">
 						<div>
@@ -91,7 +66,7 @@
 				</div>
 			</form>
 			} @if (melody) {
-			<div>
+			<div class="mt-3">
 				<p>{{ melodyDescription }}</p>
 			</div>
 			}

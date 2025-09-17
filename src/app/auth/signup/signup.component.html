@@ -2,7 +2,9 @@
 	<div class="form-signin">
 		<form (submit)="onSignup(signupForm)" #signupForm="ngForm">
 			<div class="text-center">
-				<i class="fas fa-user-plus sign-in-icon"></i>
+				<div class="icon-container">
+					<i class="fas fa-user-plus sign-in-icon"></i>
+				</div>
 				<h1 class="h3 mb-3 fw-normal">Please sign up</h1>
 			</div>
 			<div class="mb-3">
@@ -44,16 +46,18 @@
 			@if (!isLoading) {
 				<button class="w-100 btn btn-lg btn-success" type="submit" [disabled]="!signupForm.valid">Sign up</button>
 			}
-			@if (!isAuthenticated) {
-				<span class="error-color">Invalid authentication credentials!</span>
-			}
-			<div class="text-center">
-				@if (isLoading) {
+			@if (isLoading) {
+				<div class="text-center">
 					<div class="spinner-border" role="status">
 						<span class="sr-only">Loading...</span>
 					</div>
-				}
-			</div>
+				</div>
+			}
+			@if (!isAuthenticated) {
+				<div class="text-center mt-3">
+					<span class="error-color">Invalid authentication credentials!</span>
+				</div>
+			}
 		</form>
 	</div>
 </div>

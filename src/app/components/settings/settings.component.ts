@@ -48,7 +48,7 @@ export class SettingsComponent {
     'B',
   ];
   bars: number[] = [2, 4, 8];
-  complexity: string[] = ['Low', 'High'];
+  complexity: string[] = ['Low', 'Medium', 'High'];
   beats: string[] = ['4/4', '3/4'];
 
   settings!: Settings;
