@@ -1,18 +1,20 @@
-mat-paginator {
-	/* background-color: var(--background-color);
-	color: var(--white-color); */
+/* mat-paginator {
 	margin-top: 1rem;
-	color: red;
+	color: var(--white);
 }
 
 .mat-mdc-text-field-wrapper {
-	color: red;
+	color: pink;
 }
 
-mat-paginator .mat-mdc-paginator-container {
-	min-height: 48px !important;
-	color: red;
+.custom-paginator mat-paginator {
+	background-color: var(--background-color);
 }
+
+.custom-paginator mat-paginator .mat-mdc-paginator-container {
+	min-height: 48px;
+} */
+
 
 .disabled {
 	pointer-events: none;

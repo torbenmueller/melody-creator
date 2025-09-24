@@ -61,7 +61,7 @@
 							<li class="list-group-item">
 								<div class="space-between center-v">
 									<div style="width: 20%">
-										<span class="white-color">{{(totalMelodies - (totalMelodies - $index)) + currentPage}}. </span><span class="white-color">{{melody.settings?.name}}</span>
+										<span class="white-color">{{(melodiesPerPage * (currentPage - 1) + $index + 1)}}. </span><span class="white-color">{{melody.settings?.name}}</span>
 										@if (isLessThanThreeDaysAgo(melody.time)) {
 											<span class="badge text-bg-success ms-2">New</span>
 										}
@@ -119,7 +119,9 @@
 		</div>
 	}
 	@if (melodies.length > 0) {
-		<mat-paginator [length]="totalMelodies" [pageSize]="melodiesPerPage" [pageSizeOptions]="pageSizeOptions" (page)="onChangedPage($event)"></mat-paginator>
+		<div class="custom-paginator">
+			<mat-paginator [length]="totalMelodies" [pageSize]="melodiesPerPage" [pageSizeOptions]="pageSizeOptions" (page)="onChangedPage($event)"></mat-paginator>
+		</div>
 	}
 	@if (melodies.length < 1) {
 		<p>No melodies have been saved yet.</p>

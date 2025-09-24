@@ -1,12 +1,8 @@
 h1 {
-	/* display: inline-block; */
 	font-size: 4rem;
-	line-height: 1;
+	line-height: 1.15;
+	padding-bottom: 0.1em;
 }
-
-/* img {
-	display: inline-block;
-  } */
 
 .bgr-top {
 	background-color: var(--background-color-3);

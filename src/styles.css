@@ -38,6 +38,10 @@ body .modal-open {
 	padding-right: 0;
 }
 
+.body-color {
+	color: var(--body-color);
+}
+
 /* .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
 	margin-bottom: 1rem !important;
 } */
@@ -62,7 +66,7 @@ a:hover {
 }
 
 .content {
-	background-color: var(--background-color-3);
+	/* background-color: var(--background-color-3); */
 	/* height: 15rem; */
 	padding: 3rem 0;
 	display: flex;
@@ -135,6 +139,10 @@ input.ng-invalid.ng-touched {
 
 .inline-block {
 	display: inline-block;
+}
+
+.text-small {
+	font-size: 1rem;
 }
 
 .text-center {
@@ -279,6 +287,10 @@ progress::-moz-progress-bar {
 	align-items: flex-start;
 }
 
+.column-gap-20 {
+	column-gap: 20px;
+}
+
 .subheadline {
 	font-size: 1rem;
 	font-weight: bold;
@@ -402,6 +414,10 @@ progress::-moz-progress-bar {
 	margin-bottom: 40px;
 }
 
+.pl-20 {
+	padding-left: 20px;
+}
+
 .w-100 {
 	width: 100%;
 }
@@ -499,6 +515,8 @@ progress::-moz-progress-bar {
 	background: linear-gradient(to right, var(--purple), var(--pink));
 	border: none !important;
 	color: white !important;
+	padding-top: 7px !important;
+	padding-bottom: 7px !important;
 	z-index: 0;
 }
 
@@ -519,14 +537,25 @@ progress::-moz-progress-bar {
 	opacity: 1;
 }
 
+.features-box,
+.pricing-box,
 .settings-box {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	border-radius: 10px;
-	padding: 10px;
 	border: 1px solid var(--border-color);
 	gap: 20px;
+}
+
+.features-box,
+.settings-box {
+	padding: 20px;
+}
+
+.pricing-box {
+	padding: 40px;
+	min-width: 280px;
 }
 
 .settings-box:hover {
@@ -561,6 +590,14 @@ progress::-moz-progress-bar {
 	background-image: radial-gradient(circle at 70% 80%,
 			rgba(255, 0, 128, 0.5),
 			transparent 40%);
+}
+
+.bg-color {
+	background-color: var(--background-color);
+}
+
+.bg-color-2 {
+	background-color: var(--background-color-2);
 }
 
 .bg-color-3 {
