@@ -28,7 +28,7 @@ exports.createUser = (req, res, next) => {
 						message: 'User created',
 						result: result
 					});
-					return transporter.sendMail({
+					/* return transporter.sendMail({
 						to: req.body.email,
 						from: {
 							from: 'Melody Creator',
@@ -39,7 +39,7 @@ exports.createUser = (req, res, next) => {
 						html: `
 							<p>You successfully signed up.</p>
 						`
-					});
+					}); */
 				})
 				.catch(err => {
 					res.status(500).json({

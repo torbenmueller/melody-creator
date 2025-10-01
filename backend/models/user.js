@@ -19,7 +19,8 @@ const userSchema = mongoose.Schema({
 	resetTokenExpiration: Date,
 	plan: String,
 	melodiesLeft: Number,
-	freePlanUsed: Boolean
+	freePlanUsed: Boolean,
+	time : { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('User', userSchema);

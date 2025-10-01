@@ -6,11 +6,12 @@ import { UserService } from '../../services/user.service';
 import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
 import { MatDialog } from '@angular/material/dialog';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DatePipe],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.css',
 })
@@ -32,6 +33,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   newPassword: string = '';
   showPassword: boolean = false;
   showNewPassword: boolean = false;
+  latestMelodies: any = [];
 
   constructor(
     private userService: UserService,
@@ -72,6 +74,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       .subscribe((data: { melodies: any; melodiesCount: number }) => {
         this.melodies = data.melodies;
         this.totalMelodies = data.melodiesCount;
+        this.latestMelodies = this.melodies.slice(0, 3);
         this.isLoading = false;
       });
   }

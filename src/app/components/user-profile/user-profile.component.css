@@ -4,3 +4,15 @@
 	bottom: 11px;
 	right: 12px;
 }
+
+.btn-auto {
+	align-self: flex-start;
+	width: auto;
+}
+
+progress::-webkit-progress-bar { background-color: var(--border-color); }
+progress { background-color: var(--border-color); }
+
+progress::-moz-progress-bar { background: var(--purple); }
+progress::-webkit-progress-value { background: var(--purple); }
+progress { color: var(--purple); }
