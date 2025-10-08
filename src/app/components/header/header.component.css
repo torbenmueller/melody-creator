@@ -19,12 +19,13 @@ h1 {
 	height: 15rem;
 }
 
-.my-auto {
-	background-color: var(--background-color-3);
-}
-
-.header-title {
+/* .header-title {
 	width: 40rem
+} */
+
+.header-title { 
+	max-width: 40rem;
+	width: 100%;
 }
 
 .container {

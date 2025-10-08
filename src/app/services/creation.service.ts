@@ -26,12 +26,10 @@ export class CreationService {
 	initSampler() {
 		this.sampler = new Tone.Sampler({
 			urls: {
-				"C3": "piano_c3.mp3",
-				"C4": "piano_c4.mp3",
-				"C5": "piano_c5.mp3"
+				"C4": "piano_c4.mp3"
 			},
 			release: 1,
-			baseUrl: "../../assets/",
+			baseUrl: "../../assets/samples/",
 		}).toDestination();
 	}
 
@@ -373,7 +371,9 @@ export class CreationService {
 	}
 
 	checkEnding() {
-		this.melody.push({ note: this.melody[0].note, time: '2n' })
+		let lastNote = '1m';
+		if (this.settings.beat === '3/4') lastNote = '2n.';
+		this.melody.push({ note: this.melody[0].note, time: lastNote })
 		this.checkSum();
 	}
 

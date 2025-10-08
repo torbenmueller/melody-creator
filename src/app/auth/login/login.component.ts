@@ -34,7 +34,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onLogin(form: NgForm) {
-    if (form.invalid) return;
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
     this.authService.loginUser(form.value.email, form.value.password).subscribe({
       next: () => {

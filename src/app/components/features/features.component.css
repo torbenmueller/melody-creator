@@ -35,16 +35,17 @@ h1 {
   background-color: var(--background-color-3);
 }
 
-.header-title {
+/* .header-title {
   width: 40rem;
+} */
+
+.header-title { 
+  max-width: 40rem;
+  width: 100%;
 }
 
 .container {
   min-height: 0;
-}
-
-.header-bg {
-  background-image: linear-gradient(to bottom, rgb(168 85 247 / 0.2) , rgb(236 72 153 / 0.2));
 }
 
 .dark-bg {
@@ -52,7 +53,7 @@ h1 {
 }
 
 .dark-bg-2 {
-  background-color: var(--background-color-2);
+  background-color: var(--background-color-3);
 }
 
 .checks-svg {

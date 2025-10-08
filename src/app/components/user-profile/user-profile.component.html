@@ -10,7 +10,7 @@
 
 	<div class="row">
 		<div class="col-md-6">
-			<div class="features-box bg-color-2 mb-24">
+			<div class="features-box mb-24">
 				<div>
 					<div class="center-v">
 						<h4 class="white-color">Account Information</h4>
@@ -27,16 +27,21 @@
 							id="inputEmail"
 							name="email"
 							[(ngModel)]="newEmail"
+							#emailInput="ngModel"
+							required
 						>
+						@if (!emailInput.valid && emailInput.touched) {
+							<span class="password-hints">Please enter a valid email!</span>
+						}
 					</div>
-					<button type="submit" class="btn btn-success" [disabled]="newEmail === currentEmail">Change email</button>
+					<button type="submit" class="btn btn-success">Change email</button>
 				</form>
 				<div>
 					<p class="mb-1">Member since</p>
 					<p class="white-color mb-0">{{ user?.time | date: 'dd.MM.yyyy' }}</p>
 				</div>
 			</div>
-			<div class="features-box bg-color-2 mb-24">
+			<div class="features-box mb-24">
 				<div>
 					<div class="center-v">
 						<h4 class="white-color">Password</h4>
@@ -45,33 +50,48 @@
 					<p class="mb-0">Update your password to keep your account secure</p>
 				</div>
 				<form (submit)="onSubmitNewPassword(editUserPassword)" #editUserPassword="ngForm">
-					<div class="mb-3 relative">
+					<div class="mb-20"> 
 						<label for="inputCurrentPassword" class="form-label">Current password</label>
-						<input
-							[type]="showPassword ? 'text' : 'password'"
-							class="form-control password-input"
-							id="inputCurrentPassword"
-							name="password"
-							[(ngModel)]="currentPassword"
-						>
-						<i [class]="showPassword ? 'fas fa-eye' : 'fas fa-eye-slash'" class="show-password-icon-profile" (click)="togglePasswordVisibility()"></i>
+						<div class="relative">
+							<input
+								[type]="showPassword ? 'text' : 'password'"
+								class="form-control password-input"
+								id="inputCurrentPassword"
+								name="password"
+								[(ngModel)]="currentPassword"
+								#passwordInput="ngModel"
+								required
+							>
+							<i [class]="showPassword ? 'fas fa-eye' : 'fas fa-eye-slash'" class="show-password-icon"
+								(click)="togglePasswordVisibility()"></i>
+						</div>
+						@if (!passwordInput.valid && passwordInput.touched) {
+							<span class="password-hints">Please enter your current password!</span>
+						}
 					</div>
-					<div class="mb-3 relative">
+					<div class="mb-20"> 
 						<label for="inputNewPassword" class="form-label">New password</label>
-						<input
-							[type]="showNewPassword ? 'text' : 'password'"
-							class="form-control"
-							id="inputNewPassword"
-							name="newpassword"
-							[(ngModel)]="newPassword"
-						>
-						<i [class]="showNewPassword ? 'fas fa-eye' : 'fas fa-eye-slash'" class="show-password-icon-profile" (click)="toggleNewPasswordVisibility()"></i>
+						<div class="relative">
+							<input
+								[type]="showNewPassword ? 'text' : 'password'"
+								class="form-control"
+								id="inputNewPassword"
+								name="newpassword"
+								[(ngModel)]="newPassword"
+								#newPasswordInput="ngModel"
+								required
+							>
+							<i [class]="showNewPassword ? 'fas fa-eye' : 'fas fa-eye-slash'" class="show-password-icon" (click)="toggleNewPasswordVisibility()"></i>
+						</div>
+						@if (!newPasswordInput.valid && newPasswordInput.touched) {
+							<span class="password-hints">Please enter a new password!</span>
+						}
 					</div>
-					<button type="submit" class="btn btn-success" [disabled]="isStringEmpty(currentPassword) || isStringEmpty(newPassword)">Change password</button>
-					<!-- <button type="submit" class="btn btn-success" [disabled]="newEmail === currentEmail && (isStringEmpty(currentPassword) || isStringEmpty(newPassword))">Save Password</button> -->
+					<!-- <button type="submit" class="btn btn-success" [disabled]="isStringEmpty(currentPassword) || isStringEmpty(newPassword)">Change password</button> -->
+					<button type="submit" class="btn btn-success">Change password</button>
 				</form>
 			</div>
-			<div class="features-box bg-color-2 border-danger">
+			<div class="features-box border-danger">
 				<div>
 					<div class="center-v">
 						<h4 class="danger-color">Danger Zone</h4>
@@ -89,7 +109,7 @@
 		<div class="col-md-6">
 			<div class="row mb-24">
 				<div class="col-md-6">
-					<div class="features-box bg-color-2">
+					<div class="features-box">
 						<div>
 							<div class="center-v flex-space-between">
 								<p class="dashboard-number no-margin">{{totalMelodies}}</p>
@@ -100,7 +120,7 @@
 					</div>
 				</div>
 				<div class="col-md-6">
-					<div class="features-box bg-color-2">
+					<div class="features-box">
 						<div>
 							<div class="center-v flex-space-between">
 								<p class="dashboard-number no-margin">{{numberOfModes}}</p>
@@ -108,12 +128,10 @@
 							</div>
 							<p class="dashboard-text no-margin">Scales used<p>
 						</div>
-						<!-- <p *ngIf="modes.length === 0" class="dashboard-number">0</p>
-						<div class="dashboard-mode" *ngFor="let mode of modes">{{mode}}</div> -->
 					</div>
 				</div>
 			</div>
-			<div class="features-box bg-color-2 mb-24">
+			<div class="features-box mb-24">
 				<div>
 					<div class="center-v">
 						<h4 class="white-color">Scales</h4>
@@ -125,16 +143,16 @@
 					<p class="no-margin">No scales have been used yet.</p>
 				}
 				@for (mode of modes; track mode) {
-					<div class="mb-2">
+					<div>
 						<div class="flex-space-between">
-							<p class="no-margin">{{mode[0]}}</p>
-							<p class="no-margin">{{mode[1]}}</p>
+							<p class="white-color no-margin">{{mode[0]}}</p>
+							<p class="white-color no-margin">{{mode[1]}}</p>
 						</div>
 						<progress [value]="mode[1]" [max]="modesMaxValue"></progress>
 					</div>
 				}
 			</div>
-			<div class="features-box bg-color-2">
+			<div class="features-box">
 				<div>
 					<div class="center-v">
 						<h4 class="white-color">Recent Activity</h4>

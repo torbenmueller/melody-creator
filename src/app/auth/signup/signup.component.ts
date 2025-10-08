@@ -2,11 +2,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { FormsModule, NgForm } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css',
 })
@@ -81,7 +82,10 @@ export class SignupComponent implements OnInit, OnDestroy {
   }
 
   onSignup(form: NgForm) {
-    if (form.invalid) return;
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
     this.authService.createUser(form.value.email, form.value.password);
   }

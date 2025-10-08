@@ -7,6 +7,7 @@ import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-user-profile',
@@ -39,7 +40,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     private userService: UserService,
     public creationService: CreationService,
     public authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -84,8 +86,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.modesSub = this.userService
       .getModesUpdateListener()
       .subscribe((data: { message: string; modes: any }) => {
-        this.modes = Object.entries(data.modes.modeValues);
-        console.log("this.modes", this.modes);
+        this.modes = Object.entries(data.modes.modeValues).sort((a: [string, any], b: [string, any]) => {
+          const av = typeof a[1] === 'number' ? a[1] : Number(a[1]);
+          const bv = typeof b[1] === 'number' ? b[1] : Number(b[1]);
+          return bv - av;
+        });
         this.numberOfModes = Object.keys(this.modes).length;
         this.modesMaxValue = data.modes.maxValue;
       });
@@ -116,10 +121,22 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   onSubmitNewEmail(form: NgForm) {
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
+    if (this.newEmail === this.currentEmail) {
+      this.toastr.info('Email is the same as the current one.');
+      return;
+    }
     this.authService.updateEmail(form.value.email);
   }
 
   onSubmitNewPassword(form: NgForm) {
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
     this.authService.updatePassword(
       form.value.password,
       form.value.newpassword

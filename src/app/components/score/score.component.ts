@@ -38,10 +38,18 @@ export class ScoreComponent implements OnInit {
     const VF = Vex.Flow;  
 
     const div = this.document.getElementById("score")! as HTMLDivElement;
+    const div2 = this.document.getElementById("score2")! as HTMLDivElement;
+    const div3 = this.document.getElementById("score3")! as HTMLDivElement;
     
     // Clear existing content
     if (div.hasChildNodes()) {
       div.removeChild(div.childNodes[0]);
+    }
+    if (div2.hasChildNodes()) {
+      div2.removeChild(div2.childNodes[0]);
+    }
+    if (div3.hasChildNodes()) {
+      div3.removeChild(div3.childNodes[0]);
     }
 
     // Create first renderer (always needed)
@@ -54,20 +62,12 @@ export class ScoreComponent implements OnInit {
     
     // Only create second renderer if we have more than 2 bars
     if (this.melodySettings.bar > 2) {
-      const div2 = this.document.getElementById("score2")! as HTMLDivElement;
-      if (div2.hasChildNodes()) {
-        div2.removeChild(div2.childNodes[0]);
-      }
       const renderer2 = new VF.Renderer(div2, VF.Renderer.Backends.SVG);
       renderer2.resize(1202, 120);
       context2 = renderer2.getContext();
       
       // Only create third renderer if we have more than 4 bars
       if (this.melodySettings.bar > 4) {
-        const div3 = this.document.getElementById("score3")! as HTMLDivElement;
-        if (div3.hasChildNodes()) {
-          div3.removeChild(div3.childNodes[0]);
-        }
         const renderer3 = new VF.Renderer(div3, VF.Renderer.Backends.SVG);
         renderer3.resize(1202, 120);
         context3 = renderer3.getContext();
@@ -79,7 +79,7 @@ export class ScoreComponent implements OnInit {
 
   createMeasures(settings: { bar: any; rootKey: string; scale: string; }, context: any, context2: any, context3: any) {
     const measures = settings.bar
-    const { Stave, StaveNote, Beam, Formatter, Accidental, KeySignature } = Vex.Flow;
+    const { Stave, StaveNote, Beam, Formatter, Accidental, KeySignature, Dot } = Vex.Flow;
 
     const staveMeasure1 = new Stave(0, 0, 300);
     const staveMeasure2 = new Stave(staveMeasure1.getWidth() + staveMeasure1.getX(), 0, 300);
@@ -125,15 +125,17 @@ export class ScoreComponent implements OnInit {
       let beat = 1;
       if (this.melodySettings.beat === '3/4') beat = 0.75;
       while (measure < beat) {
-        let duration = this.composedMelody[index].time.charAt(0);
+        const timeToken = this.composedMelody[index].time;
+        let duration = timeToken.charAt(0);
+        const isDotted = timeToken.length > 2 || timeToken.includes('.');
         let note = this.composedMelody[index].note;
         let noteLowerCase = this.firstCharToLowerCase(note);
         let keys = this.addSlash(noteLowerCase);
 
         function addNoteWithoutAccidental(totalMeasures: number) {
-          notesMeasures[totalMeasures].push(
-            new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true })
-          );
+          const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+          if (isDotted) Dot.buildAndAttach([n], { all: true });
+          notesMeasures[totalMeasures].push(n);
         }
 
         /* if (this.checkForHarmonicMinorScale(settings.scale)) {
@@ -148,15 +150,19 @@ export class ScoreComponent implements OnInit {
         if (!this.checkForScalesWithoutSign(settings.scale)) {
           let sign = this.checkForSign(note);
           if (sign.length > 0) {
+            const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+            if (isDotted) Dot.buildAndAttach([n], { all: true });
             notesMeasures[this.totalMeasures].push(
-              new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }).addModifier(new Accidental(sign), 0)
+              n.addModifier(new Accidental(sign), 0)
             );
           } else {
             if (index > 0 && this.composedMelody[index -1].note.length === 3) {
               let lastNote = this.removeMiddleChar(this.composedMelody[index -1].note)
               if (note === lastNote) {
+                const n2 = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+                if (isDotted) Dot.buildAndAttach([n2], { all: true });
                 notesMeasures[this.totalMeasures].push(
-                  new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }).addModifier(new Accidental('n'), 0)
+                  n2.addModifier(new Accidental('n'), 0)
                 );
               } else {
                 addNoteWithoutAccidental(this.totalMeasures);
@@ -169,7 +175,9 @@ export class ScoreComponent implements OnInit {
           addNoteWithoutAccidental(this.totalMeasures);
         }
 
-        measure += 1 / +duration;
+        let incr = 1 / +duration;
+        if (isDotted) incr *= 1.5;
+        measure += incr;
         index++;
       }
       /* if (this.totalMeasures < 4) ct = context; */
@@ -190,20 +198,27 @@ export class ScoreComponent implements OnInit {
     }
 
     // Add last note
-
-    let duration = this.composedMelody[this.composedMelody.length - 1].time.charAt(0);
+    const timeTokenLast = this.composedMelody[this.composedMelody.length - 1].time;
+    let duration = timeTokenLast.charAt(0);
+    const isDottedLast = timeTokenLast.length > 2 || timeTokenLast.includes('.');
+    console.log("Last note duration", timeTokenLast);
     let note = this.composedMelody[this.composedMelody.length - 1].note;
     let noteLowerCase = this.firstCharToLowerCase(note);
     let keys = this.addSlash(noteLowerCase);
     let sign = '';
-    let rest = 'hr';
-    if (this.melodySettings.beat === '3/4') rest = 'qr';
+
     if (!this.checkForScalesWithoutSign(settings.scale)) sign = this.checkForSign(note);
 
     if (measures == 2) {
-      if (sign.length > 0) notesMeasure3.push(new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }).addModifier(new Accidental(sign), 0));
-      else notesMeasure3.push(new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }));
-      notesMeasure3.push(new StaveNote({ keys: ["b/4"], duration: rest }));
+      if (sign.length > 0) {
+        const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
+        notesMeasure3.push(n.addModifier(new Accidental(sign), 0));
+      } else {
+        const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
+        notesMeasure3.push(n);
+      }
       staveMeasure3.setContext(context).draw();
       Formatter.FormatAndDraw(context, staveMeasure3, notesMeasure3);
     }
@@ -212,9 +227,15 @@ export class ScoreComponent implements OnInit {
       staveMeasure5.addClef("treble");
       if (this.checkForScalesWithoutSign(settings.scale)) keySignature.addToStave(staveMeasure5);
       staveMeasure5.setContext(context2).draw();
-      if (sign.length > 0) notesMeasure5.push(new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }).addModifier(new Accidental(sign), 0));
-      else notesMeasure5.push(new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }));
-      notesMeasure5.push(new StaveNote({ keys: ["b/4"], duration: rest }));
+      if (sign.length > 0) {
+        const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
+        notesMeasure5.push(n.addModifier(new Accidental(sign), 0));
+      } else {
+        const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
+        notesMeasure5.push(n);
+      }
       staveMeasure5.setContext(context2).draw();
       Formatter.FormatAndDraw(context2, staveMeasure5, notesMeasure5);
     }
@@ -223,9 +244,15 @@ export class ScoreComponent implements OnInit {
       staveMeasure9.addClef("treble");
       if (this.checkForScalesWithoutSign(settings.scale)) keySignature.addToStave(staveMeasure9);
       staveMeasure9.setContext(context3).draw();
-      if (sign.length > 0) notesMeasure9.push(new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }).addModifier(new Accidental(sign), 0));
-      else notesMeasure9.push(new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true }));
-      notesMeasure9.push(new StaveNote({ keys: ["b/4"], duration: rest }));
+      if (sign.length > 0) {
+        const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
+        notesMeasure9.push(n.addModifier(new Accidental(sign), 0));
+      } else {
+        const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
+        notesMeasure9.push(n);
+      }
       staveMeasure9.setContext(context3).draw();
       Formatter.FormatAndDraw(context3, staveMeasure9, notesMeasure9);
     }
