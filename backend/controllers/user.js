@@ -8,7 +8,7 @@ const { link } = require('fs');
 require('dotenv').config();
 
 exports.createUser = (req, res, next) => {
-	bcrypt.hash(req.body.password, 10, )
+	bcrypt.hash(req.body.password, 10)
 		.then(hash => {
 			// Generate email verification token
 			const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -36,7 +36,7 @@ exports.createUser = (req, res, next) => {
 								to_email: req.body.email,
 								app_name: 'Melody Creator',
 								subject: 'Verify your email',
-								email_text: 'welcome to Melody Creator! Please confirm your email by clicking this link. The link expires in 24 hours.',
+								email_text: 'welcome to Melody Creator! Please click the "Verify Email" link. When the page opens, click the Confirm button to complete verification. The link expires in 24 hours.',
 								email_href: `http://localhost:4200/auth/verify-email/${verificationToken}/${result._id}`,
 								link_text: 'Verify Email',
 								support: 'Technical Support',
@@ -77,47 +77,42 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.verifyEmail = async (req, res, next) => {
 	try {
-		console.log("verifyEmail user.js");
+		// Log caller info to help diagnose duplicate requests (prefetchers, scanners, etc.)
+		console.log('verifyEmail called', {
+			ip: req.ip,
+			ua: req.get('user-agent'),
+			referer: req.get('referer'),
+			time: new Date().toISOString()
+		});
+
 		const { token, userId } = req.body || {};
 		if (!token || !userId) {
 			return res.status(400).json({ message: 'Token and userId are required.' });
 		}
+
 		const user = await User.findOne({
 			_id: userId,
 			emailVerificationToken: token,
 			emailVerificationTokenExpiration: { $gt: Date.now() }
 		});
+
 		if (!user) {
+			// Invalid or expired token — return 400 but do not perform side effects.
 			return res.status(400).json({ message: 'Invalid or expired verification token.' });
 		}
+
+		if (user.isEmailVerified) {
+			// Idempotent: already verified
+			return res.status(200).json({ message: 'Email already verified.' });
+		}
+
 		user.isEmailVerified = true;
 		user.emailVerificationToken = undefined;
 		user.emailVerificationTokenExpiration = undefined;
 		await user.save();
 
-		// Respond first to avoid frontend timeouts
-    	res.status(200).json({ message: 'Email verified successfully.' });
-
-		/* emailjs
-			.send(
-				process.env.EMAILJS_SERVICE_ID,
-				process.env.EMAILJS_TEMPLATE_RESET_ID,
-				{
-					to_email: user.email,
-					app_name: 'Melody Creator',
-					subject: 'Email successfully verified',
-					email_text: 'your email has been successfully verified. You can now log in to your account.',
-					email_href: 'http://localhost:4200/auth/login',
-					link_text: 'Log In',
-					support: 'Technical Support',
-					support_initials: 'TS'
-				},
-				{
-					publicKey: process.env.EMAILJS_PUBLIC_KEY,
-					privateKey: process.env.EMAILJS_PRIVATE_KEY
-				}
-			)
-			.catch(err => console.error('Email send failed:', err)); */
+		// Respond after saving
+		return res.status(200).json({ message: 'Email verified successfully.' });
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({ message: 'Internal server error' });

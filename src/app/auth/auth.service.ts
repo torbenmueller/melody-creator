@@ -202,7 +202,6 @@ export class AuthService {
   }
 
   verifyEmail(token: string, userId: string): Observable<void> {
-    console.log("verifyEmail auth.service.ts");
     return this.http
       .post(`${BACKEND_URL}/verify-email`, { token, userId })
       .pipe(
