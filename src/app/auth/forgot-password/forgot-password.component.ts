@@ -30,8 +30,20 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   }
 
   onResetPassword(form: NgForm) {
-    if (form.invalid) return;
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
-    this.authService.resetPassword(form.value.email);
+    this.authService.resetPassword(form.value.email).subscribe({
+      next: () => {
+        this.isLoading = false;
+        console.log('Password reset email sent');
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.log('Password reset failed', err);
+      }
+    });
   }
 }

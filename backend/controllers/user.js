@@ -1,45 +1,58 @@
+const emailjs = require('@emailjs/nodejs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const Melody = require('../models/melody');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-const sendgridTransport = require('nodemailer-sendgrid-transport');
+const { link } = require('fs');
 require('dotenv').config();
-
-const transporter = nodemailer.createTransport(sendgridTransport({
-	auth: {
-		api_key: process.env.SENDGRID_API_KEY
-	}
-}));
 
 exports.createUser = (req, res, next) => {
 	bcrypt.hash(req.body.password, 10, )
 		.then(hash => {
+			// Generate email verification token
+			const verificationToken = crypto.randomBytes(32).toString('hex');
+			const verificationExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24h
 			const user = new User({
 				email: req.body.email,
 				password: hash,
 				melodiesLeft: 10,
-				freePlanUsed: false
+				freePlanUsed: false,
+				isEmailVerified: false,
+				emailVerificationToken: verificationToken,
+				emailVerificationTokenExpiration: verificationExpiry
 			});
 			user.save()
 				.then(result => {
 					res.status(201).json({
-						message: 'User created',
+						message: 'Verification email sent. Please confirm your email to complete registration.',
 						result: result
 					});
-					/* return transporter.sendMail({
-						to: req.body.email,
-						from: {
-							from: 'Melody Creator',
-							email: 'torben.jan.mueller@gmail.com',
-						},
-						subject: 'Signup succeeded',
-						text: 'You successfully signed up.',
-						html: `
-							<p>You successfully signed up.</p>
-						`
-					}); */
+					emailjs
+						.send(
+							process.env.EMAILJS_SERVICE_ID,
+							process.env.EMAILJS_TEMPLATE_RESET_ID,
+							{
+								to_email: req.body.email,
+								app_name: 'Melody Creator',
+								subject: 'Verify your email',
+								email_text: 'welcome to Melody Creator! Please confirm your email by clicking this link. The link expires in 24 hours.',
+								email_href: `http://localhost:4200/auth/verify-email/${verificationToken}/${result._id}`,
+								link_text: 'Verify Email',
+								support: 'Technical Support',
+								support_initials: 'TS'
+							},
+							{
+								publicKey: process.env.EMAILJS_PUBLIC_KEY,
+								privateKey: process.env.EMAILJS_PRIVATE_KEY
+							}
+						)
+						.then(() => {
+							// ok
+						})
+						.catch(err => {
+							console.log('EmailJS send error (verify):', err);
+						});
 				})
 				.catch(err => {
 					res.status(500).json({
@@ -62,6 +75,55 @@ exports.deleteUser = async (req, res, next) => {
 	}
 }
 
+exports.verifyEmail = async (req, res, next) => {
+	try {
+		console.log("verifyEmail user.js");
+		const { token, userId } = req.body || {};
+		if (!token || !userId) {
+			return res.status(400).json({ message: 'Token and userId are required.' });
+		}
+		const user = await User.findOne({
+			_id: userId,
+			emailVerificationToken: token,
+			emailVerificationTokenExpiration: { $gt: Date.now() }
+		});
+		if (!user) {
+			return res.status(400).json({ message: 'Invalid or expired verification token.' });
+		}
+		user.isEmailVerified = true;
+		user.emailVerificationToken = undefined;
+		user.emailVerificationTokenExpiration = undefined;
+		await user.save();
+
+		// Respond first to avoid frontend timeouts
+    	res.status(200).json({ message: 'Email verified successfully.' });
+
+		/* emailjs
+			.send(
+				process.env.EMAILJS_SERVICE_ID,
+				process.env.EMAILJS_TEMPLATE_RESET_ID,
+				{
+					to_email: user.email,
+					app_name: 'Melody Creator',
+					subject: 'Email successfully verified',
+					email_text: 'your email has been successfully verified. You can now log in to your account.',
+					email_href: 'http://localhost:4200/auth/login',
+					link_text: 'Log In',
+					support: 'Technical Support',
+					support_initials: 'TS'
+				},
+				{
+					publicKey: process.env.EMAILJS_PUBLIC_KEY,
+					privateKey: process.env.EMAILJS_PRIVATE_KEY
+				}
+			)
+			.catch(err => console.error('Email send failed:', err)); */
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ message: 'Internal server error' });
+	}
+}
+
 exports.loginUser = async (req, res, next) => {
 	try {
 		const user = await User.findOne({ email: req.body.email });
@@ -77,6 +139,11 @@ exports.loginUser = async (req, res, next) => {
 				message: 'Auth failed!'
 			});
 		}
+		if (!fetchedUser.isEmailVerified) {
+			return res.status(403).json({
+				message: 'Please verify your email before logging in.'
+			});
+		}
 		const token = jwt.sign(
 			{ email: fetchedUser.email, userId: fetchedUser._id },
 			process.env.JWT_KEY,
@@ -85,7 +152,6 @@ exports.loginUser = async (req, res, next) => {
 		res.status(200).json({
 			token: token,
 			expiresIn: 3600,
-			/* expiresIn: 10, */
 			userId: fetchedUser._id
 		});
 
@@ -97,18 +163,21 @@ exports.loginUser = async (req, res, next) => {
 }
 
 exports.resetPassword = (req, res, next) => {
+    if (!req.body || !req.body.email) {
+        return res.status(400).json({ message: 'Email is required.' });
+    }
 	crypto.randomBytes(32, (err, buffer) => {
 		if (err) {
 			console.log(err);
-			return res.redirect('/auth/forgot-password');
+			return res.status(500).json({ message: 'Could not generate reset token. Please try again later.' });
 		}
 		const token = buffer.toString('hex');
 		let userId;
+
 		User.findOne({ email: req.body.email })
 			.then(user => {
 				if (!user) {
-					// req.flash('error', 'No account could be found for this email.');
-					return res.redirect('/auth/forgot-password');
+					return res.status(404).json({ message: 'No account found for this email address.' });
 				}
 				user.resetToken = token;
 				user.resetTokenExpiration = Date.now() + 3600000;
@@ -120,27 +189,46 @@ exports.resetPassword = (req, res, next) => {
 					message: 'Password reset email sent',
 					result: result
 				});
-				transporter.sendMail({
-					to: req.body.email,
-					from: 'torben.jan.mueller@gmail.com',
-					subject: 'Password reset',
-					html: `
-						<p>You requested a password reset.</p>
-						<p>Click this <a href="http://localhost:4200/auth/new-password/${token}/${userId}">link</a> to set a new password.</p>
-					`
-				});
+				emailjs
+					.send(
+						process.env.EMAILJS_SERVICE_ID,
+						process.env.EMAILJS_TEMPLATE_RESET_ID,
+						{
+							to_email: req.body.email,
+							app_name: 'Melody Creator',
+							subject: 'Password Reset Request',
+							email_text: 'you requested a password reset. Click this link to set a new password. If you did not request this, please ignore this email.',
+							email_href: `http://localhost:4200/auth/new-password/${token}/${userId}`,
+							link_text: 'Reset Password',
+							support: 'Technical Support',
+							support_initials: 'TS'
+						},
+						{
+							publicKey: process.env.EMAILJS_PUBLIC_KEY,
+							privateKey: process.env.EMAILJS_PRIVATE_KEY
+						}
+					)
+					.then(() => {
+						// ok
+					})
+					.catch(err => {
+						console.log('EmailJS send error (reset):', err);
+					});
 			})
 			.catch(err => {
-				console.log(err);
+				console.log('Reset password error:', err);
+				if (!res.headersSent) {
+					return res.status(500).json({ message: 'Internal server error while processing password reset.' });
+				}
 			});
 	});
 }
 
 exports.postNewPassword = (req, res, next) => {
-	const newPassword = req.body.newPassword;
-	const userId = req.body.userId;
-	const passwordToken = req.body.passwordToken;
-	let resetUser;
+    const newPassword = req.body.newPassword;
+    const userId = req.body.userId;
+    const passwordToken = req.body.passwordToken;
+    let resetUser;
 
 	User.findOne({
 		resetToken: passwordToken,

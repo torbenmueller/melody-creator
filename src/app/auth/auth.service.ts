@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, map, Observable, Subject, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { UserService } from '../services/user.service';
 import { AuthData } from './auth-data';
 import { ToastrService } from 'ngx-toastr';
@@ -149,17 +149,29 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
-  resetPassword(email: string) {
-    const passwordResetEmail = { email: email };
-    this.http
+  resetPassword(email: string): Observable<void> {
+    const passwordResetEmail = { email };
+    return this.http
       .post(`${BACKEND_URL}/forgot-password`, passwordResetEmail)
-      .subscribe(
-        (response) => {
-          this.router.navigate(['/']);
-        },
-        (error) => {
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
           this.authStatusListener.next(false);
-        }
+          let message = 'Something went wrong while requesting a password reset.';
+          if (error.status === 0) {
+            message = 'Network error: please check your internet connection.';
+          } else if (error.status === 404) {
+            message = 'No account found for this email address.';
+          } else if (error.status === 400) {
+            message = 'Invalid email address. Please check and try again.';
+          } else if (error.status >= 500) {
+            message = 'Server error: please try again later.';
+          } else if (error.error && typeof error.error === 'object' && 'message' in error.error) {
+            message = String((error.error as any).message);
+          }
+          this.toastr.error(message, 'Password reset failed');
+          return throwError(() => ({ ...error, userMessage: message }));
+        }),
+        map(() => void 0)
       );
   }
 
@@ -187,6 +199,18 @@ export class AuthService {
     this.tokenTimer = setTimeout(() => {
       this.logout();
     }, duration * 1000);
+  }
+
+  verifyEmail(token: string, userId: string): Observable<void> {
+    console.log("verifyEmail auth.service.ts");
+    return this.http
+      .post(`${BACKEND_URL}/verify-email`, { token, userId })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => error);
+        }),
+        map(() => void 0)
+      );
   }
 
   private saveAuthData(token: string, expirationDate: Date) {

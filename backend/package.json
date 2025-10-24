@@ -10,6 +10,8 @@
   "author": "Torben Jan Müller",
   "license": "ISC",
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@emailjs/nodejs": "^5.0.2",
     "backend": "file:",
     "bcrypt": "^5.0.1",
     "dotenv": "^16.4.5",

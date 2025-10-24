@@ -55,6 +55,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.authListenerSubs.unsubscribe();
+    clearInterval(this.countdown);
   }
 
   onLogout() {

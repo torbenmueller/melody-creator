@@ -54,11 +54,11 @@ h1.h3 {
 	margin-bottom: 1rem !important;
 } */
 
-a {
+a.hyperlink {
   color: var(--body-color) !important;
 }
 
-a:hover {
+a.hyperlink:hover {
   color: var(--white) !important;
 }
 

@@ -3,6 +3,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   isAuthenticated: boolean = true;
   private authStatusSubscription!: Subscription;
 
-  constructor(public authService: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    private toastr: ToastrService,
+  ) {}
 
   ngOnInit(): void {
     this.authStatusSubscription = this.authService
@@ -44,7 +48,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         console.log('Login successful');
       },
       error: (err) => {
-        console.log('Login failed', err);
+        this.toastr.error('Login failed: ' + err.error.message);
       }
     });
   }

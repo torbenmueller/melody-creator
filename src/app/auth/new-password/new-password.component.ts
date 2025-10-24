@@ -41,7 +41,10 @@ export class NewPasswordComponent implements OnInit, OnDestroy {
   }
 
   onSetNewPassword(form: NgForm) {
-    if (form.invalid) return;
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
     this.authService.submitNewPassword(
       form.value.password,

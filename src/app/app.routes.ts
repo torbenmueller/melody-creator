@@ -11,6 +11,7 @@ import { PrivacyPolicyComponent } from './components/privacy-policy/privacy-poli
 import { TermsAndConditionsComponent } from './components/terms-and-conditions/terms-and-conditions.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { NewPasswordComponent } from './auth/new-password/new-password.component';
+import { VerifyEmailComponent } from './auth/verify-email/verify-email.component';
 
 export const routes: Routes = [
 	{ path: '', component: SettingsComponent },
@@ -18,6 +19,7 @@ export const routes: Routes = [
 	{ path: 'auth/signup', component: SignupComponent },
 	{ path: 'auth/forgot-password', component: ForgotPasswordComponent },
 	{ path: 'auth/new-password/:token/:id', component: NewPasswordComponent },
+	{ path: 'auth/verify-email/:token/:id', component: VerifyEmailComponent },
 	{ path: 'features', component: FeaturesComponent },
 	{ path: 'my-melodies', component: MyMelodiesComponent, canActivate: [canActivate] },
 	{ path: 'user-profile', component: UserProfileComponent, canActivate: [canActivate] },
