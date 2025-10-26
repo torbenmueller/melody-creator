@@ -20,6 +20,7 @@ export const routes: Routes = [
 	{ path: 'auth/forgot-password', component: ForgotPasswordComponent },
 	{ path: 'auth/new-password/:token/:id', component: NewPasswordComponent },
 	{ path: 'auth/verify-email/:token/:id', component: VerifyEmailComponent },
+	{ path: 'auth/verify-email-change/:token/:id', component: VerifyEmailComponent },
 	{ path: 'features', component: FeaturesComponent },
 	{ path: 'my-melodies', component: MyMelodiesComponent, canActivate: [canActivate] },
 	{ path: 'user-profile', component: UserProfileComponent, canActivate: [canActivate] },

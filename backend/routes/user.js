@@ -7,6 +7,8 @@ const rateLimit = require('express-rate-limit');
 router.post('/signup', UserController.createUser);
 router.post('/login', UserController.loginUser);
 router.post('/verify-email', UserController.verifyEmail);
+router.post('/verify-email-change', UserController.verifyEmailChange);
+router.post('/resend-activation', UserController.resendActivation);
 // Rate limiter for public email availability checks to prevent abuse/enumeration
 const checkEmailLimiter = rateLimit({
 	windowMs: 60 * 1000, // 1 minute window

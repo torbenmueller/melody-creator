@@ -39,7 +39,15 @@ export class VerifyEmailComponent implements OnInit {
   confirmVerification() {
     if (!this.token || !this.userId) return;
     this.isVerifying = true;
-    this.authService.verifyEmail(this.token, this.userId).subscribe({
+    // Decide which backend endpoint to call depending on the route path
+    const routePath = this.route.snapshot.routeConfig?.path || '';
+    const isChange = routePath.includes('verify-email-change');
+
+    const obs = isChange
+      ? this.authService.verifyEmailChange(this.token, this.userId)
+      : this.authService.verifyEmail(this.token, this.userId);
+
+    obs.subscribe({
       next: () => {
         this.isVerifying = false;
         const html = 'Email verified successfully. You can now <a href="/auth/login" class="link">log in</a>.';

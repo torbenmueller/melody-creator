@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../auth.service';
@@ -8,7 +9,7 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -17,7 +18,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   showPassword: boolean = false;
   isAuthenticated: boolean = true;
+  emailIsConfirmed: boolean = true;
   private authStatusSubscription!: Subscription;
+  // resend activation UI state
+  resendLoading: boolean = false;
+  resendEmailMessage: string = '';
 
   constructor(
     public authService: AuthService,
@@ -43,12 +48,39 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
     this.isLoading = true;
+    this.resendEmailMessage = form.value.email;
     this.authService.loginUser(form.value.email, form.value.password).subscribe({
       next: () => {
         console.log('Login successful');
       },
       error: (err) => {
         this.toastr.error('Login failed: ' + err.error.message);
+        // If the error indicates unverified email, surface a friendly message
+        if (err?.status === 403 && err.error?.message && err.error.message.toLowerCase().includes('verify')) {
+          // we could surface UI to resend activation; keep toast and allow user to click the resend button in the form
+          this.emailIsConfirmed = false;
+        }
+      }
+    });
+  }
+
+  onResendActivation(email?: string) {
+    const targetEmail = (email && email.toString().trim()) || '';
+    if (!targetEmail) {
+      this.toastr.error('Please enter the email address for your account to resend activation.');
+      return;
+    }
+    this.resendLoading = true;
+    this.resendEmailMessage = '';
+    this.authService.resendActivation(targetEmail).subscribe({
+      next: (res: {message: string}) => {
+        this.resendLoading = false;
+        this.toastr.success(res.message || 'Verification email resent. Please check your inbox.');
+      },
+      error: (err) => {
+        this.resendLoading = false;
+        const msg = err?.error?.message || 'Failed to resend activation email. Please try again later.';
+        this.toastr.error(msg);
       }
     });
   }

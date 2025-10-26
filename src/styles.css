@@ -64,12 +64,14 @@ a.hyperlink:hover {
 }
 
 a.link,
-a.forgot-password {
+a.forgot-password,
+button.forgot-password {
   color: var(--purple) !important;
 }
 
 a.link:hover,
-a.forgot-password:hover {
+a.forgot-password:hover,
+button.forgot-password:hover {
   color: var(--purple-hover) !important;
 }
 

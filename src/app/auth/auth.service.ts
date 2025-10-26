@@ -46,6 +46,11 @@ export class AuthService {
     const authData: AuthData = { email: email, password: password };
     this.http.post(`${BACKEND_URL}/signup`, authData).subscribe(
       (response) => {
+        try {
+          this.toastr.success('Account created. A verification email has been sent, please check your inbox and click Verify Email to confirm your address.');
+        } catch (e) {
+          console.warn('Toastr error', e);
+        }
         this.router.navigate(['/auth/login']);
       },
       (error) => {
@@ -210,6 +215,21 @@ export class AuthService {
         }),
         map(() => void 0)
       );
+  }
+
+  verifyEmailChange(token: string, userId: string): Observable<void> {
+    return this.http
+      .post(`${BACKEND_URL}/verify-email-change`, { token, userId })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => error);
+        }),
+        map(() => void 0)
+      );
+  }
+
+  resendActivation(email: string) {
+    return this.http.post<{message: string}>(`${BACKEND_URL}/resend-activation`, { email });
   }
 
   private saveAuthData(token: string, expirationDate: Date) {

@@ -219,6 +219,73 @@ exports.resetPassword = (req, res, next) => {
 	});
 }
 
+// Resend activation (verification) email to a user if not yet verified.
+// Rate-limited to once per hour per account using lastActivationSent in the user document.
+exports.resendActivation = async (req, res, next) => {
+	try {
+		const emailRaw = req.body?.email;
+		if (!emailRaw) return res.status(400).json({ message: 'Email is required.' });
+		const email = emailRaw.toString().toLowerCase();
+
+		const user = await User.findOne({ email });
+		if (!user) return res.status(404).json({ message: 'No account found for this email address.' });
+
+		if (user.isEmailVerified) {
+			return res.status(400).json({ message: 'This account is already verified.' });
+		}
+
+		const now = Date.now();
+		const last = user.lastActivationSent ? new Date(user.lastActivationSent).getTime() : 0;
+		const oneHour = 60 * 60 * 1000;
+		if (last && (now - last) < oneHour) {
+		const minutesLeft = Math.ceil((oneHour - (now - last)) / 60000);
+		const minuteWord = minutesLeft === 1 ? 'minute' : 'minutes';
+		return res.status(429).json({ message: `Activation email already sent. Try again in ${minutesLeft} ${minuteWord}.` });
+		}
+
+		// Create or refresh verification token
+		const verificationToken = crypto.randomBytes(32).toString('hex');
+		const verificationExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24h
+
+		user.emailVerificationToken = verificationToken;
+		user.emailVerificationTokenExpiration = verificationExpiry;
+		user.lastActivationSent = new Date();
+		await user.save();
+
+		// Send verification email
+		emailjs
+			.send(
+				process.env.EMAILJS_SERVICE_ID,
+				process.env.EMAILJS_TEMPLATE_RESET_ID,
+				{
+					to_email: user.email,
+					app_name: 'Melody Creator',
+					subject: 'Verify your email',
+					email_text: 'Please click the Verify Email link. When the page opens, click the Confirm button to complete verification. The link expires in 24 hours.',
+					email_href: `http://localhost:4200/auth/verify-email/${verificationToken}/${user._id}`,
+					link_text: 'Verify Email',
+					support: 'Technical Support',
+					support_initials: 'TS'
+				},
+				{
+					publicKey: process.env.EMAILJS_PUBLIC_KEY,
+					privateKey: process.env.EMAILJS_PRIVATE_KEY
+				}
+			)
+			.then(() => {
+				return res.status(200).json({ message: 'Verification email resent. Please check your inbox.' });
+			})
+			.catch(err => {
+				console.log('EmailJS send error (resend-activation):', err);
+				return res.status(500).json({ message: 'Failed to send verification email. Please try again later.' });
+			});
+
+	} catch (err) {
+		console.error('resendActivation error', err);
+		return res.status(500).json({ message: 'Internal server error' });
+	}
+}
+
 exports.postNewPassword = (req, res, next) => {
     const newPassword = req.body.newPassword;
     const userId = req.body.userId;
@@ -279,18 +346,111 @@ exports.checkEmail = async (req, res, next) => {
 
 exports.updateEmail = async (req, res, next) => {
 	try {
+		const newEmailRaw = req.body.email;
+		if (!newEmailRaw) return res.status(400).json({ message: 'New email is required.' });
+		const newEmail = newEmailRaw.toString().toLowerCase();
+
 		const user = await User.findOne({ _id: req.userData.userId });
-		user.email = req.body.email;
+		if (!user) return res.status(404).json({ message: 'User not found.' });
+
+		// If the requested email is the same as the current one
+		if (user.email && user.email.toLowerCase() === newEmail) {
+			return res.status(400).json({ message: 'New email is the same as the current email.' });
+		}
+
+		// Prevent changing to an email already in use by another account
+		const existing = await User.findOne({ email: newEmail });
+		if (existing && existing._id.toString() !== user._id.toString()) {
+			return res.status(409).json({ message: 'Email already in use.' });
+		}
+
+		// Create a verification token for the email change and save to pending fields
+		const verificationToken = crypto.randomBytes(32).toString('hex');
+		const verificationExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24h
+
+		user.pendingEmail = newEmail;
+		user.pendingEmailToken = verificationToken;
+		user.pendingEmailTokenExpiration = verificationExpiry;
 		await user.save();
-		res.status(200).json({
-			message: 'Email changed successfully'
-		});
+
+		// Send a verification email to the new address
+		emailjs
+			.send(
+				process.env.EMAILJS_SERVICE_ID,
+				process.env.EMAILJS_TEMPLATE_RESET_ID,
+				{
+					to_email: newEmail,
+					app_name: 'Melody Creator',
+					subject: 'Confirm your new email address',
+					email_text: 'you requested to change your email for Melody Creator. When the page opens, click the Confirm button to complete the change. The link expires in 24 hours.',
+					email_href: `http://localhost:4200/auth/verify-email-change/${verificationToken}/${user._id}`,
+					link_text: 'Confirm Email Change',
+					support: 'Technical Support',
+					support_initials: 'TS'
+				},
+				{
+					publicKey: process.env.EMAILJS_PUBLIC_KEY,
+					privateKey: process.env.EMAILJS_PRIVATE_KEY
+				}
+			)
+			.then(() => {
+				// Respond to client that verification email was sent
+				res.status(200).json({ message: 'Verification email sent to the new address. Please confirm to complete the change.' });
+			})
+			.catch(err => {
+				console.log('EmailJS send error (update-email):', err);
+				// Keep pending fields in place, inform client
+				res.status(500).json({ message: 'Failed to send verification email. Please try again later.' });
+			});
 
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({
-			message: 'An error occurred while updating the email'
+			message: 'An error occurred while processing the email change request.'
 		});
+	}
+}
+
+// Finalize pending email change when the user confirms via the emailed link
+exports.verifyEmailChange = async (req, res, next) => {
+	try {
+		const { token, userId } = req.body || {};
+		if (!token || !userId) return res.status(400).json({ message: 'Token and userId are required.' });
+
+		const user = await User.findOne({
+			_id: userId,
+			pendingEmailToken: token,
+			pendingEmailTokenExpiration: { $gt: Date.now() }
+		});
+
+		if (!user) return res.status(400).json({ message: 'Invalid or expired token.' });
+
+		// Ensure no other account currently owns the pending email (race-safe check)
+		if (user.pendingEmail) {
+			const existing = await User.findOne({ email: user.pendingEmail });
+			if (existing && existing._id.toString() !== user._id.toString()) {
+				// Another account took the email in the meantime
+				user.pendingEmail = undefined;
+				user.pendingEmailToken = undefined;
+				user.pendingEmailTokenExpiration = undefined;
+				await user.save();
+				return res.status(409).json({ message: 'Email is already in use by another account.' });
+			}
+
+			// Apply the pending email
+			user.email = user.pendingEmail;
+			user.pendingEmail = undefined;
+			user.pendingEmailToken = undefined;
+			user.pendingEmailTokenExpiration = undefined;
+			// Keep isEmailVerified as-is (user already verified when account created)
+			await user.save();
+			return res.status(200).json({ message: 'Email changed successfully.' });
+		}
+
+		return res.status(400).json({ message: 'No pending email change found.' });
+	} catch (err) {
+		console.error('verifyEmailChange error', err);
+		return res.status(500).json({ message: 'Internal server error' });
 	}
 }
 

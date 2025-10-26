@@ -9,6 +9,12 @@ const userSchema = mongoose.Schema({
 	isEmailVerified: { type: Boolean, default: false },
 	emailVerificationToken: String,
 	emailVerificationTokenExpiration: Date,
+	// Pending email change fields
+	pendingEmail: String,
+	pendingEmailToken: String,
+	pendingEmailTokenExpiration: Date,
+	// When the last activation (verification) email was sent
+	lastActivationSent: Date,
 	plan: String,
 	melodiesLeft: Number,
 	freePlanUsed: Boolean,
