@@ -27,12 +27,25 @@
 							id="inputEmail"
 							name="email"
 							[(ngModel)]="newEmail"
+							(ngModelChange)="onEmailInput($event)"
 							#emailInput="ngModel"
 							required
 						>
 						@if (!emailInput.valid && emailInput.touched) {
 							<span class="password-hints">Please enter a valid email!</span>
 						}
+
+						<div class="email-availability mt-1">
+							@if (checkingEmail) {
+								<span class="text-muted"><i class="fas fa-spinner fa-spin"></i> Checking...</span>
+							}
+							@if (emailAvailable === true) {
+								<span class="success-color"><i class="fas fa-check"></i> {{ emailAvailabilityMessage }}</span>
+							}
+							@if (emailAvailable === false) {
+								<span class="danger-color"><i class="fas fa-times"></i> {{ emailAvailabilityMessage }}</span>
+							}
+						</div>
 					</div>
 					<button type="submit" class="btn btn-success">Change email</button>
 				</form>

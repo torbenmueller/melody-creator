@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../auth.service';
 import { ToastrService } from 'ngx-toastr';
@@ -22,15 +22,11 @@ export class VerifyEmailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
-    private router: Router,
     private toastr: ToastrService,
     private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
-    // Don't call the verification endpoint automatically. Instead show a confirmation
-    // page to the user and only POST when they explicitly confirm. This prevents
-    // email scanners/prefetchers from triggering verification automatically.
     this.token = this.route.snapshot.paramMap.get('token');
     this.userId = this.route.snapshot.paramMap.get('id');
     if (!this.token || !this.userId) {
@@ -50,10 +46,6 @@ export class VerifyEmailComponent implements OnInit {
         this.statusHtml = this.sanitizer.bypassSecurityTrustHtml(html);
         this.statusMessage = '';
         this.toastr.success('Your email has been verified. You can now log in.');
-        // Optionally navigate to login after a short delay
-        /* setTimeout(() => {
-          this.router.navigate(['/auth/login']);
-        }, 3000); */
       },
       error: (error) => {
         this.isVerifying = false;

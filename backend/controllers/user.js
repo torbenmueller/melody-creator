@@ -261,6 +261,22 @@ exports.getUser = async (req, res, next) => {
 	}
 }
 
+// Public endpoint to check if an email is already used by another account
+exports.checkEmail = async (req, res, next) => {
+	try {
+		const email = req.query.email;
+		if (!email) return res.status(400).json({ message: 'Email query parameter is required.' });
+		const existing = await User.findOne({ email: email.toString().toLowerCase() });
+		if (existing) {
+			return res.status(409).json({ available: false, message: 'Email already in use.' });
+		}
+		return res.status(200).json({ available: true });
+	} catch (err) {
+		console.error('checkEmail error', err);
+		return res.status(500).json({ message: 'Internal server error' });
+	}
+}
+
 exports.updateEmail = async (req, res, next) => {
 	try {
 		const user = await User.findOne({ _id: req.userData.userId });

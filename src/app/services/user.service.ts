@@ -39,4 +39,8 @@ export class UserService {
     return this.modes.asObservable();
   }
 
+  checkEmail(email: string) {
+    return this.http.get<{available: boolean, message?: string}>(BACKEND_URL + "/user/check-email?email=" + encodeURIComponent(email));
+  }
+
 }

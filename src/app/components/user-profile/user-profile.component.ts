@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { Subscription, Subject, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError, filter, tap } from 'rxjs/operators';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { UserService } from '../../services/user.service';
 import { CreationService } from '../../services/creation.service';
@@ -12,7 +14,7 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule, DatePipe],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.css',
 })
@@ -20,6 +22,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   private userSub!: Subscription;
   private modesSub!: Subscription;
   private melodiesSub!: Subscription;
+  private emailCheckSub?: Subscription;
+  private emailInput$ = new Subject<string>();
 
   user: any;
   modes: any = [];
@@ -35,6 +39,10 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   showPassword: boolean = false;
   showNewPassword: boolean = false;
   latestMelodies: any = [];
+  // email availability UI
+  checkingEmail: boolean = false;
+  emailAvailable: boolean | null = null; // null = unknown, true = available, false = taken
+  emailAvailabilityMessage: string = '';
 
   constructor(
     private userService: UserService,
@@ -48,12 +56,38 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.getUser();
     this.getMelodies();
     this.getModes();
+
+    // Debounced email availability check
+    this.emailCheckSub = this.emailInput$
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        filter((email) => !!email && email.trim().length > 3),
+        tap(() => {
+          this.checkingEmail = true;
+          this.emailAvailable = null;
+          this.emailAvailabilityMessage = '';
+        }),
+        switchMap((email) => this.userService.checkEmail(email).pipe(
+          catchError(err => {
+            // Map errors to a consistent response object
+            const msg = (err?.status === 429) ? 'Rate limit reached, try again later.' : 'Could not verify availability.';
+            return of({ available: false, message: msg });
+          })
+        ))
+      )
+      .subscribe((res: { available: boolean; message?: string }) => {
+        this.checkingEmail = false;
+        this.emailAvailable = !!res.available;
+        this.emailAvailabilityMessage = res.message || (this.emailAvailable ? 'Email available' : 'Email already in use');
+      });
   }
 
   ngOnDestroy(): void {
     this.userSub.unsubscribe();
     this.modesSub.unsubscribe();
     this.melodiesSub.unsubscribe();
+    if (this.emailCheckSub) this.emailCheckSub.unsubscribe();
   }
 
   getUser() {
@@ -129,7 +163,34 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       this.toastr.info('Email is the same as the current one.');
       return;
     }
-    this.authService.updateEmail(form.value.email);
+    // First check whether the email is already used by another account
+    this.userService.checkEmail(form.value.email).subscribe({
+      next: (res: {available: boolean, message?: string}) => {
+        if (res.available) {
+          this.authService.updateEmail(form.value.email);
+        } else {
+          this.toastr.error(res.message || 'Email is already in use.');
+        }
+      },
+      error: (err) => {
+        if (err?.status === 409) {
+          this.toastr.error('Email is already in use.');
+        } else {
+          this.toastr.error('Could not verify email availability. Please try again later.');
+        }
+      }
+    });
+  }
+
+  onEmailInput(value: string) {
+    // Reset availability if same as current
+    if (!value || value.trim() === '' || value === this.currentEmail) {
+      this.checkingEmail = false;
+      this.emailAvailable = null;
+      this.emailAvailabilityMessage = '';
+      return;
+    }
+    this.emailInput$.next(value);
   }
 
   onSubmitNewPassword(form: NgForm) {
