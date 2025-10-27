@@ -64,14 +64,12 @@ a.hyperlink:hover {
 }
 
 a.link,
-a.forgot-password,
-button.forgot-password {
+button.link {
   color: var(--purple) !important;
 }
 
 a.link:hover,
-a.forgot-password:hover,
-button.forgot-password:hover {
+button.link:hover {
   color: var(--purple-hover) !important;
 }
 
@@ -229,7 +227,7 @@ input.ng-invalid.ng-touched {
   z-index: 2;
 }
 
-.forgot-password {
+.link {
   cursor: pointer;
   display: inline-block;
 }

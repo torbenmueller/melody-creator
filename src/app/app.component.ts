@@ -8,6 +8,7 @@ import { AuthService } from './auth/auth.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatModalComponent } from './components/mat-modal/mat-modal.component';
+import { CookieConsentPopupComponent } from "./components/cookie-consent-popup/cookie-consent-popup.component";
 
 @Component({
   selector: 'app-root',
@@ -20,8 +21,9 @@ import { MatModalComponent } from './components/mat-modal/mat-modal.component';
     FooterComponent,
     CommonModule,
     MatDialogModule,
-    MatButtonModule
-  ],
+    MatButtonModule,
+    CookieConsentPopupComponent
+],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

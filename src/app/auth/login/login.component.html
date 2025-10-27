@@ -29,7 +29,7 @@
 					<span class="password-hints">Please enter a password!</span>
 				}
 				<div class="text-center mt-2">
-					<a class="forgot-password" routerLink="/auth/forgot-password">Forgot password?</a>
+					<a class="link" routerLink="/auth/forgot-password">Forgot password?</a>
 				</div>
 			</div>
 			<button class="w-100 btn btn-lg primary-button" type="submit" [disabled]="isLoading">Sign In</button>
@@ -41,21 +41,18 @@
 				</div>
 			}
 			@if (!isAuthenticated) {
-				<p class="text-center error-color">Wrong email address or password</p>
+				<p class="text-center danger-color">Wrong email address or password</p>
 			}
 			@if (!emailIsConfirmed) {
 				<div class="text-center">
-					<p class="mb-2 white-color">Didn't receive a verification email?</p>
-					<div>
-						<input name="resendEmail" [(ngModel)]="resendEmailMessage" placeholder="Enter your email" class="form-control" />
-						<button class="btn btn-link forgot-password" type="button" (click)="onResendActivation(resendEmailMessage)" [disabled]="resendLoading">
-							<span *ngIf="!resendLoading">Resend activation link</span>
-							<span *ngIf="resendLoading"><i class="fas fa-spinner fa-spin"></i> Sending...</span>
-						</button>
-					</div>
+					<p class="mb-0 white-color">Didn't receive a verification email?</p>
+					<button class="btn btn-link link p-0" type="button" (click)="onResendActivation(loginForm.value.email)" [disabled]="resendLoading || !loginForm.value.email">
+						<span *ngIf="!resendLoading">Resend activation link</span>
+						<span *ngIf="resendLoading"><i class="fas fa-spinner fa-spin"></i> Sending...</span>
+					</button>
 				</div>
 			}
 		</form>
-		<p class="mb-0 text-center">Don't have an account? <a class="forgot-password" routerLink="/auth/signup">Sign Up</a></p>
+		<p class="mb-0 text-center">Don't have an account? <a class="link" routerLink="/auth/signup">Sign Up</a></p>
 	</div>
 </div>

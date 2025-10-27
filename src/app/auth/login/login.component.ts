@@ -20,9 +20,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   isAuthenticated: boolean = true;
   emailIsConfirmed: boolean = true;
   private authStatusSubscription!: Subscription;
-  // resend activation UI state
   resendLoading: boolean = false;
-  resendEmailMessage: string = '';
 
   constructor(
     public authService: AuthService,
@@ -48,16 +46,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
     this.isLoading = true;
-    this.resendEmailMessage = form.value.email;
     this.authService.loginUser(form.value.email, form.value.password).subscribe({
       next: () => {
         console.log('Login successful');
       },
       error: (err) => {
         this.toastr.error('Login failed: ' + err.error.message);
-        // If the error indicates unverified email, surface a friendly message
         if (err?.status === 403 && err.error?.message && err.error.message.toLowerCase().includes('verify')) {
-          // we could surface UI to resend activation; keep toast and allow user to click the resend button in the form
           this.emailIsConfirmed = false;
         }
       }
@@ -71,7 +66,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
     this.resendLoading = true;
-    this.resendEmailMessage = '';
     this.authService.resendActivation(targetEmail).subscribe({
       next: (res: {message: string}) => {
         this.resendLoading = false;

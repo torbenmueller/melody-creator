@@ -77,14 +77,6 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.verifyEmail = async (req, res, next) => {
 	try {
-		// Log caller info to help diagnose duplicate requests (prefetchers, scanners, etc.)
-		console.log('verifyEmail called', {
-			ip: req.ip,
-			ua: req.get('user-agent'),
-			referer: req.get('referer'),
-			time: new Date().toISOString()
-		});
-
 		const { token, userId } = req.body || {};
 		if (!token || !userId) {
 			return res.status(400).json({ message: 'Token and userId are required.' });
