@@ -27,14 +27,11 @@
 				</li> -->
 			</ul>
 			@if (minutes < 1 && seconds < 31 && seconds> 0) {
-				<div class="countdown">
-					<span>For security reasons you will be logged out in {{seconds}} seconds. </span>
-					<a class="hand underline header-link" (click)="stayLoggedIn()">Stay logged in</a>
+				<div class="me-3">
+					<span>For security reasons you will be logged out in <span class="white-color">{{seconds}}</span> seconds. </span>
+					<a class="link" (click)="stayLoggedIn()">Stay logged in</a>
 				</div>
 			}
-			<!-- <span style="color: red;margin-right: 5px;">{{userIsAuthenticated}}</span>
-			<span style="color: red;margin-right: 5px;">minutes: {{minutes}}</span>
-			<span style="color: red;margin-right: 5px;">seconds: {{seconds}}</span> -->
 			<form class="d-flex">
 				@if (userIsAuthenticated) {
 					<a class="navbar-brand custom-tooltip" routerLink="/user-profile">

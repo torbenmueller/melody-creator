@@ -113,7 +113,6 @@ export class AuthService {
             this.setAuthTimer(expiresInDuration);
             this.isAuthenticated = true;
             this.authStatusListener.next(true);
-            console.log("expiresInDuration", expiresInDuration);
             const expirationDate = new Date(
               new Date().getTime() + expiresInDuration * 1000
             );
@@ -136,7 +135,6 @@ export class AuthService {
     }
     const now = new Date();
     const expiresIn = authInformation.expirationDate.getTime() - now.getTime();
-    console.log("expiresIn", expiresIn);
     if (expiresIn > 0) {
       this.token = authInformation.token;
       this.isAuthenticated = true;
@@ -201,6 +199,9 @@ export class AuthService {
   }
 
   private setAuthTimer(duration: number) {
+    if (this.tokenTimer) {
+      clearTimeout(this.tokenTimer);
+    }
     this.tokenTimer = setTimeout(() => {
       this.logout();
     }, duration * 1000);
@@ -238,6 +239,18 @@ export class AuthService {
       localStorage.setItem('token', token);
       localStorage.setItem('expiration', expirationDate.toISOString());
       // this.authStatusListener.next(true);
+    }
+  }
+
+  updateAuthData(expirationDate: Date) {
+    const localStorage = this.document.defaultView?.localStorage;
+    if (localStorage) {
+      localStorage.setItem('expiration', expirationDate.toISOString());
+    }
+    const now = Date.now();
+    const newDurationSec = Math.max(0, Math.floor((expirationDate.getTime() - now) / 1000));
+    if (newDurationSec > 0) {
+      this.setAuthTimer(newDurationSec);
     }
   }
 

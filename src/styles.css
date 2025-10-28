@@ -546,10 +546,6 @@ progress::-moz-progress-bar {
   color: var(--error-color);
 }
 
-.white-color {
-  color: #fff;
-}
-
 .purple-color {
   color: var(--purple);
 }
