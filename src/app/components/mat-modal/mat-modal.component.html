@@ -12,13 +12,13 @@
   }
   @case ('Automatically logged out') {
     <mat-dialog-actions>
-      <button class="btn btn-secondary me-3" mat-dialog-close>Close</button>
+      <button type="button" class="btn btn-secondary me-3" mat-dialog-close>Close</button>
       <button type="button" class="btn primary-button" mat-dialog-close routerLink="/auth/login">Login</button>
     </mat-dialog-actions>
   }
   @case ('An error occurred!') {
     <mat-dialog-actions>
-      <button class="btn btn-secondary" mat-dialog-close>Close</button>
+      <button type="button" class="btn btn-secondary" mat-dialog-close>Close</button>
     </mat-dialog-actions>
   }
 }

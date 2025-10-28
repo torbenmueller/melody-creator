@@ -243,15 +243,25 @@ export class AuthService {
   }
 
   updateAuthData(expirationDate: Date) {
+    const now = Date.now();
+    const expiresInMs = expirationDate.getTime() - now;
+
+    if (expiresInMs <= 0) {
+      this.logout();
+      return;
+    }
+
     const localStorage = this.document.defaultView?.localStorage;
     if (localStorage) {
-      localStorage.setItem('expiration', expirationDate.toISOString());
+      try {
+        localStorage.setItem('expiration', expirationDate.toISOString());
+      } catch (err) {
+        console.warn('Could not write expiration to localStorage', err);
+      }
     }
-    const now = Date.now();
-    const newDurationSec = Math.max(0, Math.floor((expirationDate.getTime() - now) / 1000));
-    if (newDurationSec > 0) {
-      this.setAuthTimer(newDurationSec);
-    }
+
+    const newDurationSec = Math.max(1, Math.ceil(expiresInMs / 1000));
+    this.setAuthTimer(newDurationSec);
   }
 
   private clearAuthData() {
