@@ -12,7 +12,7 @@ exports.saveMelody = (req, res, next) => {
 
 	melody.save().then(() => {
 		res.status(201).json({
-			message: 'Melody added successfully!'
+			message: 'Melody saved successfully!'
 		});
 	}).catch(error => {
 		res.status(500).json({
