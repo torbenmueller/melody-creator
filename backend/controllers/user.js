@@ -24,10 +24,11 @@ exports.createUser = (req, res, next) => {
 			});
 			user.save()
 				.then(result => {
-					res.status(201).json({
-						message: 'Verification email sent. Please confirm your email to complete registration.',
-						result: result
-					});
+						// Return minimal info to avoid serializing the full mongoose document
+						res.status(201).json({
+							message: 'Verification email sent. Please confirm your email to complete registration.',
+							userId: result._id
+						});
 					emailjs
 						.send(
 							process.env.EMAILJS_SERVICE_ID,
@@ -164,17 +165,39 @@ exports.resetPassword = (req, res, next) => {
 		User.findOne({ email: req.body.email })
 			.then(user => {
 				if (!user) {
-					return res.status(404).json({ message: 'No account found for this email address.' });
+					res.status(404).json({ message: 'No account found for this email address.' });
+					throw new Error('UserNotFound');
 				}
+
+				// Determine current calendar month in yyyymm format
+				const now = new Date();
+				const currentMonth = now.getFullYear() * 100 + (now.getMonth() + 1);
+
+				// Reset monthly counter if month changed or not initialized
+				if (!user.resetRequestsMonth || user.resetRequestsMonth !== currentMonth) {
+					user.resetRequestsMonth = currentMonth;
+					user.resetRequestsCount = 0;
+				}
+
+				// Enforce a maximum of 3 requests per month
+				if (user.resetRequestsCount >= 3) {
+					res.status(429).json({
+						message: 'You have reached your monthly limit for password requests.'
+					});
+					throw new Error('ResetRequestsLimitReached');
+				}
+
 				user.resetToken = token;
 				user.resetTokenExpiration = Date.now() + 3600000;
+				user.resetRequestsCount = (user.resetRequestsCount || 0) + 1;
 				userId = user._id;
 				return user.save();
 			})
 			.then(result => {
+				// Avoid sending the full saved document to the client (can include complex internals)
 				res.status(201).json({
 					message: 'Password reset email sent',
-					result: result
+					userId: result._id
 				});
 				emailjs
 					.send(
@@ -203,7 +226,15 @@ exports.resetPassword = (req, res, next) => {
 					});
 			})
 			.catch(err => {
-				console.log('Reset password error:', err);
+				// If this is an expected sentinel error we threw to short-circuit the flow,
+				// the response has already been sent above. Avoid noisy stack traces for
+				// those controlled cases.
+				if (err && (err.message === 'UserNotFound' || err.message === 'ResetRequestsLimitReached')) {
+					// nothing to do; response already sent to client
+					return;
+				}
+				// Unexpected errors: log and respond if headers not yet sent
+				console.error('Reset password error:', err && err.stack ? err.stack : err);
 				if (!res.headersSent) {
 					return res.status(500).json({ message: 'Internal server error while processing password reset.' });
 				}
@@ -279,36 +310,47 @@ exports.resendActivation = async (req, res, next) => {
 }
 
 exports.postNewPassword = (req, res, next) => {
-    const newPassword = req.body.newPassword;
-    const userId = req.body.userId;
-    const passwordToken = req.body.passwordToken;
-    let resetUser;
 
-	User.findOne({
-		resetToken: passwordToken,
-		resetTokenExpiration: {$gt: Date.now()},
-		_id: userId
-	})
-		.then(user => {
-			resetUser = user;
-			return bcrypt.hash(newPassword, 10);
-		})
-		.then(hashedPassword => {
-			resetUser.password = hashedPassword;
-			resetUser.resetToken = undefined;
-			resetUser.resetTokenExpiration = undefined;
-			return resetUser.save();
-		})
-		.then(result => {
-			// res.redirect('/auth/login');
-			res.status(201).json({
-				message: 'New password was created successfully.',
-				result: result
+	// Use async/await and validate inputs to avoid null dereferences
+	(async () => {
+		try {
+			const newPassword = req.body && req.body.newPassword;
+			const userId = req.body && req.body.userId;
+			const passwordToken = req.body && req.body.passwordToken;
+
+			if (!newPassword || !userId || !passwordToken) {
+				return res.status(400).json({ message: 'Missing required parameters.' });
+			}
+
+			const user = await User.findOne({
+				resetToken: passwordToken,
+				resetTokenExpiration: { $gt: Date.now() },
+				_id: userId
 			});
-		})
-		.catch(err => {
-			console.log(err);
-		});
+
+			if (!user) {
+				// Token invalid/expired or user not found
+				return res.status(400).json({ message: 'Invalid or expired token, or user not found.' });
+			}
+
+			const hashedPassword = await bcrypt.hash(newPassword, 10);
+			user.password = hashedPassword;
+			user.resetToken = undefined;
+			user.resetTokenExpiration = undefined;
+			const result = await user.save();
+
+			// Return minimal result to client
+			return res.status(201).json({
+				message: 'Password has been reset successfully. You can now log in with your new password.',
+				userId: result._id
+			});
+		} catch (err) {
+			console.error('postNewPassword error', err);
+			if (!res.headersSent) {
+				return res.status(500).json({ message: 'Internal server error' });
+			}
+		}
+	})();
 }
 
 exports.getUser = async (req, res, next) => {

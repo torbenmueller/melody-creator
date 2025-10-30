@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-forgot-password',
@@ -13,10 +14,12 @@ import { RouterLink } from '@angular/router';
 })
 export class ForgotPasswordComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
+  limitReached: boolean = false;
   private authStatusSubscription!: Subscription;
 
   constructor(
-    public authService: AuthService
+    public authService: AuthService,
+    private toastr: ToastrService,
   ) { }
 
   ngOnInit(): void {
@@ -35,14 +38,18 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       return;
     }
     this.isLoading = true;
+    this.limitReached = false;
     this.authService.resetPassword(form.value.email).subscribe({
       next: () => {
         this.isLoading = false;
-        console.log('Password reset email sent');
+        this.toastr.success('Password reset email sent');
       },
       error: (err) => {
         this.isLoading = false;
-        console.log('Password reset failed', err);
+        if (err && (err.status === 429)) {
+          this.limitReached = true;
+        }
+        this.toastr.error('Password reset failed: ' + err.error.message);
       }
     });
   }

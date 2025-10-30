@@ -18,7 +18,10 @@ const userSchema = mongoose.Schema({
 	plan: String,
 	melodiesLeft: Number,
 	freePlanUsed: Boolean,
-	time: { type: Date, default: Date.now }
+	time: { type: Date, default: Date.now },
+	// Password reset request limiting (per calendar month)
+	resetRequestsCount: { type: Number, default: 0 },
+	resetRequestsMonth: { type: Number }
 });
 
 module.exports = mongoose.model('User', userSchema);

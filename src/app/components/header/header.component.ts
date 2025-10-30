@@ -8,6 +8,9 @@ import { Component } from '@angular/core';
   styleUrl: './header.component.css'
 })
 export class HeaderComponent {
-
   title: string = "Unleash Your Musical Creativity";
+
+  scrollToPosition(y: number): void {
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
 }

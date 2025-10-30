@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-features',
@@ -8,5 +9,13 @@ import { Component } from '@angular/core';
   styleUrl: './features.component.css'
 })
 export class FeaturesComponent {
-  
+  constructor(private router: Router) {}
+
+  navigateAndScroll(): void {
+    this.router.navigate(['/']).then(() => {
+      setTimeout(() => {
+        window.scrollTo({ top: 513, behavior: 'smooth' });
+      }, 100);
+    });
+  }
 }

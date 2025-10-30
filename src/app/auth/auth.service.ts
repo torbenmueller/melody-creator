@@ -171,7 +171,9 @@ export class AuthService {
           } else if (error.error && typeof error.error === 'object' && 'message' in error.error) {
             message = String((error.error as any).message);
           }
-          this.toastr.error(message, 'Password reset failed');
+          if (error.status !== 429) {
+            this.toastr.error(message, 'Password reset failed');
+          }
           return throwError(() => ({ ...error, userMessage: message }));
         }),
         map(() => void 0)
@@ -188,14 +190,21 @@ export class AuthService {
       passwordToken: passwordToken,
       userId: userId,
     };
-    this.http.post(`${BACKEND_URL}/new-password`, newPasswordParams).subscribe(
-      (response) => {
-        this.router.navigate(['/auth/login']);
-      },
-      (error) => {
-        this.authStatusListener.next(false);
-      }
-    );
+    // The backend returns { message: string, result: any } on success.
+    this.http.post<{ message: string; result?: any }>(`${BACKEND_URL}/new-password`, newPasswordParams)
+      .subscribe(
+        (response) => {
+          // Access the message directly from the response body
+          const msg = response?.message || 'Your password has been reset successfully. You can now log in with your new password.';
+          this.toastr.success(msg);
+          this.router.navigate(['/auth/login']);
+        },
+        (error: HttpErrorResponse) => {
+          this.authStatusListener.next(false);
+          const errMsg = error?.error?.message || 'Failed to set new password. Please try again.';
+          this.toastr.error(errMsg);
+        }
+      );
   }
 
   private setAuthTimer(duration: number) {
