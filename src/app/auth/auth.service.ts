@@ -82,21 +82,30 @@ export class AuthService {
     );
   }
 
-  updatePassword(password: string, newpassword: string) {
+  updatePassword(password: string, newpassword: string): Observable<void> {
     const editPasswordModel: EditPasswordModel = {
       password: password,
       newpassword: newpassword,
     };
-    this.http
+    return this.http
       .put(`${BACKEND_URL}/update-password`, editPasswordModel)
-      .subscribe(
-        (response) => {
-          this.toastr.success(Object.values(response)[0]);
-          // this.router.navigate(['/']);
-        },
-        (error) => {
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
           this.authStatusListener.next(false);
-        }
+          let message = 'Something went wrong while requesting a password change.';
+          if (error.status === 0) {
+            message = 'Network error: please check your internet connection.';
+          } else if (error.status >= 500) {
+            message = 'Server error: please try again later.';
+          } else if (error.error && typeof error.error === 'object' && 'message' in error.error) {
+            message = String((error.error as any).message);
+          }
+          if (error.status !== 429) {
+            this.toastr.error(message, 'Password change failed');
+          }
+          return throwError(() => ({ ...error, userMessage: message }));
+        }),
+        map(() => void 0)
       );
   }
 

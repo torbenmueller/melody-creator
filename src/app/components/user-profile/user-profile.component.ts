@@ -43,6 +43,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   checkingEmail: boolean = false;
   emailAvailable: boolean | null = null; // null = unknown, true = available, false = taken
   emailAvailabilityMessage: string = '';
+  passwordChangeRequestsLimitReached: boolean = false;
 
   constructor(
     private userService: UserService,
@@ -198,10 +199,18 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       form.form.markAllAsTouched();
       return;
     }
-    this.authService.updatePassword(
-      form.value.password,
-      form.value.newpassword
-    );
+    this.passwordChangeRequestsLimitReached = false;
+    this.authService.updatePassword(form.value.password, form.value.newpassword).subscribe({
+      next: () => {
+        this.toastr.success('Password successfully changed');
+      },
+      error: (err) => {
+        if (err && (err.status === 429)) {
+          this.passwordChangeRequestsLimitReached = true;
+        }
+        this.toastr.error(err.error.message);
+      }
+    });
   }
 
   togglePasswordVisibility() {

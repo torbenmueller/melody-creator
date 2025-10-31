@@ -21,7 +21,9 @@ const userSchema = mongoose.Schema({
 	time: { type: Date, default: Date.now },
 	// Password reset request limiting (per calendar month)
 	resetRequestsCount: { type: Number, default: 0 },
-	resetRequestsMonth: { type: Number }
+	resetRequestsMonth: { type: Number },
+	// Password change request limiting
+	passwordChangeRequestsCount: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model('User', userSchema);

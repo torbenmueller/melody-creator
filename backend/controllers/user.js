@@ -490,26 +490,39 @@ exports.verifyEmailChange = async (req, res, next) => {
 
 exports.updatePassword = async (req, res, next) => {
 	try {
+		// Load the user first
 		const user = await User.findOne({ _id: req.userData.userId });
-		const passwordMatches = await bcrypt.compare(req.body.password, user.password);
-
-		if (!passwordMatches) {
-			return res.status(401).json({
-				message: 'Wrong password'
-			});
+		if (!user) {
+			return res.status(404).json({ message: 'User not found.' });
 		}
 
+		// Enforce request limit
+		if ((user.passwordChangeRequestsCount || 0) >= 3) {
+			// send response and short-circuit
+			res.status(429).json({ message: 'You have reached your limit for password change requests.' });
+			throw new Error('PasswordChangeRequestsLimitReached');
+		}
+
+		// Verify current password
+		const passwordMatches = await bcrypt.compare(req.body.password, user.password);
+		if (!passwordMatches) {
+			return res.status(401).json({ message: 'Wrong password' });
+		}
+
+		// Hash and store new password
 		const newPassword = await bcrypt.hash(req.body.newpassword, 10);
 		user.password = newPassword;
+		user.passwordChangeRequestsCount = (user.passwordChangeRequestsCount || 0) + 1;
 		await user.save();
-		res.status(200).json({
-			message: 'Password changed successfully'
-		});
+
+		return res.status(200).json({ message: 'Password changed successfully' });
 
 	} catch (error) {
-		console.log(error);
-		res.status(500).json({
-			message: 'An error occurred while updating the password'
-		});
+		// If sentinel error was thrown to short-circuit, do nothing further
+		if (error && error.message === 'PasswordChangeRequestsLimitReached') return;
+		console.error('updatePassword error', error && error.stack ? error.stack : error);
+		if (!res.headersSent) {
+			return res.status(500).json({ message: 'An error occurred while updating the password' });
+		}
 	}
 }
