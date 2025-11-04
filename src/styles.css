@@ -47,14 +47,6 @@ h1.h3 {
   color: var(--purple);
 }
 
-/* .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
-	margin-bottom: 0 !important;
-} */
-
-/* .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
-	margin-bottom: 1rem !important;
-} */
-
 a.hyperlink-white {
   color: var(--white) !important;
 }
@@ -81,7 +73,7 @@ button.link:hover {
   min-height: calc(100vh - 255px);
   box-sizing: border-box;
   padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding-bottom: 2.625rem;
 }
 
 .col-md-4 {
@@ -560,7 +552,7 @@ progress::-moz-progress-bar {
 
 .border-grey {
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
   background-color: var(--background-color-2);
 }
 
@@ -577,16 +569,20 @@ progress::-moz-progress-bar {
 .bgr-color-3,
 .col-12 .card,
 .list-group .list-group-item {
-  background-color: transparent;
+  /* background-color: transparent; */
+  background-color: var(--background-color-2);
   color: var(--body-color);
-  /* border-top-left-radius: 0;
-	border-top-right-radius: 0; */
+  border-radius: 0;
+  border-style: solid;
+  border-color: var(--border-color);
+  border-width: 0 1px;
 }
 
-.col-12 .card > .list-group,
+/* .col-12 .card > .list-group, */
 .col-12 .card.card-header {
-  border-top: 0;
-  border-bottom: 1px solid var(--border-color);
+  /* border-top: 0;
+  border-bottom: 1px solid var(--border-color); */
+  border: 1px solid var(--border-color);
 }
 
 .app-title {
@@ -748,9 +744,91 @@ a:focus-visible,
   color: var(--red-color);
 }
 
-mat-paginator .mat-mdc-paginator-container {
-  min-height: 3rem;
+.custom-paginator mat-paginator {
+  background-color: var(--background-color-2);
+  color: var(--body-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
 }
+
+.custom-paginator mat-paginator .mat-mdc-paginator-container {
+  min-height: 4rem;
+  padding: 0 1rem;
+}
+
+.custom-paginator mat-paginator .mat-mdc-paginator-range-label,
+.custom-paginator mat-paginator .mat-mdc-paginator-page-size-label {
+  color: var(--body-color);
+}
+
+.custom-paginator mat-paginator .mat-mdc-icon-button {
+  color: var(--white);
+}
+
+/* .custom-paginator mat-paginator .mat-mdc-icon-button:hover,
+.custom-paginator mat-paginator .mat-mdc-icon-button:focus {
+  color: var(--purple);
+} */
+
+/* .custom-paginator mat-paginator .mat-mdc-form-field {
+  --mdc-filled-text-field-container-color: transparent;
+} */
+
+.custom-paginator mat-paginator .mat-mdc-form-field-infix,
+.custom-paginator mat-paginator .mat-mdc-select-value {
+  color: var(--white);
+}
+
+/* .custom-paginator mat-paginator .mdc-notched-outline__leading,
+.custom-paginator mat-paginator .mdc-notched-outline__notch,
+.custom-paginator mat-paginator .mdc-notched-outline__trailing {
+  border-color: var(--border-color);
+} */
+
+.custom-paginator mat-paginator .mat-mdc-select-arrow svg {
+  fill: var(--body-color);
+}
+
+/* .custom-paginator mat-paginator .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+} */
+
+/* .custom-paginator mat-paginator .mat-mdc-icon-button {
+  border-radius: 9999px;
+} */
+
+.custom-paginator mat-paginator .mat-mdc-icon-button:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.custom-paginator mat-paginator .mat-mdc-icon-button[disabled] {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.custom-paginator mat-paginator .mat-mdc-icon-button svg {
+  fill: currentColor;
+}
+
+.mat-mdc-select-panel {
+  background-color: var(--background-color-2) !important;
+  color: var(--white) !important;
+  border: 1px solid var(--border-color);
+}
+
+.mat-mdc-option .mdc-list-item__primary-text {
+  color: var(--white);
+}
+
+/* .mat-mdc-option.mdc-list-item--selected .mdc-list-item__primary-text,
+.mat-mdc-option.mdc-list-item--activated .mdc-list-item__primary-text {
+  color: var(--purple);
+} */
+
+/* .mat-mdc-option.mdc-list-item--selected,
+.mat-mdc-option.mdc-list-item--activated,
+.mat-mdc-option:hover {
+  background-color: var(--background-color-3);
+} */
 
 .alert-box {
   border-radius: 10px;

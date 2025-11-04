@@ -17,7 +17,8 @@
 	</div>
 
 	@if (melodies.length > 0 && !isLoading) {
-		<div class="row border-grey" style="margin: 0; padding: 0;">
+		<!-- <div class="row border-grey" style="margin: 0; padding: 0;"> -->
+		<div class="row" style="margin: 0; padding: 0;">
 			<div class="col-12" style="margin: 0; padding: 0;">
 				<div class="card card-header">
 					<ul class="list-group list-group-flush">
@@ -55,8 +56,8 @@
 					</ul>
 				</div>
 				<div class="card">
-					@for (melody of melodies; track melody) {
-						<ul class="list-group list-group-flush">
+					<ul class="list-group list-group-flush">
+						@for (melody of melodies; track melody) {
 							<li class="list-group-item">
 								<div class="space-between center-v">
 									<div style="width: 20%">
@@ -111,8 +112,8 @@
 									</div>
 								</div>
 							</li>
-						</ul>
-					}
+						}
+					</ul>
 				</div>
 			</div>
 		</div>

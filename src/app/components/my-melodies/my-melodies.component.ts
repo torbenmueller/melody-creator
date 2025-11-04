@@ -18,7 +18,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   private melodiesSub!: Subscription;
-  melodies: any = [];
+  melodies: any[] = [];
   totalMelodies: number = 0;
   melodiesPerPage: number = 10;
   currentPage: number = 1;
@@ -88,7 +88,6 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
       .getMelodiesUpdateListener()
       .subscribe((data: { melodies: any; melodiesCount: number }) => {
         this.melodies = data.melodies;
-        console.log('this.melodies', this.melodies);
         this.totalMelodies = data.melodiesCount;
         this.isLoading = false;
       });
@@ -170,11 +169,9 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   }
 
   filterMelodies(index: number) {
-    // this.isLoading = true;
     this.toggleFilter(index);
     this.sortByType = this.filterTypes[index];
-    if (this.filterBooleans[index] === true) this.order = 1;
-    else this.order = -1;
+    this.order = this.filterBooleans[index] ? 1 : -1;
     this.creationService.getMelodies(
       this.melodiesPerPage,
       this.currentPage,
@@ -184,9 +181,10 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   }
 
   toggleFilter(index: number) {
-    for (let i = 0; i < 6; i++) {
+    this.filterBooleans[index] = !this.filterBooleans[index];
+    /* for (let i = 0; i < 6; i++) {
       if (i !== index) this.filterBooleans[i] = false;
       else this.filterBooleans[i] = !this.filterBooleans[i];
-    }
+    } */
   }
 }
