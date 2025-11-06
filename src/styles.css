@@ -81,8 +81,6 @@ button.link:hover {
 }
 
 .content {
-  /* background-color: var(--background-color-2); */
-  /* height: 15rem; */
   padding: 3rem 0;
   display: flex;
   align-items: center;
@@ -242,6 +240,11 @@ input.ng-invalid.ng-touched {
 
 .no-margin {
   margin: 0 !important;
+}
+
+.nopm {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .relative {
@@ -469,6 +472,10 @@ progress::-moz-progress-bar {
   margin-bottom: 1.5rem;
 }
 
+.mb-6 {
+  margin-bottom: 6px;
+}
+
 .mb-12 {
   margin-bottom: 12px;
 }
@@ -571,10 +578,10 @@ progress::-moz-progress-bar {
 .list-group .list-group-item {
   background-color: var(--background-color-2);
   color: var(--body-color);
-  border-radius: 0;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
   border-style: solid;
   border-color: var(--border-color);
-  border-width: 0 1px;
+  border-width: 0 1px 1px;
 }
 
 .col-12 .card.card-header {
@@ -740,58 +747,6 @@ a:focus-visible,
   color: var(--red-color);
 }
 
-.custom-paginator mat-paginator {
-  background-color: var(--background-color-2);
-  color: var(--body-color);
-  border: 1px solid var(--border-color);
-  border-radius: 0 0 var(--border-radius) var(--border-radius);
-}
-
-.custom-paginator mat-paginator .mat-mdc-paginator-container {
-  min-height: 4rem;
-  padding: 0 1rem;
-}
-
-.custom-paginator mat-paginator .mat-mdc-paginator-range-label,
-.custom-paginator mat-paginator .mat-mdc-paginator-page-size-label {
-  color: var(--body-color);
-}
-
-.custom-paginator mat-paginator .mat-mdc-icon-button {
-  color: var(--white);
-}
-
-.custom-paginator mat-paginator .mat-mdc-form-field-infix,
-.custom-paginator mat-paginator .mat-mdc-select-value {
-  color: var(--white);
-}
-
-.custom-paginator mat-paginator .mat-mdc-select-arrow svg {
-  fill: var(--body-color);
-}
-
-.custom-paginator mat-paginator .mat-mdc-icon-button:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-.custom-paginator mat-paginator .mat-mdc-icon-button[disabled] {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.custom-paginator mat-paginator .mat-mdc-icon-button svg {
-  fill: currentColor;
-}
-
-.mat-mdc-select-panel {
-  background-color: var(--background-color-2) !important;
-  color: var(--white) !important;
-  border: 1px solid var(--border-color);
-}
-
-.mat-mdc-option .mdc-list-item__primary-text {
-  color: var(--white);
-}
-
 .alert-box {
   border-radius: 10px;
   padding: 1rem;
@@ -809,72 +764,8 @@ a:focus-visible,
   }
 }
 
-/* Respect user's reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   .primary-button::before {
     transition: none;
   }
 }
-
-/* --- Angular Material theming tweaks for form-field & select ---
-   - change outline color, focus/active styles
-   - rotate the select arrow when open (triangle animation)
-   - hover and active styles for select options
-*/
-
-/* Outline for MDC-based form field */
-.mat-mdc-form-field .mdc-notched-outline {
-  border-color: var(--border-color) !important;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
-}
-
-/* Floating label (active) color */
-.mat-mdc-form-field .mdc-floating-label {
-  color: var(--body-color) !important;
-  transition: color 180ms ease;
-}
-
-/* Focused / active state */
-.mat-mdc-form-field.mat-mdc-form-field-focused .mdc-notched-outline,
-.mat-mdc-form-field.mat-mdc-form-field-appearance-outline.mat-mdc-form-field-focused .mdc-notched-outline {
-  border-color: var(--purple) !important;
-  box-shadow: 0 0 0 6px rgba(168,85,247,0.06);
-}
-.mat-mdc-form-field.mat-mdc-form-field-focused .mdc-floating-label {
-  color: var(--purple) !important;
-}
-
-/* Hover effect on the trigger (subtle) */
-.mat-mdc-select:hover .mdc-notched-outline {
-  border-color: rgba(168,85,247,0.12) !important;
-}
-
-/* Select arrow (triangle) animation: rotate when expanded */
-.mat-mdc-select .mat-mdc-select-arrow svg {
-  transition: transform 220ms cubic-bezier(.4,0,.2,1), fill 180ms ease;
-  transform-origin: 50% 50%;
-  fill: var(--body-color);
-}
-.mat-mdc-select[aria-expanded="true"] .mat-mdc-select-arrow svg {
-  transform: rotate(180deg);
-  fill: var(--purple);
-}
-
-/* Panel / option hover + active styles */
-.mat-mdc-select-panel .mat-mdc-option {
-  transition: background-color 120ms ease, color 120ms ease;
-}
-.mat-mdc-select-panel .mat-mdc-option:hover {
-  background-color: rgba(168,85,247,0.06) !important;
-}
-.mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-selected {
-  background-color: rgba(168,85,247,0.12) !important;
-  color: var(--purple) !important;
-}
-
-/* Slight focus ring for keyboard navigation inside the panel */
-.mat-mdc-select-panel .mat-mdc-option:focus {
-  outline: none;
-  box-shadow: inset 0 0 0 2px rgba(168,85,247,0.06);
-}
-

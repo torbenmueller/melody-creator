@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Subscription } from 'rxjs';
 import { CreationService } from '../../services/creation.service';
 import { ToastrService } from 'ngx-toastr';
@@ -10,19 +9,16 @@ import { DatePipe, NgClass } from '@angular/common';
 @Component({
   selector: 'app-my-melodies',
   standalone: true,
-  imports: [NgClass, DatePipe, MatPaginator, MatPaginatorModule],
+  imports: [NgClass, DatePipe],
   templateUrl: './my-melodies.component.html',
   styleUrl: './my-melodies.component.css',
 })
 export class MyMelodiesComponent implements OnInit, OnDestroy {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
   private melodiesSub!: Subscription;
   melodies: any[] = [];
   totalMelodies: number = 0;
   melodiesPerPage: number = 10;
   currentPage: number = 1;
-  pageSizeOptions: Array<number> = [10, 25, 50];
   isLoading: boolean = false;
   isPlaying!: boolean;
   melodyId: string = '';
@@ -62,18 +58,6 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.melodiesSub.unsubscribe();
-  }
-
-  onChangedPage(pageData: PageEvent) {
-    this.isLoading = true;
-    this.currentPage = pageData.pageIndex + 1;
-    this.melodiesPerPage = pageData.pageSize;
-    this.creationService.getMelodies(
-      this.melodiesPerPage,
-      this.currentPage,
-      this.sortByType,
-      this.order
-    );
   }
 
   load() {
@@ -133,9 +117,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     this.creationService.deleteMelody(this.melodyId).subscribe(
       (item) => {
         if (this.melodiesPerPage * this.currentPage >= this.totalMelodies) {
-          this.paginator.firstPage();
-          /* this.showSuccess();
-        return; */
+          this.goToPage(1);
         }
         this.creationService.getMelodies(
           this.melodiesPerPage,
@@ -201,10 +183,6 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     if (page < 1 || page > this.totalPages || page === this.currentPage) return;
     this.isLoading = true;
     this.currentPage = page;
-    // Keep MatPaginator in sync when navigating via custom nav
-    if (this.paginator) {
-      this.paginator.pageIndex = page - 1;
-    }
     this.creationService.getMelodies(
       this.melodiesPerPage,
       this.currentPage,
