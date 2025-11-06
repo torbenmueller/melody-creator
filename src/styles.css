@@ -569,7 +569,6 @@ progress::-moz-progress-bar {
 .bgr-color-3,
 .col-12 .card,
 .list-group .list-group-item {
-  /* background-color: transparent; */
   background-color: var(--background-color-2);
   color: var(--body-color);
   border-radius: 0;
@@ -578,11 +577,9 @@ progress::-moz-progress-bar {
   border-width: 0 1px;
 }
 
-/* .col-12 .card > .list-group, */
 .col-12 .card.card-header {
-  /* border-top: 0;
-  border-bottom: 1px solid var(--border-color); */
   border: 1px solid var(--border-color);
+  background-color: var(--background-color-3);
 }
 
 .app-title {
@@ -620,7 +617,6 @@ progress::-moz-progress-bar {
   opacity: 1;
 }
 
-.table-filter:focus-visible,
 .selected-value:focus-visible,
 a:focus-visible,
 .primary-button:focus-visible {
@@ -765,37 +761,14 @@ a:focus-visible,
   color: var(--white);
 }
 
-/* .custom-paginator mat-paginator .mat-mdc-icon-button:hover,
-.custom-paginator mat-paginator .mat-mdc-icon-button:focus {
-  color: var(--purple);
-} */
-
-/* .custom-paginator mat-paginator .mat-mdc-form-field {
-  --mdc-filled-text-field-container-color: transparent;
-} */
-
 .custom-paginator mat-paginator .mat-mdc-form-field-infix,
 .custom-paginator mat-paginator .mat-mdc-select-value {
   color: var(--white);
 }
 
-/* .custom-paginator mat-paginator .mdc-notched-outline__leading,
-.custom-paginator mat-paginator .mdc-notched-outline__notch,
-.custom-paginator mat-paginator .mdc-notched-outline__trailing {
-  border-color: var(--border-color);
-} */
-
 .custom-paginator mat-paginator .mat-mdc-select-arrow svg {
   fill: var(--body-color);
 }
-
-/* .custom-paginator mat-paginator .mat-mdc-form-field-subscript-wrapper {
-  display: none;
-} */
-
-/* .custom-paginator mat-paginator .mat-mdc-icon-button {
-  border-radius: 9999px;
-} */
 
 .custom-paginator mat-paginator .mat-mdc-icon-button:hover {
   background-color: rgba(255, 255, 255, 0.08);
@@ -818,17 +791,6 @@ a:focus-visible,
 .mat-mdc-option .mdc-list-item__primary-text {
   color: var(--white);
 }
-
-/* .mat-mdc-option.mdc-list-item--selected .mdc-list-item__primary-text,
-.mat-mdc-option.mdc-list-item--activated .mdc-list-item__primary-text {
-  color: var(--purple);
-} */
-
-/* .mat-mdc-option.mdc-list-item--selected,
-.mat-mdc-option.mdc-list-item--activated,
-.mat-mdc-option:hover {
-  background-color: var(--background-color-3);
-} */
 
 .alert-box {
   border-radius: 10px;
@@ -853,3 +815,66 @@ a:focus-visible,
     transition: none;
   }
 }
+
+/* --- Angular Material theming tweaks for form-field & select ---
+   - change outline color, focus/active styles
+   - rotate the select arrow when open (triangle animation)
+   - hover and active styles for select options
+*/
+
+/* Outline for MDC-based form field */
+.mat-mdc-form-field .mdc-notched-outline {
+  border-color: var(--border-color) !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+/* Floating label (active) color */
+.mat-mdc-form-field .mdc-floating-label {
+  color: var(--body-color) !important;
+  transition: color 180ms ease;
+}
+
+/* Focused / active state */
+.mat-mdc-form-field.mat-mdc-form-field-focused .mdc-notched-outline,
+.mat-mdc-form-field.mat-mdc-form-field-appearance-outline.mat-mdc-form-field-focused .mdc-notched-outline {
+  border-color: var(--purple) !important;
+  box-shadow: 0 0 0 6px rgba(168,85,247,0.06);
+}
+.mat-mdc-form-field.mat-mdc-form-field-focused .mdc-floating-label {
+  color: var(--purple) !important;
+}
+
+/* Hover effect on the trigger (subtle) */
+.mat-mdc-select:hover .mdc-notched-outline {
+  border-color: rgba(168,85,247,0.12) !important;
+}
+
+/* Select arrow (triangle) animation: rotate when expanded */
+.mat-mdc-select .mat-mdc-select-arrow svg {
+  transition: transform 220ms cubic-bezier(.4,0,.2,1), fill 180ms ease;
+  transform-origin: 50% 50%;
+  fill: var(--body-color);
+}
+.mat-mdc-select[aria-expanded="true"] .mat-mdc-select-arrow svg {
+  transform: rotate(180deg);
+  fill: var(--purple);
+}
+
+/* Panel / option hover + active styles */
+.mat-mdc-select-panel .mat-mdc-option {
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.mat-mdc-select-panel .mat-mdc-option:hover {
+  background-color: rgba(168,85,247,0.06) !important;
+}
+.mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-selected {
+  background-color: rgba(168,85,247,0.12) !important;
+  color: var(--purple) !important;
+}
+
+/* Slight focus ring for keyboard navigation inside the panel */
+.mat-mdc-select-panel .mat-mdc-option:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(168,85,247,0.06);
+}
+

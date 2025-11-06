@@ -187,4 +187,41 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
       else this.filterBooleans[i] = !this.filterBooleans[i];
     } */
   }
+
+  // Paging helpers for nav paginator
+  get totalPages(): number {
+    return Math.ceil(this.totalMelodies / this.melodiesPerPage) || 0;
+  }
+
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    this.isLoading = true;
+    this.currentPage = page;
+    // Keep MatPaginator in sync when navigating via custom nav
+    if (this.paginator) {
+      this.paginator.pageIndex = page - 1;
+    }
+    this.creationService.getMelodies(
+      this.melodiesPerPage,
+      this.currentPage,
+      this.sortByType,
+      this.order
+    );
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
 }
