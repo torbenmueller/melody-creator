@@ -36,8 +36,8 @@ export class NewPasswordComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authStatusSubscription.unsubscribe();
-    this.routeSub.unsubscribe();
+    this.authStatusSubscription?.unsubscribe();
+    this.routeSub?.unsubscribe();
   }
 
   onSetNewPassword(form: NgForm) {

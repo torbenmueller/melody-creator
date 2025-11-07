@@ -20,7 +20,6 @@ export class AuthService {
   private token!: string;
   private tokenTimer: any;
   private authStatusListener = new Subject<boolean>();
-  /* private authStatusListener = new Observable<boolean>(); */
 
   constructor(
     private http: HttpClient,

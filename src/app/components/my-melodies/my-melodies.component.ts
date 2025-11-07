@@ -57,7 +57,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.melodiesSub.unsubscribe();
+    this.melodiesSub?.unsubscribe();
   }
 
   load() {

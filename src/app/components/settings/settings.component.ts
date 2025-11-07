@@ -88,7 +88,7 @@ export class SettingsComponent {
   }
 
   ngOnDestroy(): void {
-    this.authListenerSubs.unsubscribe();
+    this.authListenerSubs?.unsubscribe();
   }
 
   onSubmit() {

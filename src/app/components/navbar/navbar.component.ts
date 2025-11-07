@@ -16,7 +16,7 @@ import { DOCUMENT } from '@angular/common';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   userIsAuthenticated: boolean = false;
-  private authListenerSubs: Subscription = new Subscription;
+  private authListenerSubs!: Subscription ;
 
   countdown: any;
   minutes: number = 0;
@@ -65,7 +65,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authListenerSubs.unsubscribe();
+    this.authListenerSubs?.unsubscribe();
     clearInterval(this.countdown);
   }
 

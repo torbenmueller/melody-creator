@@ -29,7 +29,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authStatusSubscription.unsubscribe();
+    this.authStatusSubscription?.unsubscribe();
   }
 
   onResetPassword(form: NgForm) {

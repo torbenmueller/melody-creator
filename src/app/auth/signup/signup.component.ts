@@ -78,7 +78,7 @@ export class SignupComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authStatusSubscription.unsubscribe();
+    this.authStatusSubscription?.unsubscribe();
   }
 
   onSignup(form: NgForm) {

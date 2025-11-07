@@ -85,10 +85,10 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.userSub.unsubscribe();
-    this.modesSub.unsubscribe();
-    this.melodiesSub.unsubscribe();
-    if (this.emailCheckSub) this.emailCheckSub.unsubscribe();
+    this.userSub?.unsubscribe();
+    this.modesSub?.unsubscribe();
+    this.melodiesSub?.unsubscribe();
+    this.emailCheckSub?.unsubscribe();
   }
 
   getUser() {
@@ -99,7 +99,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         this.user = data;
         this.currentEmail = data.email;
         this.newEmail = data.email;
-        console.log("USER", this.user);
       });
   }
 
