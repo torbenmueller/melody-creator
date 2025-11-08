@@ -1,7 +1,7 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CreationService } from '../../services/creation.service';
 import { RenderContext, Vex } from 'vexflow';
-import { DOCUMENT } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-score',
@@ -10,47 +10,57 @@ import { DOCUMENT } from '@angular/common';
   templateUrl: './score.component.html',
   styleUrl: './score.component.css'
 })
-export class ScoreComponent implements OnInit {
+export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
   totalMeasures: number = 0;
   composedMelody!: any[];
   melodySettings: any;
   scale!: string[];
   scoreData: any;
+  private viewReady = false;
+  private dataReady = false;
+  private sub?: Subscription;
+
+  @ViewChild('scoreEl', { static: false }) scoreEl!: ElementRef<HTMLDivElement>;
+  @ViewChild('score2El', { static: false }) score2El!: ElementRef<HTMLDivElement>;
+  @ViewChild('score3El', { static: false }) score3El!: ElementRef<HTMLDivElement>;
 
   constructor(
-    public creationService: CreationService,
-    @Inject(DOCUMENT) private document: Document
+    public creationService: CreationService
   ) { }
 
   ngOnInit(): void {
-    this.creationService.getScoreData();
-    this.creationService.scoreData.subscribe(data => {
+    this.sub = this.creationService.scoreData.subscribe(data => {
       console.log("scoreData", data);
       this.composedMelody = data.melody;
       this.melodySettings = data.settings;
       this.scale = data.scale;
-      if (this.composedMelody && this.melodySettings) this.createScore();
+      this.dataReady = !!(this.composedMelody && this.melodySettings && this.melodySettings.bar != null);
+      if (this.viewReady && this.dataReady) this.createScore();
     });
+    // request current score data after subscribing, so we don't miss the emission
+    this.creationService.getScoreData();
+  }
+  
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
+  
+  ngAfterViewInit(): void {
+    this.viewReady = true;
+    if (this.dataReady) this.createScore();
   }
   
   createScore() {
     this.totalMeasures = 0;
     const VF = Vex.Flow;  
-
-    const div = this.document.getElementById("score")! as HTMLDivElement;
-    const div2 = this.document.getElementById("score2")! as HTMLDivElement;
-    const div3 = this.document.getElementById("score3")! as HTMLDivElement;
+    const div = this.scoreEl?.nativeElement as HTMLDivElement;
+    const div2 = this.score2El?.nativeElement as HTMLDivElement;
+    const div3 = this.score3El?.nativeElement as HTMLDivElement;
     
     // Clear existing content
-    if (div.hasChildNodes()) {
-      div.removeChild(div.childNodes[0]);
-    }
-    if (div2.hasChildNodes()) {
-      div2.removeChild(div2.childNodes[0]);
-    }
-    if (div3.hasChildNodes()) {
-      div3.removeChild(div3.childNodes[0]);
-    }
+    if (div) div.innerHTML = '';
+    if (div2) div2.innerHTML = '';
+    if (div3) div3.innerHTML = '';
 
     // Create first renderer (always needed)
     const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
@@ -61,13 +71,13 @@ export class ScoreComponent implements OnInit {
     let context3: any = null;
     
     // Only create second renderer if we have more than 2 bars
-    if (this.melodySettings.bar > 2) {
+    if (this.melodySettings && this.melodySettings.bar > 2) {
       const renderer2 = new VF.Renderer(div2, VF.Renderer.Backends.SVG);
       renderer2.resize(1202, 120);
       context2 = renderer2.getContext();
       
       // Only create third renderer if we have more than 4 bars
-      if (this.melodySettings.bar > 4) {
+      if (this.melodySettings && this.melodySettings.bar > 4) {
         const renderer3 = new VF.Renderer(div3, VF.Renderer.Backends.SVG);
         renderer3.resize(1202, 120);
         context3 = renderer3.getContext();

@@ -101,6 +101,12 @@
 									</div>
 									<div style="width: 15%" class="text-right" [ngClass]="isPlaying ? 'disabled' : 'enabled'">
 										<div class="custom-tooltip inline-block me-3">
+											<button class="btn btn-light btn-sm" (click)="showMelody(melody)">
+												<i class="fas fa-eye fa-lg black-color"></i>
+											</button>
+											<span class="tooltiptext">Show melody</span>
+										</div>
+										<div class="custom-tooltip inline-block me-3">
 											<button class="btn btn-success btn-sm" (click)="play(melody.melody)">
 												<i class="fas fa-play fa-lg white-color"></i>
 											</button>
@@ -120,6 +126,13 @@
 										</div>
 									</div>
 								</div>
+								@if (expandedMelodyId === melody._id) {
+									<div class="col-12 pt-3" [@slideDown]="expandedMelodyId === melody._id">
+										<div class="white-bg">
+											<app-score></app-score>
+										</div>
+									</div>
+								}
 							</li>
 						}
 					</ul>

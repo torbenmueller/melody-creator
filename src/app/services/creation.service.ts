@@ -425,6 +425,13 @@ export class CreationService {
 		this.getScoreData();
 	}
 
+	setMelody(melody: any) {
+		this.melody = melody.melody;
+		this.settings = melody.settings;
+		this.scale = melody.scale;
+		this.getScoreData();
+	}
+
 	getScoreData() {
 		/* this.composedMelody.next(this.melody);
 		this.melodySettings.next(this.settings); */
@@ -465,7 +472,7 @@ export class CreationService {
 		this.addMelody(this.melody);
 	}
 
-	play(melody: any[]) {
+	play(melody: any) {
 		this.melody = melody;
 		this.playMelody();
 	}

@@ -5,13 +5,27 @@ import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { DatePipe, NgClass } from '@angular/common';
+import { ScoreComponent } from '../score/score.component';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-my-melodies',
   standalone: true,
-  imports: [NgClass, DatePipe],
+  imports: [NgClass, DatePipe, ScoreComponent],
   templateUrl: './my-melodies.component.html',
   styleUrl: './my-melodies.component.css',
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ height: 0, opacity: 0, overflow: 'hidden' }),
+        animate('200ms ease-out', style({ height: '*', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        style({ overflow: 'hidden' }),
+        animate('150ms ease-in', style({ height: 0, opacity: 0 }))
+      ])
+    ])
+  ]
 })
 export class MyMelodiesComponent implements OnInit, OnDestroy {
   private melodiesSub!: Subscription;
@@ -23,6 +37,8 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   isPlaying!: boolean;
   melodyId: string = '';
   melodyName: string = '';
+  // track which melody (by id) is expanded to show the score
+  expandedMelodyId: string | null = null;
   sortByType: string = 'time';
   order: number = -1;
 
@@ -75,6 +91,18 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
         this.totalMelodies = data.melodiesCount;
         this.isLoading = false;
       });
+  }
+
+  showMelody(melody: any): void {
+    // toggle expanded view for the clicked melody
+    if (this.expandedMelodyId === melody._id) {
+      // collapse
+      this.expandedMelodyId = null;
+    } else {
+      // expand this melody and push score data to service
+      this.expandedMelodyId = melody._id;
+      this.creationService.setMelody(melody);
+    }
   }
 
   downloadMidiFile(melodyId: any, melodyName: any) {
