@@ -7,6 +7,7 @@ import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { DatePipe, NgClass } from '@angular/common';
 import { ScoreComponent } from '../score/score.component';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { MusicxmlConverterService } from '../../services/musicxml-converter.service';
 
 @Component({
   selector: 'app-my-melodies',
@@ -18,14 +19,14 @@ import { trigger, transition, style, animate } from '@angular/animations';
     trigger('slideDown', [
       transition(':enter', [
         style({ height: 0, opacity: 0, overflow: 'hidden' }),
-        animate('200ms ease-out', style({ height: '*', opacity: 1 }))
+        animate('200ms ease-out', style({ height: '*', opacity: 1 })),
       ]),
       transition(':leave', [
         style({ overflow: 'hidden' }),
-        animate('150ms ease-in', style({ height: 0, opacity: 0 }))
-      ])
-    ])
-  ]
+        animate('150ms ease-in', style({ height: 0, opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class MyMelodiesComponent implements OnInit, OnDestroy {
   private melodiesSub!: Subscription;
@@ -61,6 +62,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
 
   constructor(
     public creationService: CreationService,
+    public musicxmlConverterService: MusicxmlConverterService,
     private toastr: ToastrService,
     private dialog: MatDialog
   ) {}
@@ -103,6 +105,103 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
       this.expandedMelodyId = melody._id;
       this.creationService.setMelody(melody);
     }
+  }
+
+  convertMelodyToMusicXML(
+    melody: { note: string; time: string }[],
+    title: string,
+    timeSignature: '3/4' | '4/4' = '4/4'
+  ): string {
+    const beatPerMeasure = timeSignature === '3/4' ? 3 : 4;
+
+    const durationMap: Record<
+      string,
+      { type: string; beats: number; dot?: boolean }
+    > = {
+      '1m': { type: 'whole', beats: beatPerMeasure },
+      '2n': { type: 'half', beats: 2 },
+      '2n.': { type: 'half', beats: 3, dot: true },
+      '4n': { type: 'quarter', beats: 1 },
+      '4n.': { type: 'quarter', beats: 1.5, dot: true },
+      '8n': { type: 'eighth', beats: 0.5 },
+      '8n.': { type: 'eighth', beats: 0.75, dot: true },
+    };
+
+    let currentBeats = 0;
+    let measureIndex = 1;
+
+    let measuresXML = `<measure number="${measureIndex}">`;
+
+    melody.forEach((entry) => {
+      const { note, time } = entry;
+      const map = durationMap[time];
+      const step = note[0];
+      const octave = note.slice(1);
+
+      measuresXML += `
+      <note>
+        <pitch>
+          <step>${step}</step>
+          <octave>${octave}</octave>
+        </pitch>
+        <type>${map.type}</type>
+        ${map.dot ? "<dot/>" : ""}
+      </note>
+    `;
+
+      currentBeats += map.beats;
+
+      if (currentBeats >= beatPerMeasure) {
+        currentBeats = 0;
+        measureIndex++;
+        measuresXML += `</measure><measure number="${measureIndex}">`;
+      }
+    });
+
+    measuresXML += `</measure>`;
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+  <score-partwise version="3.1">
+    <work>
+      <work-title>${title}</work-title>
+    </work>
+    <part-list>
+      <score-part id="P1">
+        <part-name>${title}</part-name>
+      </score-part>
+    </part-list>
+    <part id="P1">
+      ${measuresXML}
+    </part>
+  </score-partwise>`;
+  }
+
+ /*  downloadMelodyAsXML(melody: any): void {
+    console.log('Downloading melody as MusicXML:', melody);
+    const xml = this.convertMelodyToMusicXML(
+      melody.melody,
+      melody.settings.name,
+      melody.settings.beat
+    );
+
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${melody.settings.name}.xml`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  } */
+
+  downloadMelodyAsXML(melody: any): void {
+    console.log(melody)
+    this.musicxmlConverterService.downloadMusicXml(
+      melody.melody,
+      melody.settings.name,
+      { timeSignature: melody.settings.beat, key: melody.settings.rootKey }
+    );
   }
 
   downloadMidiFile(melodyId: any, melodyName: any) {
