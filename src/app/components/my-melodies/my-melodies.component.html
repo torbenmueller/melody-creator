@@ -101,34 +101,37 @@
 									</div>
 									<div style="width: 15%" class="text-right" [ngClass]="isPlaying ? 'disabled' : 'enabled'">
 										<div class="custom-tooltip inline-block me-3">
-											<button class="btn btn-light btn-sm" (click)="showMelody(melody)">
-												<i class="fas fa-eye fa-lg black-color"></i>
-											</button>
-											<span class="tooltiptext">Show melody</span>
-										</div>
-										<div class="custom-tooltip inline-block me-3">
 											<button class="btn btn-success btn-sm" (click)="play(melody.melody)">
 												<i class="fas fa-play fa-lg white-color"></i>
 											</button>
 											<span class="tooltiptext">Play melody</span>
 										</div>
 										<div class="custom-tooltip inline-block me-3">
-											<button class="btn btn-primary btn-sm" (click)="downloadMidiFile(melody._id, melody.settings?.name)">
-												<i class="fas fa-download fa-lg white-color"></i>
+											<button class="btn btn-light btn-sm" (click)="showMelody(melody)">
+												<i class="fas fa-eye fa-lg black-color"></i>
 											</button>
-											<span class="tooltiptext">Download Midi</span>
+											<span class="tooltiptext">Show melody</span>
 										</div>
-										<div class="custom-tooltip inline-block me-3">
-											<button class="btn btn-primary btn-sm" (click)="downloadMelodyAsXML(melody)">
-												<i class="fas fa-download fa-lg white-color"></i>
-											</button>
-											<span class="tooltiptext">Download MusicXML</span>
-										</div>
-										<div class="custom-tooltip inline-block">
-											 <button class="btn btn-danger btn-sm" (click)="openModal(melody)">
-												<i class="fas fa-trash fa-lg white-color"></i>
-											</button>
-											<span class="tooltiptext">Delete melody</span>
+										<div class="inline-block">
+											<div class="btn-group">
+												<button class="btn btn-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More actions">
+													<i class="fas fa-ellipsis-v fa-lg"></i>
+												</button>
+												<ul class="dropdown-menu dropdown-menu-end">
+													<li>
+														<button class="dropdown-item text-white" type="button" (click)="downloadMidiFile(melody._id, melody.settings?.name)">Download MIDI</button>
+													</li>
+													<li>
+														<button class="dropdown-item text-white" type="button" (click)="downloadMelodyAsXML(melody)">Download MusicXML</button>
+													</li>
+													<li>
+														<hr class="dropdown-divider">
+													</li>
+													<li>
+														<button class="dropdown-item text-danger" type="button" (click)="openModal(melody)">Delete</button>
+													</li>
+												</ul>
+											</div>
 										</div>
 									</div>
 								</div>

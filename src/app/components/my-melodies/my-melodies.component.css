@@ -99,3 +99,27 @@ nav ul {
 .page-link:focus {
 	box-shadow: none;
 }
+
+/* Hide the Bootstrap caret added by `.dropdown-toggle::after` and keep only the dots icon */
+.btn-group .dropdown-toggle::after {
+	display: none !important;
+}
+
+/* Make sure the ellipsis icon is centered and not offset by caret spacing */
+.btn-group .dropdown-toggle .fa-ellipsis-v {
+	margin-right: 0 !important;
+}
+
+.dropdown-menu {
+	background-color: var(--background-color-3);
+	color: var(--white);
+}
+
+.dropdown-menu .dropdown-item:focus,
+.dropdown-menu .dropdown-item:hover {
+  background-color: var(--background-color-2);
+}
+
+.dropdown-menu .dropdown-divider {
+	border-top: 1px solid rgba(255, 255, 255, 0.1)
+}
