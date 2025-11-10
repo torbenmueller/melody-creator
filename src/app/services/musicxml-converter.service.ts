@@ -15,9 +15,9 @@ export class MusicxmlConverterService {
     '32n': 1 / 8,
     '16n': 1 / 4,
     '8n': 1 / 2,
-    '4n': 1, // quarter
-    '2n': 2, // half
-    '1n': 4, // whole
+    '4n': 1,
+    '2n': 2,
+    '1n': 4,
     '1m': NaN, // special: measure length, resolved later
   };
 
@@ -48,10 +48,7 @@ export class MusicxmlConverterService {
   private currentKeyAlterMap: {[step: string]: number} = {};
 
   private buildMusicXml(melody: MelodyNote[], melodyName: string, beatsPerMeasure: number, beatType: number, keyName: string) {
-    // header
     const header = `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">\n`;
-
-    // start score
     let xml = header + `<score-partwise version="3.1">\n  <work>\n    <work-title>${this.escapeXml(melodyName)}</work-title>\n  </work>\n  <identification>\n    <encoding>\n      <software>Angular MusicXmlService</software>\n    </encoding>\n  </identification>\n  <part-list>\n    <score-part id="P1">\n      <part-name>Music</part-name>\n    </score-part>\n  </part-list>\n  <part id="P1">\n`;
 
     // Convert melody notes into measures, splitting and tying when necessary
