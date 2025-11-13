@@ -95,8 +95,9 @@ export class SettingsComponent {
     this.isLoading = true;
     this.creationService.submitSettings(this.settings);
     this.melody = this.creationService.getMelody();
+    console.log("Melody:", this.melody);
     this.intervals = this.creationService.getIntervals();
-    console.log(this.intervals);
+    console.log("Intervals:", this.intervals);
     this.isLoading = false;
     this.melodyDescription = this.setDescription(this.settings);
   }

@@ -4,9 +4,8 @@ import { Settings } from '../interfaces/settings';
 import { Modes } from '../components/settings/modes';
 import { Observable, Subject } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { MarnonicMinorModifications } from '../interfaces/marnonic-minor-modifications';
+import { HarmonicMinorModifications } from '../interfaces/harmonic-minor-modifications';
 import { ToastrService } from 'ngx-toastr';
 
 const BACKEND_URL = environment.apiUrl + "/melodies";
@@ -47,7 +46,7 @@ export class CreationService {
 		"Bb4", "B4", "C5", "Db5", "D5", "Eb5", "E5", "F5", "Gb5", "G5", "Ab5", "A5", "Bb5", "B5", "C6", "Db6", "D6"
 	];
 
-	harmonicMinorModifications: MarnonicMinorModifications = {
+	harmonicMinorModifications: HarmonicMinorModifications = {
 		'Db': {'C3': 'B#3', 'C4': 'B#4', 'C5': 'B#5'},
 		'D': {'Db3': 'C#3', 'Db4': 'C#4', 'Db5': 'C#5'},
 		'F#': {'F3': 'E#3', 'F4': 'E#4', 'F5': 'E#5'},
@@ -89,13 +88,10 @@ export class CreationService {
 	rootKey: string = '';
 
 	isPlaying = new Subject<boolean>();
-	/* composedMelody = new Subject<any[]>();
-	melodySettings = new Subject<any>(); */
 	scoreData = new Subject<any>();
 
 	constructor(
 		private http: HttpClient,
-		private router: Router,
 		private toastr: ToastrService
 	) { }
 
@@ -106,10 +102,6 @@ export class CreationService {
 		}
 		this.http.post<{message: string}>(BACKEND_URL, post)
 			.subscribe((responseData) => {
-				/* this.router.navigate(['/melodies']);
-				this.setValuesToEmptyString(this.settings);
-				this.melody = [];
-				this.getScoreData(); */
 				this.toastr.success(responseData.message);
 			});
 	}
@@ -256,7 +248,6 @@ export class CreationService {
 	}
 
 	setTonicNote() {
-		// return this.settings.key + "4";
 		return this.scale[3];
 	}
 
@@ -378,7 +369,6 @@ export class CreationService {
 	}
 
 	checkSum() {
-		let top = this.settings.bar;
 		let sum = 0;
 		this.melody.forEach(obj => {
 			sum += 1 / parseFloat(obj.time.substr(0, 1))
@@ -433,8 +423,6 @@ export class CreationService {
 	}
 
 	getScoreData() {
-		/* this.composedMelody.next(this.melody);
-		this.melodySettings.next(this.settings); */
 		this.scoreData.next({
 			melody: this.melody,
 			settings: this.settings,

@@ -1,4 +1,4 @@
-export interface MarnonicMinorModifications {
+export interface HarmonicMinorModifications {
 	[key: string]: {
 		[key: string]: string;
 	};

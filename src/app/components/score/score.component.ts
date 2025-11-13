@@ -130,6 +130,8 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
     let index = 0;
 
     while (this.totalMeasures < measures) {
+      // Track accidentals shown within this measure per pitch (letter+octave)
+      const shownAccidentals: { [k: string]: string } = {};
       let measure = 0;
       let ct: RenderContext = context!;
       let beat = 1;
@@ -141,6 +143,9 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
         let note = this.composedMelody[index].note;
         let noteLowerCase = this.firstCharToLowerCase(note);
         let keys = this.addSlash(noteLowerCase);
+        const letter = note[0].toUpperCase();
+        const octave = note.slice(-1);
+        const noteId = `${letter}${octave}`;
 
         function addNoteWithoutAccidental(totalMeasures: number) {
           const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
@@ -157,23 +162,34 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
           console.log("Melodic Minor");
         } */
 
+        // Add accidentals if needed. For Chromatic/Whole Tone we manage explicit accidentals from note spelling.
         if (!this.checkForScalesWithoutSign(settings.scale)) {
           let sign = this.checkForSign(note);
           if (sign.length > 0) {
             const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
             if (isDotted) Dot.buildAndAttach([n], { all: true });
-            notesMeasures[this.totalMeasures].push(
-              n.addModifier(new Accidental(sign), 0)
-            );
+            if (shownAccidentals[noteId] !== sign) {
+              notesMeasures[this.totalMeasures].push(
+                n.addModifier(new Accidental(sign), 0)
+              );
+              shownAccidentals[noteId] = sign;
+            } else {
+              notesMeasures[this.totalMeasures].push(n);
+            }
           } else {
             if (index > 0 && this.composedMelody[index -1].note.length === 3) {
               let lastNote = this.removeMiddleChar(this.composedMelody[index -1].note)
               if (note === lastNote) {
                 const n2 = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
                 if (isDotted) Dot.buildAndAttach([n2], { all: true });
-                notesMeasures[this.totalMeasures].push(
-                  n2.addModifier(new Accidental('n'), 0)
-                );
+                if (shownAccidentals[noteId] !== 'n') {
+                  notesMeasures[this.totalMeasures].push(
+                    n2.addModifier(new Accidental('n'), 0)
+                  );
+                  shownAccidentals[noteId] = 'n';
+                } else {
+                  notesMeasures[this.totalMeasures].push(n2);
+                }
               } else {
                 addNoteWithoutAccidental(this.totalMeasures);
               }
@@ -182,7 +198,43 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           }
         } else {
-          addNoteWithoutAccidental(this.totalMeasures);
+          // Key signature is shown. First add explicit accidentals from note spelling; otherwise inject minor-scale exceptions.
+          const spelledSign = this.checkForSign(note);
+          if (spelledSign.length > 0) {
+            // Only add if the explicit accidental differs from what the key signature already implies
+            const impliedAlter = this.keySignatureAlterMap(this.keyNameToFifths(settings.rootKey))[letter] ?? 0;
+            const spelledAlter = this.accidentalCharToAlter(spelledSign);
+            if (spelledAlter !== impliedAlter) {
+              const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+              if (isDotted) Dot.buildAndAttach([n], { all: true });
+              if (shownAccidentals[noteId] !== spelledSign) {
+                notesMeasures[this.totalMeasures].push(
+                  n.addModifier(new Accidental(spelledSign), 0)
+                );
+                shownAccidentals[noteId] = spelledSign;
+              } else {
+                notesMeasures[this.totalMeasures].push(n);
+              }
+            } else {
+              addNoteWithoutAccidental(this.totalMeasures);
+            }
+          } else {
+            const extraAcc = this.getAccidentalForMinorExceptions(note, settings.rootKey, settings.scale);
+            if (extraAcc) {
+              const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
+              if (isDotted) Dot.buildAndAttach([n], { all: true });
+              if (shownAccidentals[noteId] !== extraAcc) {
+                notesMeasures[this.totalMeasures].push(
+                  n.addModifier(new Accidental(extraAcc), 0)
+                );
+                shownAccidentals[noteId] = extraAcc;
+              } else {
+                notesMeasures[this.totalMeasures].push(n);
+              }
+            } else {
+              addNoteWithoutAccidental(this.totalMeasures);
+            }
+          }
         }
 
         let incr = 1 / +duration;
@@ -217,13 +269,36 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
     let keys = this.addSlash(noteLowerCase);
     let sign = '';
 
-    if (!this.checkForScalesWithoutSign(settings.scale)) sign = this.checkForSign(note);
+    if (!this.checkForScalesWithoutSign(settings.scale)) {
+      sign = this.checkForSign(note);
+    } else {
+      // With key signature: prefer explicit note accidental; otherwise apply minor exception if needed
+      const spelledSign = this.checkForSign(note);
+      if (spelledSign.length > 0) {
+        const letter = note[0].toUpperCase();
+        const impliedAlter = this.keySignatureAlterMap(this.keyNameToFifths(settings.rootKey))[letter] ?? 0;
+        const spelledAlter = this.accidentalCharToAlter(spelledSign);
+        if (spelledAlter !== impliedAlter) sign = spelledSign;
+      } else {
+        const extraAcc = this.getAccidentalForMinorExceptions(note, settings.rootKey, settings.scale);
+        if (extraAcc) sign = extraAcc;
+      }
+    }
 
     if (measures == 2) {
+      const shownAccidentalsLast: { [k: string]: string } = {};
+      const letter = note[0].toUpperCase();
+      const octave = note.slice(-1);
+      const noteId = `${letter}${octave}`;
       if (sign.length > 0) {
         const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
         if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        notesMeasure3.push(n.addModifier(new Accidental(sign), 0));
+        if (shownAccidentalsLast[noteId] !== sign) {
+          notesMeasure3.push(n.addModifier(new Accidental(sign), 0));
+          shownAccidentalsLast[noteId] = sign;
+        } else {
+          notesMeasure3.push(n);
+        }
       } else {
         const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
         if (isDottedLast) Dot.buildAndAttach([n], { all: true });
@@ -234,13 +309,22 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (measures == 4) {
+      const shownAccidentalsLast: { [k: string]: string } = {};
+      const letter = note[0].toUpperCase();
+      const octave = note.slice(-1);
+      const noteId = `${letter}${octave}`;
       staveMeasure5.addClef("treble");
       if (this.checkForScalesWithoutSign(settings.scale)) keySignature.addToStave(staveMeasure5);
       staveMeasure5.setContext(context2).draw();
       if (sign.length > 0) {
         const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
         if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        notesMeasure5.push(n.addModifier(new Accidental(sign), 0));
+        if (shownAccidentalsLast[noteId] !== sign) {
+          notesMeasure5.push(n.addModifier(new Accidental(sign), 0));
+          shownAccidentalsLast[noteId] = sign;
+        } else {
+          notesMeasure5.push(n);
+        }
       } else {
         const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
         if (isDottedLast) Dot.buildAndAttach([n], { all: true });
@@ -251,13 +335,22 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (measures == 8) {
+      const shownAccidentalsLast: { [k: string]: string } = {};
+      const letter = note[0].toUpperCase();
+      const octave = note.slice(-1);
+      const noteId = `${letter}${octave}`;
       staveMeasure9.addClef("treble");
       if (this.checkForScalesWithoutSign(settings.scale)) keySignature.addToStave(staveMeasure9);
       staveMeasure9.setContext(context3).draw();
       if (sign.length > 0) {
         const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
         if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        notesMeasure9.push(n.addModifier(new Accidental(sign), 0));
+        if (shownAccidentalsLast[noteId] !== sign) {
+          notesMeasure9.push(n.addModifier(new Accidental(sign), 0));
+          shownAccidentalsLast[noteId] = sign;
+        } else {
+          notesMeasure9.push(n);
+        }
       } else {
         const n = new StaveNote({ clef: 'treble', keys: [keys], duration: duration, auto_stem: true });
         if (isDottedLast) Dot.buildAndAttach([n], { all: true });
@@ -293,18 +386,9 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkForScalesWithoutSign(scale: string) {
-    const scalesWithoutSign = [
-      scale !== "Harmonic Minor",
-      scale !== "Melodic Minor",
-      scale !== "Chromatic",
-      scale !== "Whole Tone"
-    ];
-    if (scalesWithoutSign.every(condition => condition)) {
-      return true;
-    }
+    // Show key signature for all scales except Chromatic and Whole Tone
+    if (scale !== "Chromatic" && scale !== "Whole Tone") return true;
     return false;
-    /* if (scale !== "Chromatic" && scale !== "Whole Tone") return true;
-    return false; */
   }
 
   checkForSign(note: string) {
@@ -319,5 +403,88 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
 
   removeMiddleChar(note: string) {
     return note.substring(0, 1) + note.substring(2);
+  }
+
+  // Compute extra accidental needed for Melodic/Harmonic Minor relative to the key signature, for any root.
+  // Returns '', 'n', '#', or '##'. Only applied when the note has no explicit accidental in its spelling.
+  private getAccidentalForMinorExceptions(note: string, rootKey: string, scale: string): string {
+    if (note.length !== 2) return '';
+    const letter = note[0].toUpperCase();
+    const targetLetters = this.getRaisedDegreeLettersForScale(this.melodySettings.key, scale);
+    if (!targetLetters.has(letter)) return '';
+    const fifths = this.keyNameToFifths(rootKey);
+    const alterMap = this.keySignatureAlterMap(fifths);
+    const impliedAlter = alterMap[letter] ?? 0; // -1 flat, 0 natural, +1 sharp
+    const desiredAlter = impliedAlter + 1; // raise by a semitone for the exception
+    if (desiredAlter === 0) return 'n';
+    if (desiredAlter === 1) return '#';
+    if (desiredAlter === 2) return '##';
+    return '';
+  }
+
+  // Determine which diatonic letters correspond to raised degrees for melodic/harmonic minor
+  private getRaisedDegreeLettersForScale(tonicKey: string, scale: string): Set<string> {
+    const tonicLetter = tonicKey[0].toUpperCase();
+    const letters = ['C','D','E','F','G','A','B'];
+    const idx = letters.indexOf(tonicLetter);
+    const rotated = letters.slice(idx).concat(letters.slice(0, idx));
+    const set = new Set<string>();
+    if (scale === 'Harmonic Minor') {
+      set.add(rotated[6]); // 7th degree
+    } else if (scale === 'Melodic Minor') {
+      set.add(rotated[5]); // 6th degree
+      set.add(rotated[6]); // 7th degree
+    }
+    return set;
+  }
+
+  // Map key name to number of fifths (relative major displayed as rootKey)
+  private keyNameToFifths(keyName: string) {
+    const m = keyName.trim();
+    const map: { [k: string]: number } = {
+      'C': 0,
+      'G': 1,
+      'D': 2,
+      'A': 3,
+      'E': 4,
+      'B': 5,
+      'F#': 6,
+      'C#': 7,
+      'F': -1,
+      'Bb': -2,
+      'A#': -2,
+      'Eb': -3,
+      'D#': -3,
+      'Ab': -4,
+      'G#': -4,
+      'Db': -5,
+      'C#b': -5,
+      'Gb': -6,
+      'F##': -6,
+      'Cb': -7,
+    };
+    const key = Object.keys(map).find(k => k.toUpperCase() === m.toUpperCase());
+    return key ? map[key] : 0;
+  }
+
+  // Return map of step->alter implied by key signature
+  private keySignatureAlterMap(fifths: number) {
+    const sharps = ['F','C','G','D','A','E','B'];
+    const flats = ['B','E','A','D','G','C','F'];
+    const map: {[k:string]:number} = {};
+    if (fifths > 0) {
+      for (let i=0;i<fifths;i++) map[sharps[i]] = 1;
+    } else if (fifths < 0) {
+      for (let i=0;i<Math.abs(fifths);i++) map[flats[i]] = -1;
+    }
+    return map;
+  }
+
+  // Map single accidental char to alter number
+  private accidentalCharToAlter(ch: string): number {
+    if (ch === '#') return 1;
+    if (ch === 'b') return -1;
+    if (ch === 'n') return 0;
+    return 0;
   }
 }
