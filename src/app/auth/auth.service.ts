@@ -305,4 +305,9 @@ export class AuthService {
       expirationDate: new Date(expirationDate),
     };
   }
+
+  checkoutUser() {
+    // return observable so caller can handle success / failure
+    return this.http.get(`${BACKEND_URL}/checkout`);
+  }
 }

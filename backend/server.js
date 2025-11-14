@@ -36,5 +36,5 @@ app.use('/api/melodies', melodiesRoutes);
 app.use('/api/user', userRoutes);
 
 app.listen(port, () => {
-	console.log(`Example app listening at http://localhost:${port}`);
+	console.log(`Melody Creator app listening at http://localhost:${port}`);
 });

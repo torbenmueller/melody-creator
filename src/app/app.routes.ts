@@ -12,6 +12,7 @@ import { TermsAndConditionsComponent } from './components/terms-and-conditions/t
 import { SettingsComponent } from './components/settings/settings.component';
 import { NewPasswordComponent } from './auth/new-password/new-password.component';
 import { VerifyEmailComponent } from './auth/verify-email/verify-email.component';
+import { CheckoutComponent } from './auth/checkout/checkout.component';
 
 export const routes: Routes = [
 	{ path: '', component: SettingsComponent },
@@ -21,6 +22,7 @@ export const routes: Routes = [
 	{ path: 'auth/new-password/:token/:id', component: NewPasswordComponent },
 	{ path: 'auth/verify-email/:token/:id', component: VerifyEmailComponent },
 	{ path: 'auth/verify-email-change/:token/:id', component: VerifyEmailComponent },
+	{ path: 'auth/checkout', component: CheckoutComponent },
 	{ path: 'features', component: FeaturesComponent },
 	{ path: 'my-melodies', component: MyMelodiesComponent, canActivate: [canActivate] },
 	{ path: 'user-profile', component: UserProfileComponent, canActivate: [canActivate] },

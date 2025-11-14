@@ -9,6 +9,7 @@ router.post('/login', UserController.loginUser);
 router.post('/verify-email', UserController.verifyEmail);
 router.post('/verify-email-change', UserController.verifyEmailChange);
 router.post('/resend-activation', UserController.resendActivation);
+
 // Rate limiter for public email availability checks to prevent abuse/enumeration
 const checkEmailLimiter = rateLimit({
 	windowMs: 60 * 1000, // 1 minute window
@@ -26,5 +27,6 @@ router.delete('/delete-user', checkAuth, UserController.deleteUser);
 // router.put('/update-user', checkAuth, UserController.updateUser);
 router.put('/update-email', checkAuth, UserController.updateEmail);
 router.put('/update-password', checkAuth, UserController.updatePassword);
+router.get('/checkout', checkAuth, UserController.checkoutUser);
 
 module.exports = router;

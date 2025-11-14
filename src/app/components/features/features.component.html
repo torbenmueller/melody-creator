@@ -93,7 +93,7 @@
       </div>
       <div class="row">
         <div class="col-12">
-          <div class="center-h column-gap-20">
+          <div class="center-h column-gap-20 row-gap-20">
             <div class="pricing-box dark-bg">
               <div>
                 <p class="pricing-title">Free Composer</p>
@@ -108,7 +108,7 @@
                 <li>MIDI export</li>
                 <li>Basic support</li>
               </ul>
-              <button class="btn btn-light">Get Started</button>
+              <button class="btn btn-light" (click)="choosePlan('free')">Get Started</button>
             </div>
             <div class="pricing-box dark-bg most-popular relative">
               <div class="most-popular-badge">Most Popular</div>
@@ -125,7 +125,7 @@
                 <li>MIDI export</li>
                 <li>Priority support</li>
               </ul>
-              <button class="btn primary-button">Start Pro Trial</button>
+              <button class="btn primary-button" (click)="choosePlan('pro')">Start Pro Composer</button>
             </div>
             <div class="pricing-box dark-bg">
               <div>
@@ -141,8 +141,13 @@
                 <li>Custom integrations</li>
                 <li>Dedicated support</li>
               </ul>
-              <button class="btn btn-light">Contact Sales</button>
+              <button class="btn btn-light" (click)="choosePlan('enterprise')">Start Enterprise</button>
             </div>
+            @if (userIsNotAuthenticated) {
+              <div class="badge-orange alert-box" role="alert">
+                <p class="mb-0">You must first <a class="hyperlink-white" routerLink="/auth/signup">create an account</a> and <a class="hyperlink-white" routerLink="/auth/login">log in</a> before you can take out a paid subscription.</p>
+              </div>
+            }
           </div>
         </div>
       </div>

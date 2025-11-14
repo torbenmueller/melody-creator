@@ -526,3 +526,20 @@ exports.updatePassword = async (req, res, next) => {
 		}
 	}
 }
+
+exports.checkoutUser = async (req, res, next) => {
+	try {
+		if (!req.userData || !req.userData.userId) {
+			return res.status(401).json({ message: 'Not authenticated' });
+		}
+		const user = await User.findOne({ _id: req.userData.userId });
+		if (!user) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+		// return minimal user info to avoid exposing internals
+		return res.status(200).json({ userId: user._id, email: user.email, isEmailVerified: user.isEmailVerified });
+	} catch (error) {
+		console.error('checkoutUser error', error && error.stack ? error.stack : error);
+		return res.status(500).json({ message: 'Internal server error' });
+	}
+}
