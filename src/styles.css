@@ -476,6 +476,10 @@ progress::-moz-progress-bar {
   margin-bottom: 1.5rem;
 }
 
+.mt-32 {
+  margin-top: 32px;
+}
+
 .mb-6 {
   margin-bottom: 6px;
 }
@@ -654,7 +658,7 @@ a:focus-visible,
 
 .pricing-box {
   padding: 40px;
-  min-width: 280px;
+  min-width: 355px;
 }
 
 .settings-box:hover {
@@ -754,6 +758,13 @@ a:focus-visible,
 .alert-box {
   border-radius: 10px;
   padding: 1rem;
+}
+
+.pricing-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--white);
+  margin-bottom: 0;
 }
 
 @media (max-width: 992px) {

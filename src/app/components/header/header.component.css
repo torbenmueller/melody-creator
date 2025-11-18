@@ -4,16 +4,6 @@ h1 {
 	padding-bottom: 0.1em;
 }
 
-.bgr-top {
-	background-color: var(--background-color-3);
-	/* height: 17.5rem;
-	width: 100%;
-	font-family: 'Amatic SC', cursive;
-	font-weight: bold;
-	margin: 0;
-	overflow: hidden; */
-}
-
 .image-top {
 	/* height: 25vh; */
 	height: 15rem;

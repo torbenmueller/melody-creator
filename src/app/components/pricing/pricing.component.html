@@ -1,64 +1,101 @@
-<div class="row title-row">
-	<div class="col-12 center-v mb-2">
-		<h2 class="title">Choose your plan</h2>
-		<i class="fas fa-dollar-sign big-icon"></i>
-	</div>
-	<div class="col-12">
-		<p>One time payment, no subscription.</p>
-	</div>
-</div>
-<div class="row mb-28">
-	<div class="col-12 flex-center">
-		<div class="pricing-box flex-col-space-between free">
-			<div>
-				<!-- <p class="pricing-headline">Free</p> -->
-				<p class="pricing-headline">0 €</p>
-				<p class="number-of-melodies">for 100 melodies</p>
-				<hr>
-				<ul>
-					<li>Major and minor scale</li>
-					<li>All keys</li>
-					<li>2 or 4 bars</li>
-					<li>Low complexity</li>
-					<li>4/4 beat</li>
-					<li>Download as midi file</li>
-				</ul>
-			</div>
-			<button type="button" class="btn btn-outline-warning w-100">Try for free</button>
+<div class="container">
+	<div class="row title-row">
+		<div class="col-12">
+			<h2 class="purple-color">Choose Your Composing Plan</h2>
 		</div>
-		<div class="pricing-box flex-col-space-between recommended">
-			<div>
-				<!-- <p class="pricing-headline">Starter</p> -->
-				<p class="pricing-headline">10 €</p>
-				<p class="number-of-melodies">for 300 melodies</p>
-				<hr>
-				<ul>
-					<li>All scales</li>
-					<li>All keys</li>
-					<li>2, 4, 8 or 16 bars</li>
-					<li>Low, medium and high complexity</li>
-					<li>All beats</li>
-					<li>Download as midi file</li>
-				</ul>
-			</div>
-			<button type="button" class="btn btn-warning w-100">Get Started</button>
+		<div class="col-12">
+			<p class="white-color">Start creating today with our flexible pricing options</p>
 		</div>
-		<div class="pricing-box flex-col-space-between pro">
-			<div>
-				<!-- <p class="pricing-headline">Pro</p> -->
-				<p class="pricing-headline">20 €</p>
-				<p class="number-of-melodies">for 1000 melodies</p>
-				<hr>
-				<ul>
-					<li>All scales</li>
-					<li>All keys</li>
-					<li>2, 4, 8 or 16 bars</li>
-					<li>Low, medium and high complexity</li>
-					<li>All beats</li>
-					<li>Download as midi file</li>
-				</ul>
+	</div>
+
+	<div class="row">
+		<div class="col-12">
+			<div class="center-v column-gap-20 row-gap-20">
+				<div class="pricing-box">
+					<div>
+						<p class="pricing-title">Free Composer</p>
+						<p class="mb-0">Perfect for getting started</p>
+					</div>
+					<h2 class="bold white-color mb-0">
+						€ 0
+					</h2>
+						<ul class="checks-svg white-color">
+							<li>10 credits per day</li>
+							<li>Save up to 50 melodies</li>
+							<li>Major and minor scale</li>
+							<li>All keys</li>
+							<li>2 or 4 bars</li>
+							<li>Low complexity</li>
+							<li>4/4 beat</li>
+							<li class="prohibition">No MIDI/XML export</li>
+							<li class="prohibition">No commercial use</li>
+							<li class="prohibition">No email support</li>
+						</ul>
+					<button class="btn btn-light" (click)="choosePlan('free')">Get Started</button>
+				</div>
+				<div class="pricing-box dark-bg most-popular relative">
+					<div class="most-popular-badge">Most Popular</div>
+					<div>
+						<p class="pricing-title">Pro Composer</p>
+						<p class="mb-0">For serious creators</p>
+					</div>
+					<h2 class="bold white-color mb-0">
+						€ 9 <span class="bold text-small body-color">per month</span>
+					</h2>
+					<ul class="checks-svg white-color">
+						<li>1000 credits per month</li>
+						<li>Save up to 200 melodies</li>
+						<li>All scales</li>
+						<li>All keys</li>
+						<li>2, 4, or 8 bars</li>
+						<li>Low, medium and high complexity</li>
+						<li>All beats</li>
+						<li>MIDI/XML export</li>
+						<li>Commercial license
+							<div class="custom-tooltip inline-block ms-2">
+								<i class="fas fa-info-circle fa-lg white-color hand" (click)="showCommercialLicenseAgreement()"></i>
+								<span class="tooltiptext">Commercial License Agreement</span>
+							</div>
+						</li>
+						<li>Email support</li>
+					</ul>
+					<button class="btn primary-button" (click)="choosePlan('pro')">Start Pro Composer</button>
+				</div>
+				<div class="pricing-box">
+					<div>
+						<p class="pricing-title">Enterprise</p>
+						<p class="mb-0">For teams and studios</p>
+					</div>
+					<h2 class="bold white-color mb-0">
+						€ 19 <span class="bold text-small body-color">per month</span>
+					</h2>
+					<ul class="checks-svg white-color">
+						<li>3000 credits per month</li>
+						<li>Save up to 500 melodies</li>
+						<li>All scales</li>
+						<li>All keys</li>
+						<li>2, 4, or 8 bars</li>
+						<li>Low, medium and high complexity</li>
+						<li>All beats</li>
+						<li>MIDI/XML export</li>
+						<li>Commercial license
+							<div class="custom-tooltip inline-block ms-2">
+								<i class="fas fa-info-circle fa-lg white-color hand" (click)="showCommercialLicenseAgreement()"></i>
+								<span class="tooltiptext">Commercial License Agreement</span>
+							</div>
+						</li>
+						<li>Email support</li>
+					</ul>
+					<button class="btn btn-light" (click)="choosePlan('enterprise')">Start Enterprise</button>
+				</div>
+				@if (userIsNotAuthenticated) {
+				<div class="badge-orange alert-box" role="alert">
+					<p class="mb-0">You must first <a class="hyperlink-white" routerLink="/auth/signup">create an
+							account</a> and <a class="hyperlink-white" routerLink="/auth/login">log in</a> before you
+						can take out a paid subscription.</p>
+				</div>
+				}
 			</div>
-			<button type="button" class="btn btn-warning w-100">Get Started</button>
 		</div>
 	</div>
 </div>

@@ -16,10 +16,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   plan: string | null = null;
   response: any = null;
 
-  constructor(
-    private authService: AuthService,
-    private location: Location,
-  ) {}
+  constructor(private authService: AuthService, private location: Location) {}
 
   ngOnInit(): void {
     this.userIsAuthenticated = this.authService.getIsAuth();
@@ -29,12 +26,16 @@ export class CheckoutComponent implements OnInit, OnDestroy {
         this.userIsAuthenticated = isAuthenticated;
       });
 
-      // Get plan and response from navigation state via Location
-      const state = (this.location as any).getState();
-      this.plan = state?.plan;
-      this.response = state?.response;
+    // Get plan and response from navigation state via Location
+    const state = (this.location as any).getState();
+    this.plan = state?.plan;
+    this.response = state?.response;
 
     console.log('Checkout - Plan:', this.plan, 'Response:', this.response);
+  }
+
+  openCheckout(): void {
+    window.open('https://buy.stripe.com/8x27sN64g76Y0uy2yrfMA00', '_blank');
   }
 
   ngOnDestroy(): void {

@@ -1,78 +1,73 @@
-.pricing-box {
-	/* display: inline-block; */
-	position: relative;
-	width: 300px;
-	border-radius: 20px;
-	border: 1px solid grey;
-	overflow: hidden;
+.dark-bg {
+  background-color: var(--background-color);
 }
 
-.free, .pro {
-	height: 350px;
-	background-color: #fff;
-	padding: 10px;
+.checks-svg {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.checks-svg li {
+  position: relative;
+  padding-left: 30px;
+  margin: 6px 0;
 }
 
-.recommended {
-	height: 400px;
-	background-color: #9B12B3;
-	margin: 0 20px;
-	color: #fff;
-	padding: 60px 10px 10px;
+ul {
+  margin: 0;
 }
 
-.free:before, .pro:before, .recommended:before {
-	content: "";
-	position: absolute;
-	top: -50px;
-	right: -10px;
-	width: 60px;
-	height: 140px;
-	transform: rotate(-45deg);
-	background-color: #ececec;
+ul li:not(:last-child) {
+  margin-bottom: 10px;
 }
 
-.free:after, .pro:after, .recommended:after {
-	position: absolute;
-	font-size: 20px;
-	font-weight: bold;
-	text-transform: uppercase;
-	right: 10px;
-	transform:rotate(45deg);
+.most-popular-badge {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--purple);
+  color: var(--white);
+  padding: 5px 15px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  border-radius: 9999px;
+  width: auto;
 }
 
-.free:after {
-	content: "Free";
+.most-popular {
+  border-color: var(--purple);
+  background-image: linear-gradient(to bottom, rgb(168 85 247 / 0.2) , rgb(236 72 153 / 0.2));
 }
 
-.pro:after {
-	content: "Pro";
+.checks-svg li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-image: url("data:image/svg+xml;utf8,\
+	<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234CAF50'>\
+	<path d='M9 16.2l-3.5-3.5L4 14.2 9 19.2 20 8.2 18.6 6.8z'/>\
+	</svg>");
 }
 
-.recommended:after {
-	content: "Start";
-	color: #000;
-	top: 15px;
-	right: 0;
-}
-
-.pricing-headline {
-	font-size: 2rem;
-	font-weight: bold;
-	text-transform: uppercase;
-	text-align: center;
-}
-
-.number-of-melodies {
-	text-align: center;
-	line-height: 0.5;
-}
-
-.btn-outline-warning {
-	color: #000 !important;
-	font-weight: bold !important;
-}
-
-.btn-warning {
-	font-weight: bold !important;
+.checks-svg li.prohibition::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-image: url("data:image/svg+xml;utf8,\
+	<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23EF4444'>\
+	<circle cx='12' cy='12' r='10' fill='%23EF4444'/><line x1='7' y1='12' x2='17' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/>\
+	</svg>");
 }

@@ -85,72 +85,13 @@
     <div class="container">
       <div class="row title-row">
         <div class="col-12">
-          <h2 class="purple-color">Choose Your Composing Plan</h2>
+          <h2 class="purple-color">Compare Our Composing Plans</h2>
         </div>
         <div class="col-12">
-          <p class="white-color">Start creating today with our flexible pricing options</p>
+          <p class="white-color">We offer three flexible pricing plans, so there’s something for everyone.</p>
         </div>
       </div>
-      <div class="row">
-        <div class="col-12">
-          <div class="center-h column-gap-20 row-gap-20">
-            <div class="pricing-box dark-bg">
-              <div>
-                <p class="pricing-title">Free Composer</p>
-                <p class="mb-0">Perfect for getting started</p>
-              </div>
-              <h2 class="bold white-color mb-0">
-                $0
-              </h2>
-              <ul class="checks-svg white-color">
-                <li>5 melodies per day</li>
-                <li>Basic scales</li>
-                <li>MIDI export</li>
-                <li>Basic support</li>
-              </ul>
-              <button class="btn btn-light" (click)="choosePlan('free')">Get Started</button>
-            </div>
-            <div class="pricing-box dark-bg most-popular relative">
-              <div class="most-popular-badge">Most Popular</div>
-              <div>
-                <p class="pricing-title">Pro Composer</p>
-                <p class="mb-0">For serious creators</p>
-              </div>
-              <h2 class="bold white-color mb-0">
-                $19 <span class="bold text-small body-color">per month</span>
-              </h2>
-              <ul class="checks-svg white-color">
-                <li>Unlimited melodies</li>
-                <li>All scales & modes</li>
-                <li>MIDI export</li>
-                <li>Priority support</li>
-              </ul>
-              <button class="btn primary-button" (click)="choosePlan('pro')">Start Pro Composer</button>
-            </div>
-            <div class="pricing-box dark-bg">
-              <div>
-                <p class="pricing-title">Enterprise</p>
-                <p class="mb-0">For teams and studios</p>
-              </div>
-              <h2 class="bold white-color mb-0">
-                $99 <span class="bold text-small body-color">per month</span>
-              </h2>
-              <ul class="checks-svg white-color">
-                <li>Everything in Pro</li>
-                <li>Team collaboration</li>
-                <li>Custom integrations</li>
-                <li>Dedicated support</li>
-              </ul>
-              <button class="btn btn-light" (click)="choosePlan('enterprise')">Start Enterprise</button>
-            </div>
-            @if (userIsNotAuthenticated) {
-              <div class="badge-orange alert-box" role="alert">
-                <p class="mb-0">You must first <a class="hyperlink-white" routerLink="/auth/signup">create an account</a> and <a class="hyperlink-white" routerLink="/auth/login">log in</a> before you can take out a paid subscription.</p>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
+      
     </div>
   </div>
 </div>
