@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Subject } from 'rxjs';
+import { Subject, BehaviorSubject, Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { tap, finalize, shareReplay } from 'rxjs/operators';
+import { User } from '../interfaces/user';
 
 const BACKEND_URL = environment.apiUrl;
 
@@ -10,19 +12,48 @@ const BACKEND_URL = environment.apiUrl;
 })
 export class UserService {
 
-  private user = new Subject<{email: string, userId: string}>();
+  // BehaviorSubject holds the latest user value so late subscribers get the current user
+  private user = new BehaviorSubject<User | null>(null);
+  public readonly user$ = this.user.asObservable();
+  private inFlightRequest: Observable<User> | null = null;
   private modes = new Subject<{message: string, modes: any}>();
 
   constructor(
     private http: HttpClient
   ) { }
 
-  getUser() {
-		return this.http.get<{email: string, userId: string}>(BACKEND_URL + "/user/get-user")
-			.subscribe((data) => {
-        this.user.next(data);
-			});
-	}
+  /**
+   * Fetch user from backend. Returns an observable that emits the user.
+   * Uses an in-flight guard to avoid duplicate concurrent requests and
+   * updates the internal BehaviorSubject when the HTTP call succeeds.
+   */
+  getUser(forceReload = false): Observable<User> {
+    const cached = this.getCurrentUser();
+    if (cached && !forceReload) {
+      return of(cached);
+    }
+
+    if (this.inFlightRequest) {
+      return this.inFlightRequest;
+    }
+
+    this.inFlightRequest = this.http.get<User>(BACKEND_URL + "/user/get-user")
+      .pipe(
+        tap((data) => this.user.next(data)),
+        finalize(() => { this.inFlightRequest = null; }),
+        // ensure late subscribers get the same result without re-running
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+
+    return this.inFlightRequest;
+  }
+
+  /**
+   * Return the current cached user value (or null if none).
+   */
+  getCurrentUser() {
+    return this.user.getValue();
+  }
 
   getUserUpdateListener() {
     return this.user.asObservable();
@@ -41,6 +72,16 @@ export class UserService {
 
   checkEmail(email: string) {
     return this.http.get<{available: boolean, message?: string}>(BACKEND_URL + "/user/check-email?email=" + encodeURIComponent(email));
+  }
+
+  /**
+   * Fetches the user's current credit balances from the backend.
+   * Returns an observable that emits the credit details.
+   */
+  getCredits(): Observable<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }> {
+    return this.http.get<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }>(
+      `${BACKEND_URL}/user/credits`
+    );
   }
 
 }

@@ -6,6 +6,8 @@ import { AuthService } from '../../auth/auth.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { DOCUMENT } from '@angular/common';
+import { UserService } from '../../services/user.service';
+import { User } from '../../interfaces/user';
 
 @Component({
   selector: 'app-navbar',
@@ -22,8 +24,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   minutes: number = 0;
   seconds: number = 0;
   private expirationTimeMs: number = 0;
+  userPlan: string = '';
+  userCredits: number = 0;
 
   constructor(
+    private userService: UserService,
     private authService: AuthService,
     private dialog: MatDialog,
     @Inject(DOCUMENT) private document: Document
@@ -32,17 +37,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userIsAuthenticated = this.authService.getIsAuth();
     this.initCountdown();
+    // If we're already authenticated on init, fetch the user once
+    if (this.userIsAuthenticated) {
+      this.getUser();
+    }
+
     this.authListenerSubs = this.authService.getAuthStatusListener()
       .subscribe((isAuthenticated) => {
         this.userIsAuthenticated = isAuthenticated;
+        // Only fetch user info when authenticated
         if (isAuthenticated) {
+          this.getUser();
           setTimeout(() => this.initCountdown(), 50);
-        }
-        else {
+        } else {
+          // Clear state on logout
           clearInterval(this.countdown);
           this.minutes = 0;
           this.seconds = 0;
           this.expirationTimeMs = 0;
+          this.userPlan = '';
+          this.userCredits = 0;
         }
       });
   }
@@ -62,6 +76,20 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.expirationTimeMs = expirationTime;
     if (this.countdown) clearInterval(this.countdown);
     this.startInterval();
+  }
+
+  getUser() {
+    // Get both plan and credits from a single call
+    this.userService.getCredits().subscribe({
+      next: (credits) => {
+        this.userPlan = this.capitalizeFirstLetter(credits.plan ?? '');
+        this.userCredits = credits.creditsPermanent;
+      },
+      error: () => {
+        this.userPlan = '';
+        this.userCredits = 0;
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -113,5 +141,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.countdown) clearInterval(this.countdown);
     this.expirationTimeMs = newExpiration.getTime();
     this.startInterval();
+  }
+
+  capitalizeFirstLetter(str?: string): string {
+    // Be defensive: handle undefined/null and trim whitespace
+    if (!str) return '';
+    const s = str.trim();
+    if (!s) return '';
+    return s[0].toUpperCase() + s.slice(1);
   }
 }

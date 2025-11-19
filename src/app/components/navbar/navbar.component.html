@@ -32,19 +32,28 @@
 					<a class="link" (click)="stayLoggedIn()">Stay logged in</a>
 				</div>
 			}
-			<form class="d-flex">
+			<div class="center-v column-gap-20">
 				@if (userIsAuthenticated) {
-					<a class="navbar-brand custom-tooltip" routerLink="/user-profile">
-						<i class="fas fa-user"></i>
+					<div class="custom-tooltip hand" routerLink="/pricing">
+						<i class="fas fa-coins me-2 purple-color"></i>
+						<span class="bold white-color">{{userCredits}}</span>
+						<span class="tooltiptext">Purchase credits</span>
+					</div>
+					<div class="custom-tooltip white-color hand" routerLink="/pricing">
+						<span class="custom-badge badge-purple">{{userPlan}} Plan</span>
+						<span class="tooltiptext">Update plan</span>
+					</div>
+					<a class="white-color custom-tooltip" routerLink="/user-profile">
+						<i class="fas fa-user fa-lg"></i>
 						<span class="tooltiptext">User profile</span>
 					</a>
 					<button class="btn primary-button my-2 my-sm-0" (click)="onLogout()">Logout</button>
 				}
 				@else {
 					<button class="btn primary-button my-2 my-sm-0" routerLink="/auth/login">Login</button>
-					<button class="btn btn-light my-2 my-sm-0 ms-3" routerLink="/auth/signup">Signup</button>
+					<button class="btn btn-light my-2 my-sm-0" routerLink="/auth/signup">Signup</button>
 				}
-			</form>
+			</div>
 		</div>
 	</div>
 </nav>

@@ -15,9 +15,11 @@ const userSchema = mongoose.Schema({
 	pendingEmailTokenExpiration: Date,
 	// When the last activation (verification) email was sent
 	lastActivationSent: Date,
-	plan: String,
-	melodiesLeft: Number,
-	freePlanUsed: Boolean,
+	plan: { type: String, enum: ['free', 'pro', 'enterprise'], default: 'free' },
+	// Credit system
+	creditsPermanent: { type: Number, default: 0 },
+	creditsDaily: { type: Number, default: 0 },
+	creditsDailyExpiresAt: { type: Date },
 	time: { type: Date, default: Date.now },
 	// Password reset request limiting (per calendar month)
 	resetRequestsCount: { type: Number, default: 0 },

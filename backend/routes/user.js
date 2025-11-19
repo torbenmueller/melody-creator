@@ -10,6 +10,10 @@ router.post('/verify-email', UserController.verifyEmail);
 router.post('/verify-email-change', UserController.verifyEmailChange);
 router.post('/resend-activation', UserController.resendActivation);
 
+// Credits
+router.get('/credits', checkAuth, UserController.getCredits);
+router.post('/credits/consume', checkAuth, UserController.consumeCredits);
+
 // Rate limiter for public email availability checks to prevent abuse/enumeration
 const checkEmailLimiter = rateLimit({
 	windowMs: 60 * 1000, // 1 minute window

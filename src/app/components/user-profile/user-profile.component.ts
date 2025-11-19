@@ -10,6 +10,7 @@ import { AuthService } from '../../auth/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
+import { User } from '../../interfaces/user';
 
 @Component({
   selector: 'app-user-profile',
@@ -92,14 +93,20 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   getUser() {
-    this.userService.getUser();
-    this.userSub = this.userService
-      .getUserUpdateListener()
-      .subscribe((data: { email: string; userId: string }) => {
-        this.user = data;
-        this.currentEmail = data.email;
-        this.newEmail = data.email;
-      });
+    // Subscribe to user updates (BehaviorSubject will immediately emit current value if present)
+    this.userSub = this.userService.user$.subscribe((u: User | null) => {
+      if (u) {
+        this.user = u;
+        this.currentEmail = u.email;
+        this.newEmail = u.email;
+      }
+    });
+
+    // If there's not already a cached user, request it from the backend
+    const current = this.userService.getCurrentUser();
+    if (!current) {
+      this.userService.getUser().subscribe({ next: () => {}, error: () => {} });
+    }
   }
 
   getMelodies() {

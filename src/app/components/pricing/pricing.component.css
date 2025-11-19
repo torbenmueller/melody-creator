@@ -71,3 +71,8 @@ ul li:not(:last-child) {
 	<circle cx='12' cy='12' r='10' fill='%23EF4444'/><line x1='7' y1='12' x2='17' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/>\
 	</svg>");
 }
+
+.pricing-title {
+  line-height: 0.7;
+  margin-bottom: 10px;
+}

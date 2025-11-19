@@ -16,8 +16,11 @@ exports.createUser = (req, res, next) => {
 			const user = new User({
 				email: req.body.email,
 				password: hash,
-				melodiesLeft: 10,
-				freePlanUsed: false,
+				plan: 'free',
+				// initialize credits for free plan
+				creditsPermanent: 100, // one-time non-expiring
+				creditsDaily: 10, // daily credits
+				creditsDailyExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
 				isEmailVerified: false,
 				emailVerificationToken: verificationToken,
 				emailVerificationTokenExpiration: verificationExpiry
@@ -61,6 +64,85 @@ exports.createUser = (req, res, next) => {
 					});
 				});
 		});
+}
+
+// Helper to refresh daily credits for free users if expired
+async function refreshDailyCreditsIfNeeded(user) {
+    const now = Date.now();
+    const exp = user.creditsDailyExpiresAt ? new Date(user.creditsDailyExpiresAt).getTime() : 0;
+    if (user.plan === 'free' && (!exp || now >= exp)) {
+        user.creditsDaily = 10;
+        user.creditsDailyExpiresAt = new Date(now + 24 * 60 * 60 * 1000);
+        await user.save();
+    }
+}
+
+// Return current credit balances, refreshing daily credits for free users
+exports.getCredits = async (req, res, next) => {
+    try {
+        if (!req.userData || !req.userData.userId) return res.status(401).json({ message: 'Not authenticated' });
+        const user = await User.findOne({ _id: req.userData.userId });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        await refreshDailyCreditsIfNeeded(user);
+        return res.status(200).json({
+            plan: user.plan,
+            creditsPermanent: user.creditsPermanent || 0,
+            creditsDaily: user.creditsDaily || 0,
+            creditsDailyExpiresAt: user.creditsDailyExpiresAt || null
+        });
+    } catch (err) {
+        console.error('getCredits error', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+// Consume credits: deduct from daily first, then permanent. Only applies to free users per current rules
+exports.consumeCredits = async (req, res, next) => {
+    try {
+        const amountRaw = req.body && req.body.amount;
+        const amount = parseInt(amountRaw, 10);
+        if (!amount || amount <= 0) return res.status(400).json({ message: 'Invalid amount' });
+        if (!req.userData || !req.userData.userId) return res.status(401).json({ message: 'Not authenticated' });
+        const user = await User.findOne({ _id: req.userData.userId });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        await refreshDailyCreditsIfNeeded(user);
+
+        if (user.plan !== 'free') {
+            // For pro/enterprise, no deduction logic specified
+            return res.status(200).json({
+                plan: user.plan,
+                creditsPermanent: user.creditsPermanent || 0,
+                creditsDaily: user.creditsDaily || 0,
+                creditsDailyExpiresAt: user.creditsDailyExpiresAt || null
+            });
+        }
+
+        const daily = user.creditsDaily || 0;
+        const perm = user.creditsPermanent || 0;
+        const available = daily + perm;
+        if (available < amount) return res.status(400).json({ message: 'Insufficient credits' });
+
+        let toDeduct = amount;
+        // Deduct from daily first
+        const useDaily = Math.min(daily, toDeduct);
+        user.creditsDaily = daily - useDaily;
+        toDeduct -= useDaily;
+        if (toDeduct > 0) {
+            user.creditsPermanent = perm - toDeduct;
+        }
+        await user.save();
+
+        return res.status(200).json({
+            plan: user.plan,
+            creditsPermanent: user.creditsPermanent || 0,
+            creditsDaily: user.creditsDaily || 0,
+            creditsDailyExpiresAt: user.creditsDailyExpiresAt || null
+        });
+    } catch (err) {
+        console.error('consumeCredits error', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
 }
 
 exports.deleteUser = async (req, res, next) => {
