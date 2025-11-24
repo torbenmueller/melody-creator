@@ -3,16 +3,17 @@ import { Settings } from '../../interfaces/settings';
 import { Subscription } from 'rxjs';
 import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
+import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
 import { ScoreComponent } from '../score/score.component';
-import { DropdownComponent } from '../shared/dropdown/dropdown.component';
 import * as Tone from 'tone';
 import { SettingComponent } from "../shared/setting/setting.component";
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, ScoreComponent, DropdownComponent, SettingComponent],
+  imports: [FormsModule, ScoreComponent, SettingComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -67,7 +68,8 @@ export class SettingsComponent {
   constructor(
     public creationService: CreationService,
     private authService: AuthService,
-    private elementRef: ElementRef
+    private userService: UserService,
+    private toastr: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -92,7 +94,45 @@ export class SettingsComponent {
   }
 
   onSubmit() {
+    if (!this.userIsAuthenticated) {
+      // For unauthenticated users, proceed without credit checks
+      this.createMelody();
+      return;
+    }
+
     this.isLoading = true;
+    
+    // Check if user has enough credits before creating melody
+    this.userService.checkCreditsAvailable(1).subscribe({
+      next: (response: { hasEnoughCredits: boolean; plan?: string; creditsAvailable?: number; creditsRequired?: number; message?: string }) => {
+        if (response.hasEnoughCredits) {
+          // User has enough credits, proceed with melody creation
+          this.createMelody();
+          
+          // Consume credit after successful creation
+          this.userService.consumeCredits(1).subscribe({
+            next: (consumeResponse) => {
+              console.log('Credit consumed successfully', consumeResponse);
+            },
+            error: (error) => {
+              console.error('Failed to consume credit', error);
+            }
+          });
+        } else {
+          // Insufficient credits
+          this.isLoading = false;
+          this.toastr.error(`Cannot create melody: ${response.message || 'Insufficient credits'}`);
+        }
+      },
+      error: (error: any) => {
+        this.isLoading = false;
+        console.error('Failed to check credits', error);
+        this.toastr.error('Error checking credits. Please try again.');
+      }
+    });
+  }
+
+  private createMelody() {
     this.creationService.submitSettings(this.settings);
     this.melody = this.creationService.getMelody();
     this.intervals = this.creationService.getIntervals();

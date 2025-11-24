@@ -12,6 +12,7 @@ router.post('/resend-activation', UserController.resendActivation);
 
 // Credits
 router.get('/credits', checkAuth, UserController.getCredits);
+router.post('/credits/check', checkAuth, UserController.checkCreditsAvailable);
 router.post('/credits/consume', checkAuth, UserController.consumeCredits);
 
 // Rate limiter for public email availability checks to prevent abuse/enumeration

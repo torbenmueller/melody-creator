@@ -17,7 +17,8 @@ const melodySchema = mongoose.Schema({
 		name: String,
 		rootKey: String
 	},
-	time : { type: Date, default: Date.now }
+	time : { type: Date, default: Date.now },
+	plan: { type: String, enum: ['free', 'pro', 'enterprise'], default: 'free' }
 });
 
 module.exports = mongoose.model('Melody', melodySchema);

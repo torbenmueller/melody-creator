@@ -123,3 +123,19 @@ nav ul {
 .dropdown-menu .dropdown-divider {
 	border-top: 1px solid rgba(255, 255, 255, 0.1)
 }
+
+.red-dot {
+	width: 10px;
+	height: 10px;
+	background-color: var(--danger-color);
+	border-radius: 50%;
+	display: inline-block;
+}
+
+.green-dot {
+	width: 10px;
+	height: 10px;
+	background-color: var(--success-color);
+	border-radius: 50%;
+	display: inline-block;
+}

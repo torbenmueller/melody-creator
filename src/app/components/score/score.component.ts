@@ -30,14 +30,21 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.sub = this.creationService.scoreData.subscribe(data => {
-      console.log("scoreData", data);
+      // Skip if we receive the same data twice (defensive programming)
+      if (data?.melody === this.composedMelody && 
+          data?.settings === this.melodySettings && 
+          data?.scale === this.scale) {
+        return;
+      }
+      
       this.composedMelody = data.melody;
       this.melodySettings = data.settings;
       this.scale = data.scale;
       this.dataReady = !!(this.composedMelody && this.melodySettings && this.melodySettings.bar != null);
       if (this.viewReady && this.dataReady) this.createScore();
     });
-    // request current score data after subscribing, so we don't miss the emission
+    
+    // Request current score data after subscribing
     this.creationService.getScoreData();
   }
   

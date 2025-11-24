@@ -35,12 +35,25 @@
 			<div class="center-v column-gap-20">
 				@if (userIsAuthenticated) {
 					<div class="custom-tooltip hand" routerLink="/pricing">
-						<i class="fas fa-coins me-2 purple-color"></i>
+						<i class="fas fa-coins fa-lg me-2" [ngClass]="isUsingDailyCredits ? 'grey-color' : 'purple-color'"></i>
 						<span class="bold white-color">{{userCredits}}</span>
-						<span class="tooltiptext">Purchase credits</span>
+						<!-- @if (isUsingDailyCredits) {
+							<i class="fas fa-clock fa-sm ms-1 grey-color" title="Using daily credits"></i>
+						} -->
+						<span class="tooltiptext">
+							@if (isUsingDailyCredits) {
+								Daily credits (refill in 24h)
+							} @else {
+								Purchase credits
+							}
+						</span>
 					</div>
 					<div class="custom-tooltip white-color hand" routerLink="/pricing">
-						<span class="custom-badge badge-purple">{{userPlan}} Plan</span>
+						<span class="custom-badge" [ngClass]="{
+									  'badge-green':userPlan.toLowerCase() === 'free',
+									  'badge-purple': userPlan.toLowerCase() === 'pro',
+									  'badge-gold': userPlan.toLowerCase() === 'enterprise'
+									}">{{userPlan}} Plan</span>
 						<span class="tooltiptext">Update plan</span>
 					</div>
 					<a class="white-color custom-tooltip" routerLink="/user-profile">

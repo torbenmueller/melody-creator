@@ -1,24 +1,34 @@
 const Melody = require('../models/melody');
+const User = require('../models/user');
 const MidiWriter = require('midi-writer-js');
 
-exports.saveMelody = (req, res, next) => {
-	const melody = new Melody({
-		melody: req.body.melody,
-		creator: req.userData.userId,
-		settings: req.body.settings
-	});
-	
-	if (melody.settings.name === '') melody.settings.name = 'Melody';
+exports.saveMelody = async (req, res, next) => {
+	try {
+		// Fetch user from database to get current plan
+		const user = await User.findById(req.userData.userId);
+		if (!user) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+		
+		const melody = new Melody({
+			melody: req.body.melody,
+			creator: req.userData.userId,
+			settings: req.body.settings,
+			plan: user.plan // Use plan from database
+		});
+		
+		if (melody.settings.name === '') melody.settings.name = 'Melody';
 
-	melody.save().then(() => {
+		await melody.save();
 		res.status(201).json({
 			message: 'Melody saved successfully!'
 		});
-	}).catch(error => {
+	} catch (error) {
+		console.error('Save melody error:', error);
 		res.status(500).json({
 			message: 'Creating a melody failed!'
 		});
-	});
+	}
 }
 
 exports.loadMelodies = (req, res, next) => {
@@ -31,6 +41,7 @@ exports.loadMelodies = (req, res, next) => {
 	let fetchedMelodies;
 
 	if (sortByType === "time") melodyQuery.sort({ time: order });
+	if (sortByType === "license") melodyQuery.sort({ plan: order });
 	if (sortByType === "name") melodyQuery.sort({ 'settings.name': order });
 	if (sortByType === "key") melodyQuery.sort({ 'settings.key': order });
 	if (sortByType === "bar") melodyQuery.sort({ 'settings.bar': order });

@@ -50,13 +50,14 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   complexityAscending: boolean = false;
   beatAscending: boolean = false;
 
-  filterBooleans: Array<boolean> = [false, false, false, false, false, false];
+  filterBooleans: Array<boolean> = [false, false, false, false, false, false, false];
   filterTypes: Array<string> = [
     'name',
     'key',
     'bar',
     'complex',
     'beat',
+    'license',
     'time',
   ];
 

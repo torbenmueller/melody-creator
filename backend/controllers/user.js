@@ -66,13 +66,20 @@ exports.createUser = (req, res, next) => {
 		});
 }
 
-// Helper to refresh daily credits for free users if expired
+// Helper to refresh daily credits for free users if expired and permanent credits are 0
 async function refreshDailyCreditsIfNeeded(user) {
     const now = Date.now();
     const exp = user.creditsDailyExpiresAt ? new Date(user.creditsDailyExpiresAt).getTime() : 0;
-    if (user.plan === 'free' && (!exp || now >= exp)) {
+    // Only free users get daily credits, and only when permanent credits are 0
+    if (user.plan === 'free' && (user.creditsPermanent || 0) === 0 && (!exp || now >= exp)) {
         user.creditsDaily = 10;
         user.creditsDailyExpiresAt = new Date(now + 24 * 60 * 60 * 1000);
+        await user.save();
+    }
+    // If user has permanent credits or is not on free plan, ensure no daily credits
+    else if (user.plan !== 'free' || (user.creditsPermanent || 0) > 0) {
+        user.creditsDaily = 0;
+        user.creditsDailyExpiresAt = null;
         await user.save();
     }
 }
@@ -96,7 +103,68 @@ exports.getCredits = async (req, res, next) => {
     }
 }
 
-// Consume credits: deduct from daily first, then permanent. Only applies to free users per current rules
+// Check if user has enough credits available for melody creation
+exports.checkCreditsAvailable = async (req, res, next) => {
+    try {
+        const amountRaw = req.body && req.body.amount;
+        const amount = parseInt(amountRaw, 10) || 1; // Default to 1 credit if not specified
+        if (amount <= 0) return res.status(400).json({ message: 'Invalid amount' });
+        if (!req.userData || !req.userData.userId) return res.status(401).json({ message: 'Not authenticated' });
+        
+        const user = await User.findOne({ _id: req.userData.userId });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        await refreshDailyCreditsIfNeeded(user);
+
+        // For pro/enterprise plans, check their permanent credits
+        if (user.plan === 'pro' || user.plan === 'enterprise') {
+            const perm = user.creditsPermanent || 0;
+            if (perm >= amount) {
+                return res.status(200).json({ 
+                    hasEnoughCredits: true, 
+                    plan: user.plan,
+                    creditsAvailable: perm,
+                    creditsRequired: amount
+                });
+            } else {
+                return res.status(200).json({ 
+                    hasEnoughCredits: false, 
+                    plan: user.plan,
+                    creditsAvailable: perm,
+                    creditsRequired: amount,
+                    message: `Insufficient credits. You have ${perm} credits but need ${amount}.`
+                });
+            }
+        }
+
+        // For free plan, check actual credit availability
+        const daily = user.creditsDaily || 0;
+        const perm = user.creditsPermanent || 0;
+        const available = daily + perm;
+        
+        if (available >= amount) {
+            return res.status(200).json({ 
+                hasEnoughCredits: true,
+                plan: user.plan,
+                creditsAvailable: available,
+                creditsRequired: amount
+            });
+        } else {
+            return res.status(200).json({ 
+                hasEnoughCredits: false,
+                plan: user.plan,
+                creditsAvailable: available,
+                creditsRequired: amount,
+                message: `Insufficient credits. You have ${available} credits but need ${amount}.`
+            });
+        }
+    } catch (err) {
+        console.error('checkCreditsAvailable error', err);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+// Consume credits: deduct from permanent first, then daily. Enforced for all plan types
 exports.consumeCredits = async (req, res, next) => {
     try {
         const amountRaw = req.body && req.body.amount;
@@ -108,29 +176,54 @@ exports.consumeCredits = async (req, res, next) => {
 
         await refreshDailyCreditsIfNeeded(user);
 
-        if (user.plan !== 'free') {
-            // For pro/enterprise, no deduction logic specified
+        // For pro/enterprise plans, consume permanent credits only
+        if (user.plan === 'pro' || user.plan === 'enterprise') {
+            const perm = user.creditsPermanent || 0;
+            if (perm < amount) {
+                return res.status(400).json({ 
+                    message: `Insufficient credits. You have ${perm} credits but need ${amount}.`
+                });
+            }
+            
+            user.creditsPermanent = perm - amount;
+            await user.save();
+            
             return res.status(200).json({
                 plan: user.plan,
-                creditsPermanent: user.creditsPermanent || 0,
-                creditsDaily: user.creditsDaily || 0,
-                creditsDailyExpiresAt: user.creditsDailyExpiresAt || null
+                creditsPermanent: user.creditsPermanent,
+                creditsDaily: 0, // Pro/enterprise don't have daily credits
+                creditsDailyExpiresAt: null
             });
         }
 
+        // For free plan, enforce actual credit consumption
         const daily = user.creditsDaily || 0;
         const perm = user.creditsPermanent || 0;
         const available = daily + perm;
-        if (available < amount) return res.status(400).json({ message: 'Insufficient credits' });
+        if (available < amount) {
+            return res.status(400).json({ 
+                message: `Insufficient credits. You have ${available} credits but need ${amount}.`
+            });
+        }
 
         let toDeduct = amount;
-        // Deduct from daily first
-        const useDaily = Math.min(daily, toDeduct);
-        user.creditsDaily = daily - useDaily;
-        toDeduct -= useDaily;
-        if (toDeduct > 0) {
-            user.creditsPermanent = perm - toDeduct;
+        // Always deduct from permanent first if available
+        if (perm > 0) {
+            const usePermanent = Math.min(perm, toDeduct);
+            user.creditsPermanent = perm - usePermanent;
+            toDeduct -= usePermanent;
         }
+        
+        // Only use daily credits if:
+        // 1. We still need to deduct more credits AND
+        // 2. User is on free plan AND
+        // 3. User's permanent credits are now 0 (after deduction)
+        if (toDeduct > 0 && user.plan === 'free' && user.creditsPermanent === 0) {
+            const useDaily = Math.min(daily, toDeduct);
+            user.creditsDaily = daily - useDaily;
+            toDeduct -= useDaily;
+        }
+        
         await user.save();
 
         return res.status(200).json({

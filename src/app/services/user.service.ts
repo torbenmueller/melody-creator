@@ -17,6 +17,10 @@ export class UserService {
   public readonly user$ = this.user.asObservable();
   private inFlightRequest: Observable<User> | null = null;
   private modes = new Subject<{message: string, modes: any}>();
+  
+  // Subject for broadcasting credit updates
+  private creditUpdateSubject = new Subject<void>();
+  public readonly creditUpdate$ = this.creditUpdateSubject.asObservable();
 
   constructor(
     private http: HttpClient
@@ -81,6 +85,45 @@ export class UserService {
   getCredits(): Observable<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }> {
     return this.http.get<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }>(
       `${BACKEND_URL}/user/credits`
+    );
+  }
+
+  /**
+   * Checks if the user has enough credits available to create a melody.
+   * Returns an observable that emits the credit availability details.
+   */
+  checkCreditsAvailable(amount: number): Observable<{ 
+    hasEnoughCredits: boolean; 
+    plan?: string; 
+    creditsAvailable?: number; 
+    creditsRequired?: number; 
+    message?: string 
+  }> {
+    return this.http.post<{ 
+      hasEnoughCredits: boolean; 
+      plan?: string; 
+      creditsAvailable?: number; 
+      creditsRequired?: number; 
+      message?: string 
+    }>(
+      `${BACKEND_URL}/user/credits/check`,
+      { amount }
+    );
+  }
+
+  /**
+   * Consumes a specified amount of credits from the user's account.
+   * Deducts from daily credits first, then permanent credits.
+   */
+  consumeCredits(amount: number): Observable<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }> {
+    return this.http.post<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }>(
+      `${BACKEND_URL}/user/credits/consume`,
+      { amount }
+    ).pipe(
+      tap(() => {
+        // Emit credit update event after successful consumption
+        this.creditUpdateSubject.next();
+      })
     );
   }
 

@@ -5,14 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../auth/auth.service';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, NgClass } from '@angular/common';
 import { UserService } from '../../services/user.service';
-import { User } from '../../interfaces/user';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, MatDialogModule, MatButtonModule],
+  imports: [RouterLink, RouterLinkActive, MatDialogModule, MatButtonModule, NgClass],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
@@ -26,6 +25,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private expirationTimeMs: number = 0;
   userPlan: string = '';
   userCredits: number = 0;
+  isUsingDailyCredits: boolean = false;
 
   constructor(
     private userService: UserService,
@@ -57,8 +57,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.expirationTimeMs = 0;
           this.userPlan = '';
           this.userCredits = 0;
+          this.isUsingDailyCredits = false;
         }
       });
+    
+    // Listen for credit updates and refresh credits when they change
+    this.userService.creditUpdate$.subscribe(() => {
+      if (this.userIsAuthenticated) {
+        this.getUser();
+      }
+    });
   }
 
   private initCountdown(): void {
@@ -83,13 +91,32 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.userService.getCredits().subscribe({
       next: (credits) => {
         this.userPlan = this.capitalizeFirstLetter(credits.plan ?? '');
-        this.userCredits = credits.creditsPermanent;
+        
+        // Check if permanent credits are exhausted for free users
+        if ((credits.creditsPermanent || 0) === 0 && this.userPlan.toLowerCase() === 'free') {
+          this.userCredits = credits.creditsDaily || 0;
+          this.isUsingDailyCredits = true;
+        } else {
+          this.userCredits = credits.creditsPermanent || 0;
+          this.isUsingDailyCredits = false;
+        }
       },
       error: () => {
         this.userPlan = '';
         this.userCredits = 0;
+        this.isUsingDailyCredits = false;
       }
     });
+  }
+
+  /**
+   * Public method to refresh credit display
+   * Can be called by other components after credit consumption
+   */
+  refreshCredits() {
+    if (this.userIsAuthenticated) {
+      this.getUser();
+    }
   }
 
   ngOnDestroy(): void {

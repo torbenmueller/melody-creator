@@ -36,7 +36,7 @@
 										<i class="fas ms-2" [ngClass]="{'fa-chevron-down': !filterBooleans[1], 'fa-chevron-up': filterBooleans[1]}"></i>
 									</div>
 								</div>
-								<div class="text-center" style="width: 10%">
+								<div class="text-center" style="width: 5%">
 									<div class="inline-block pointer" (click)="filterMelodies(2)" tabindex="0" role="button" [attr.aria-pressed]="filterBooleans[2]" (keydown.enter)="filterMelodies(2)" (keydown.space)="filterMelodies(2); $event.preventDefault()">
 										<span>Bars</span>
 										<i class="fas ms-2" [ngClass]="{'fa-chevron-down': !filterBooleans[2], 'fa-chevron-up': filterBooleans[2]}"></i>
@@ -48,7 +48,7 @@
 										<i class="fas ms-2" [ngClass]="{'fa-chevron-down': !filterBooleans[3], 'fa-chevron-up': filterBooleans[3]}"></i>
 									</div>
 								</div>
-								<div class="text-center" style="width: 10%">
+								<div class="text-center" style="width: 5%">
 									<div class="inline-block pointer" (click)="filterMelodies(4)" tabindex="0" role="button" [attr.aria-pressed]="filterBooleans[4]" (keydown.enter)="filterMelodies(4)" (keydown.space)="filterMelodies(4); $event.preventDefault()">
 										<span>Beat</span>
 										<i class="fas ms-2" [ngClass]="{'fa-chevron-down': !filterBooleans[4], 'fa-chevron-up': filterBooleans[4]}"></i>
@@ -56,8 +56,14 @@
 								</div>
 								<div class="text-center" style="width: 10%">
 									<div class="inline-block pointer" (click)="filterMelodies(5)" tabindex="0" role="button" [attr.aria-pressed]="filterBooleans[5]" (keydown.enter)="filterMelodies(5)" (keydown.space)="filterMelodies(5); $event.preventDefault()">
-										<span>Date</span>
+										<span>License</span>
 										<i class="fas ms-2" [ngClass]="{'fa-chevron-down': !filterBooleans[5], 'fa-chevron-up': filterBooleans[5]}"></i>
+									</div>
+								</div>
+								<div class="text-center" style="width: 10%">
+									<div class="inline-block pointer" (click)="filterMelodies(6)" tabindex="0" role="button" [attr.aria-pressed]="filterBooleans[6]" (keydown.enter)="filterMelodies(6)" (keydown.space)="filterMelodies(6); $event.preventDefault()">
+										<span>Date</span>
+										<i class="fas ms-2" [ngClass]="{'fa-chevron-down': !filterBooleans[6], 'fa-chevron-up': filterBooleans[6]}"></i>
 									</div>
 								</div>
 								<div class="text-center inline-block"style="width: 15%">
@@ -81,7 +87,7 @@
 									<div class="text-center" style="width: 20%">
 										<span class="custom-badge badge-purple">{{melody.settings?.key}} {{melody.settings?.scale}}</span>
 									</div>
-									<div class="text-center" style="width: 10%">
+									<div class="text-center" style="width: 5%">
 										<span>{{melody.settings?.bar}}</span>
 									</div>
 									<div class="text-center" style="width: 15%">
@@ -93,8 +99,11 @@
 									  {{melody.settings?.complex}}
 									</span>
 									</div>
-									<div class="text-center" style="width: 10%">
+									<div class="text-center" style="width: 5%">
 										<span>{{melody.settings?.beat}}</span>
+									</div>
+									<div class="text-center" style="width: 10%">
+										<span [class]="melody.plan?.toLowerCase() === 'free' ? 'red-dot' : 'green-dot'"></span>
 									</div>
 									<div class="text-center" style="width: 10%">
 										<span>{{melody.time | date: 'dd.MM.yyyy'}}</span>
