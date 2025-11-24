@@ -28,6 +28,7 @@ router.get('/check-email', checkEmailLimiter, UserController.checkEmail);
 router.post('/forgot-password', UserController.resetPassword);
 router.post('/new-password', UserController.postNewPassword);
 router.get('/get-user', checkAuth, UserController.getUser);
+router.get('/user-plan', UserController.getUserPlan);
 router.delete('/delete-user', checkAuth, UserController.deleteUser);
 // router.put('/update-user', checkAuth, UserController.updateUser);
 router.put('/update-email', checkAuth, UserController.updateEmail);

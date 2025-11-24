@@ -718,3 +718,33 @@ exports.checkoutUser = async (req, res, next) => {
 		return res.status(500).json({ message: 'Internal server error' });
 	}
 }
+
+// Get user plan information for restricting features
+exports.getUserPlan = async (req, res, next) => {
+	try {
+		// Check if user is authenticated
+		if (!req.userData || !req.userData.userId) {
+			// Unauthenticated user - return restrictions
+			return res.status(200).json({ 
+				isAuthenticated: false,
+				plan: null,
+				hasRestrictions: true
+			});
+		}
+		
+		const user = await User.findOne({ _id: req.userData.userId });
+		if (!user) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+		
+		// Return user plan info
+		return res.status(200).json({ 
+			isAuthenticated: true,
+			plan: user.plan || 'free',
+			hasRestrictions: !user.plan || user.plan === 'free'
+		});
+	} catch (error) {
+		console.error('getUserPlan error', error && error.stack ? error.stack : error);
+		return res.status(500).json({ message: 'Internal server error' });
+	}
+}

@@ -79,6 +79,16 @@ export class UserService {
   }
 
   /**
+   * Fetches the user's plan information to determine feature restrictions.
+   * Returns whether the user is authenticated and if they have restrictions (free or unauthenticated).
+   */
+  getUserPlan(): Observable<{ isAuthenticated: boolean; plan: string | null; hasRestrictions: boolean }> {
+    return this.http.get<{ isAuthenticated: boolean; plan: string | null; hasRestrictions: boolean }>(
+      `${BACKEND_URL}/user/user-plan`
+    );
+  }
+
+  /**
    * Fetches the user's current credit balances from the backend.
    * Returns an observable that emits the credit details.
    */

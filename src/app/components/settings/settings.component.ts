@@ -18,7 +18,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrl: './settings.component.css',
 })
 export class SettingsComponent {
-  scales: string[] = [
+  allScales: string[] = [
     'Major',
     'Minor',
     'Pentatonic Major',
@@ -33,6 +33,10 @@ export class SettingsComponent {
     'Melodic Minor',
     'Whole Tone',
   ];
+  restrictedScales: string[] = ['Major', 'Minor'];
+  
+  scales: string[] = this.allScales;
+  
   keys: string[] = [
     'C',
     'Db',
@@ -48,9 +52,21 @@ export class SettingsComponent {
     'Bb',
     'B',
   ];
-  bars: number[] = [2, 4, 8];
-  complexity: string[] = ['Low', 'Medium', 'High'];
-  beats: string[] = ['4/4', '3/4'];
+  
+  allBars: number[] = [2, 4, 8];
+  restrictedBars: number[] = [2, 4];
+  bars: number[] = this.allBars;
+  
+  allComplexity: string[] = ['Low', 'Medium', 'High'];
+  restrictedComplexity: string[] = ['Low'];
+  complexity: string[] = this.allComplexity;
+  
+  allBeats: string[] = ['4/4', '3/4'];
+  restrictedBeats: string[] = ['4/4'];
+  beats: string[] = this.allBeats;
+  
+  userPlan: string | null = null;
+  hasRestrictions: boolean = false;
 
   settings!: Settings;
   melody!: any[];
@@ -79,6 +95,7 @@ export class SettingsComponent {
       .subscribe((isAuthenticated) => {
         this.userIsAuthenticated = isAuthenticated;
         this.isLoading = false;
+        this.loadUserPlanAndApplyRestrictions();
       });
     this.creationService.isPlaying.subscribe((e) => {
       this.isPlaying = e;
@@ -87,6 +104,55 @@ export class SettingsComponent {
     this.melody = this.creationService.getMelody();
     if (this.settings === undefined) this.settings = this.initialSettings();
     this.melodyDescription = this.setDescription(this.settings);
+    
+    // Load user plan on init
+    this.loadUserPlanAndApplyRestrictions();
+  }
+  
+  private loadUserPlanAndApplyRestrictions(): void {
+    this.userService.getUserPlan().subscribe({
+      next: (response: { isAuthenticated: boolean; plan: string | null; hasRestrictions: boolean }) => {
+        this.userPlan = response.plan;
+        this.hasRestrictions = response.hasRestrictions;
+        this.applyRestrictions();
+      },
+      error: (error: any) => {
+        console.error('Failed to fetch user plan', error);
+        // Default to restrictions if error
+        this.hasRestrictions = true;
+        this.applyRestrictions();
+      }
+    });
+  }
+  
+  private applyRestrictions(): void {
+    if (this.hasRestrictions) {
+      // Apply restrictions for unauthenticated and free users
+      this.scales = this.restrictedScales;
+      this.bars = this.restrictedBars;
+      this.complexity = this.restrictedComplexity;
+      this.beats = this.restrictedBeats;
+      
+      // Reset settings if current values are not allowed
+      if (!this.restrictedScales.includes(this.settings.scale)) {
+        this.settings.scale = this.restrictedScales[0];
+      }
+      if (!this.restrictedBars.includes(this.settings.bar)) {
+        this.settings.bar = this.restrictedBars[0];
+      }
+      if (!this.restrictedComplexity.includes(this.settings.complex)) {
+        this.settings.complex = this.restrictedComplexity[0];
+      }
+      if (!this.restrictedBeats.includes(this.settings.beat)) {
+        this.settings.beat = this.restrictedBeats[0];
+      }
+    } else {
+      // No restrictions - pro/enterprise users
+      this.scales = this.allScales;
+      this.bars = this.allBars;
+      this.complexity = this.allComplexity;
+      this.beats = this.allBeats;
+    }
   }
 
   ngOnDestroy(): void {
@@ -94,40 +160,59 @@ export class SettingsComponent {
   }
 
   onSubmit() {
-    if (!this.userIsAuthenticated) {
-      // For unauthenticated users, proceed without credit checks
-      this.createMelody();
-      return;
-    }
-
     this.isLoading = true;
     
-    // Check if user has enough credits before creating melody
-    this.userService.checkCreditsAvailable(1).subscribe({
-      next: (response: { hasEnoughCredits: boolean; plan?: string; creditsAvailable?: number; creditsRequired?: number; message?: string }) => {
-        if (response.hasEnoughCredits) {
-          // User has enough credits, proceed with melody creation
-          this.createMelody();
-          
-          // Consume credit after successful creation
-          this.userService.consumeCredits(1).subscribe({
-            next: (consumeResponse) => {
-              console.log('Credit consumed successfully', consumeResponse);
-            },
-            error: (error) => {
-              console.error('Failed to consume credit', error);
-            }
-          });
-        } else {
-          // Insufficient credits
+    // First, validate settings in backend
+    this.creationService.validateSettings(this.settings).subscribe({
+      next: (validationResponse: { valid: boolean; message?: string; errors?: string[] }) => {
+        if (!validationResponse.valid) {
+          // Settings are invalid for user's plan
           this.isLoading = false;
-          this.toastr.error(`Cannot create melody: ${response.message || 'Insufficient credits'}`);
+          const errorMsg = validationResponse.errors?.join(', ') || validationResponse.message || 'Invalid settings';
+          this.toastr.error(errorMsg);
+          return;
         }
+        
+        // Settings are valid, proceed with credit check and melody creation
+        if (!this.userIsAuthenticated) {
+          // For unauthenticated users, proceed without credit checks
+          this.createMelody();
+          return;
+        }
+
+        // Check if user has enough credits before creating melody
+        this.userService.checkCreditsAvailable(1).subscribe({
+          next: (response: { hasEnoughCredits: boolean; plan?: string; creditsAvailable?: number; creditsRequired?: number; message?: string }) => {
+            if (response.hasEnoughCredits) {
+              // User has enough credits, proceed with melody creation
+              this.createMelody();
+              
+              // Consume credit after successful creation
+              this.userService.consumeCredits(1).subscribe({
+                next: (consumeResponse) => {
+                  console.log('Credit consumed successfully', consumeResponse);
+                },
+                error: (error) => {
+                  console.error('Failed to consume credit', error);
+                }
+              });
+            } else {
+              // Insufficient credits
+              this.isLoading = false;
+              this.toastr.error(`Cannot create melody: ${response.message || 'Insufficient credits'}`);
+            }
+          },
+          error: (error: any) => {
+            this.isLoading = false;
+            console.error('Failed to check credits', error);
+            this.toastr.error('Error checking credits. Please try again.');
+          }
+        });
       },
       error: (error: any) => {
         this.isLoading = false;
-        console.error('Failed to check credits', error);
-        this.toastr.error('Error checking credits. Please try again.');
+        console.error('Failed to validate settings', error);
+        this.toastr.error('Error validating settings. Please try again.');
       }
     });
   }

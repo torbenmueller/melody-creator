@@ -2,12 +2,88 @@ const Melody = require('../models/melody');
 const User = require('../models/user');
 const MidiWriter = require('midi-writer-js');
 
+// Validate settings based on user plan (unauthenticated or free users have restrictions)
+function validateSettingsForPlan(settings, plan) {
+	const errors = [];
+	
+	// Restrictions for unauthenticated and free users
+	if (!plan || plan === 'free') {
+		// Only Major and Minor scales allowed
+		if (settings.scale !== 'Major' && settings.scale !== 'Minor') {
+			errors.push('Only Major and Minor scales are available for free users');
+		}
+		
+		// Only 2 or 4 bars allowed
+		if (settings.bar !== 2 && settings.bar !== 4) {
+			errors.push('Only 2 or 4 bars are available for free users');
+		}
+		
+		// Only Low complexity allowed
+		if (settings.complex !== 'Low') {
+			errors.push('Only Low complexity is available for free users');
+		}
+		
+		// Only 4/4 beat allowed
+		if (settings.beat !== '4/4') {
+			errors.push('Only 4/4 beat is available for free users');
+		}
+	}
+	
+	return errors;
+}
+
+// Validate settings before melody creation (called from frontend before generation)
+exports.validateSettings = async (req, res, next) => {
+	try {
+		let userPlan = null;
+		
+		// Check if user is authenticated
+		if (req.userData && req.userData.userId) {
+			const user = await User.findById(req.userData.userId);
+			if (user) {
+				userPlan = user.plan;
+			}
+		}
+		// If not authenticated or user not found, userPlan remains null (will apply restrictions)
+		
+		const validationErrors = validateSettingsForPlan(req.body.settings, userPlan);
+		
+		if (validationErrors.length > 0) {
+			return res.status(403).json({ 
+				valid: false,
+				message: 'Invalid settings for your plan',
+				errors: validationErrors
+			});
+		}
+		
+		return res.status(200).json({ 
+			valid: true,
+			message: 'Settings are valid'
+		});
+	} catch (error) {
+		console.error('Validate settings error:', error);
+		return res.status(500).json({
+			valid: false,
+			message: 'Validation failed due to server error'
+		});
+	}
+}
+
 exports.saveMelody = async (req, res, next) => {
 	try {
 		// Fetch user from database to get current plan
 		const user = await User.findById(req.userData.userId);
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
+		}
+		
+		// Validate settings based on user plan
+		const validationErrors = validateSettingsForPlan(req.body.settings, user.plan);
+		if (validationErrors.length > 0) {
+			return res.status(403).json({ 
+				message: 'Invalid settings for your plan',
+				errors: validationErrors
+			});
 		}
 		
 		const melody = new Melody({
