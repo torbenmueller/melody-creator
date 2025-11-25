@@ -3,6 +3,7 @@ import * as Tone from 'tone';
 import { Settings } from '../interfaces/settings';
 import { Modes } from '../components/settings/modes';
 import { Observable, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { HarmonicMinorModifications } from '../interfaces/harmonic-minor-modifications';
@@ -17,8 +18,6 @@ export class CreationService {
 	settings!: Settings;
 	scale: any;
 	melody!: any[];
-	keepMelody = [];
-	maxInterval: number = 4;
 	intervalCheck: number[] = [];
 	sampler!: Tone.Sampler;
 
@@ -101,8 +100,18 @@ export class CreationService {
 			settings: this.settings
 		}
 		this.http.post<{message: string}>(BACKEND_URL, post)
-			.subscribe((responseData) => {
-				this.toastr.success(responseData.message);
+			.subscribe({
+				next: (responseData) => {
+					this.toastr.success(responseData.message);
+				},
+				error: (error) => {
+					if (error.status === 403) {
+						const errorMsg = error.error.errors?.join(', ') || error.error.message || 'Cannot save melody with current settings';
+						this.toastr.error(errorMsg);
+					} else {
+						this.toastr.error('Failed to save melody. Please try again.');
+					}
+				}
 			});
 	}
 
@@ -196,20 +205,27 @@ export class CreationService {
 		return this.wholeRangeSharp;
 	}
 
-	// INITIAL CALL FROM COMPONENT
-	submitSettings(settings: Settings) {
-		// this.changeScaleIndices();
-		this.melody = [];
-		this.intervalCheck = [];
-		this.settings = settings;
-		let nameIndex = this.namesOfScales.indexOf(this.settings.key);
-		console.log("nameIndex", nameIndex);
-		if (this.settings.key === "F#") nameIndex = 6;
-		let mode = settings.scale.toLowerCase().replace(/\s/g, '');
-		let newIndexes = this.generateScaleIndexes(nameIndex, mode);
-		this.scale = this.generateScale(newIndexes);
-		console.log("this.scale", this.scale);
-		this.createMelody();
+	// INITIAL CALL FROM COMPONENT - Now calls backend for generation
+	submitSettings(settings: Settings): Observable<any> {
+		// Call backend to generate melody
+		return this.http.post<{
+			melody: any[];
+			scale: any;
+			settings: Settings;
+			intervals: number[];
+		}>(BACKEND_URL + '/generate', { settings }).pipe(
+			tap((result: { melody: any[]; scale: any; settings: Settings; intervals: number[] }) => {
+				// Store the generated melody and related data
+				this.melody = result.melody;
+				this.scale = result.scale;
+				this.settings = result.settings;
+				this.intervalCheck = result.intervals;
+				this.rootKey = result.settings.rootKey;
+				
+				// Notify components of new melody
+				this.getScoreData();
+			})
+		);
 	}
 
 	changeScaleIndices() {
@@ -401,7 +417,7 @@ export class CreationService {
 	 */
 	validateSettings(settings: Settings): Observable<{ valid: boolean; message?: string; errors?: string[] }> {
 		return this.http.post<{ valid: boolean; message?: string; errors?: string[] }>(
-			BACKEND_URL + '/melodies/validate-settings',
+			BACKEND_URL + '/validate-settings',
 			{ settings }
 		);
 	}

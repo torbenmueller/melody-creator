@@ -218,11 +218,19 @@ export class SettingsComponent {
   }
 
   private createMelody() {
-    this.creationService.submitSettings(this.settings);
-    this.melody = this.creationService.getMelody();
-    this.intervals = this.creationService.getIntervals();
-    this.isLoading = false;
-    this.melodyDescription = this.setDescription(this.settings);
+    this.creationService.submitSettings(this.settings).subscribe({
+      next: (result) => {
+        this.melody = this.creationService.getMelody();
+        this.intervals = this.creationService.getIntervals();
+        this.isLoading = false;
+        this.melodyDescription = this.setDescription(this.settings);
+      },
+      error: (error: any) => {
+        this.isLoading = false;
+        console.error('Failed to generate melody', error);
+        this.toastr.error('Error generating melody. Please try again.');
+      }
+    });
   }
 
   async play(): Promise<void> {

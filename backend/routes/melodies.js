@@ -3,6 +3,7 @@ const router = express.Router();
 const checkAuth = require('../middleware/check-auth');
 const MelodiesController = require('../controllers/melodies');
 
+router.post('/generate', MelodiesController.generateMelody);
 router.post('/validate-settings', MelodiesController.validateSettings);
 router.post('', checkAuth, MelodiesController.saveMelody);
 router.get('', checkAuth, MelodiesController.loadMelodies);

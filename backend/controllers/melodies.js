@@ -1,6 +1,7 @@
 const Melody = require('../models/melody');
 const User = require('../models/user');
 const MidiWriter = require('midi-writer-js');
+const MelodyGenerator = require('../services/melodyGenerator');
 
 // Validate settings based on user plan (unauthenticated or free users have restrictions)
 function validateSettingsForPlan(settings, plan) {
@@ -31,6 +32,52 @@ function validateSettingsForPlan(settings, plan) {
 	
 	return errors;
 }
+
+// Generate melody on backend (new endpoint to replace frontend generation)
+exports.generateMelody = async (req, res, next) => {
+	try {
+		const { settings } = req.body;
+		if (!settings) {
+			return res.status(400).json({ message: 'Settings are required' });
+		}
+
+		let userPlan = null;
+		
+		// Check if user is authenticated
+		if (req.userData && req.userData.userId) {
+			const user = await User.findById(req.userData.userId);
+			if (user) {
+				userPlan = user.plan;
+			}
+		}
+		
+		// Validate settings based on user plan
+		const validationErrors = validateSettingsForPlan(settings, userPlan);
+		if (validationErrors.length > 0) {
+			return res.status(403).json({ 
+				message: 'Invalid settings for your plan',
+				errors: validationErrors
+			});
+		}
+
+		// Generate melody using backend algorithm
+		const generator = new MelodyGenerator();
+		const result = generator.generateMelody(settings);
+		
+		return res.status(200).json({
+			melody: result.melody,
+			scale: result.scale,
+			settings: result.settings,
+			intervals: result.intervals
+		});
+	} catch (error) {
+		console.error('Generate melody error:', error);
+		return res.status(500).json({
+			message: 'Melody generation failed',
+			error: error.message
+		});
+	}
+};
 
 // Validate settings before melody creation (called from frontend before generation)
 exports.validateSettings = async (req, res, next) => {
@@ -75,6 +122,24 @@ exports.saveMelody = async (req, res, next) => {
 		const user = await User.findById(req.userData.userId);
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
+		}
+		
+		// Check if user has enough credits to save
+		const requiredCredits = 1;
+		let availableCredits = 0;
+		
+		if (user.plan === 'pro' || user.plan === 'enterprise') {
+			availableCredits = user.creditsPermanent || 0;
+		} else {
+			// For free plan, check both daily and permanent credits
+			availableCredits = (user.creditsDaily || 0) + (user.creditsPermanent || 0);
+		}
+		
+		if (availableCredits < requiredCredits) {
+			return res.status(403).json({ 
+				message: `Insufficient credits to save melody. You have ${availableCredits} credits but need ${requiredCredits}.`,
+				hasEnoughCredits: false
+			});
 		}
 		
 		// Validate settings based on user plan
