@@ -1,6 +1,8 @@
 // Melody Generation Algorithm
 // Ported from frontend creation.service.ts
 
+const Modes = require('./modes');
+
 class MelodyGenerator {
 	// Class-level constants (shared across all instances)
 	static WHOLE_RANGE_SHARP = [
@@ -22,6 +24,7 @@ class MelodyGenerator {
 		'Ab': {'F#3': 'F##3', 'F#4': 'F##4', 'F#5': 'F##5'}
 	};
 
+	// 0 starts at G3
 	static SCALE_INDICES = {
 		major: [3, 5, 7, 8, 10, 12, 13, 15, 17, 19, 20, 22],
 		minor: [3, 4, 6, 8, 10, 11, 13, 15, 16, 18, 20, 22],
@@ -36,26 +39,6 @@ class MelodyGenerator {
 		harmonicminor: [3, 4, 7, 8, 10, 11, 13, 15, 16, 19, 20, 22],
 		melodicminor: [3, 5, 7, 8, 10, 11, 13, 15, 17, 19, 20, 22],
 		wholetone: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-	};
-
-	static SHARP_KEYS = ["G", "D", "A", "E", "B", "F#"];
-	static CHROMATIC_SHARP_SCALE = ["G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "F#"];
-	static CHROMATIC_FLAT_SCALE = ["G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb"];
-
-	static KEY_INDICES = {
-		"Major": 0,
-		"Dorian": -2,
-		"Phrygian": -4,
-		"Lydian": -5,
-		"Mixolydian": +5,
-		"Minor": +3,
-		"Locrian": +1,
-		"Pentatonic Major": 0,
-		"Pentatonic Minor": +3,
-		"Chromatic": 0,
-		"Harmonic Minor": +3,
-		"Melodic Minor": +3,
-		"Whole Tone": 0
 	};
 
 	static NOTE_LENGTH = ["2n", "4n", "8n"];
@@ -99,15 +82,6 @@ class MelodyGenerator {
 		return MelodyGenerator.SCALE_INDICES[mode].map(x => x + index);
 	}
 
-	getRootkey(key, mode) {
-		const chromaticScale = MelodyGenerator.SHARP_KEYS.includes(key) 
-			? MelodyGenerator.CHROMATIC_SHARP_SCALE 
-			: MelodyGenerator.CHROMATIC_FLAT_SCALE;
-		const rootKey = chromaticScale.indexOf(key) + MelodyGenerator.KEY_INDICES[mode];
-		if (rootKey < 0) return chromaticScale[chromaticScale.length + rootKey];
-		return chromaticScale[rootKey % chromaticScale.length];
-	}
-
 	generateScale(indices) {
 		let scale = [];
 		let wholeRange = this.crossOrBKey();
@@ -137,7 +111,7 @@ class MelodyGenerator {
 	}
 
 	crossOrBKey() {
-		this.rootKey = this.getRootkey(this.settings.key, this.settings.scale);
+		this.rootKey = Modes.getRootkey(this.settings.key, this.settings.scale);
 		this.settings.rootKey = this.rootKey;
 		if (this.rootKey.includes('b') || this.rootKey === 'F') return MelodyGenerator.WHOLE_RANGE_FLAT;
 		return MelodyGenerator.WHOLE_RANGE_SHARP;

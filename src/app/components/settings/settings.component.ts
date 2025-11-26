@@ -112,6 +112,7 @@ export class SettingsComponent {
   private loadUserPlanAndApplyRestrictions(): void {
     this.userService.getUserPlan().subscribe({
       next: (response: { isAuthenticated: boolean; plan: string | null; hasRestrictions: boolean }) => {
+        console.log('User plan response:', response);
         this.userPlan = response.plan;
         this.hasRestrictions = response.hasRestrictions;
         this.applyRestrictions();
@@ -220,8 +221,10 @@ export class SettingsComponent {
   private createMelody() {
     this.creationService.submitSettings(this.settings).subscribe({
       next: (result) => {
-        this.melody = this.creationService.getMelody();
-        this.intervals = this.creationService.getIntervals();
+        // TODO: Use credit here, remove from balance if it is positive
+        console.log(result);
+        this.melody = result.melody;
+        this.intervals = result.intervals;
         this.isLoading = false;
         this.melodyDescription = this.setDescription(this.settings);
       },
