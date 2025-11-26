@@ -110,9 +110,15 @@ export class SettingsComponent {
   }
   
   private loadUserPlanAndApplyRestrictions(): void {
+    // Only fetch plan if user is authenticated
+    if (!this.userIsAuthenticated) {
+      this.hasRestrictions = true;
+      this.applyRestrictions();
+      return;
+    }
+    
     this.userService.getUserPlan().subscribe({
       next: (response: { isAuthenticated: boolean; plan: string | null; hasRestrictions: boolean }) => {
-        console.log('User plan response:', response);
         this.userPlan = response.plan;
         this.hasRestrictions = response.hasRestrictions;
         this.applyRestrictions();

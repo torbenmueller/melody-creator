@@ -722,16 +722,6 @@ exports.checkoutUser = async (req, res, next) => {
 // Get user plan information for restricting features
 exports.getUserPlan = async (req, res, next) => {
 	try {
-		// Check if user is authenticated
-		if (!req.userData || !req.userData.userId) {
-			// Unauthenticated user - return restrictions
-			return res.status(200).json({ 
-				isAuthenticated: false,
-				plan: null,
-				hasRestrictions: true
-			});
-		}
-		
 		const user = await User.findOne({ _id: req.userData.userId });
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
