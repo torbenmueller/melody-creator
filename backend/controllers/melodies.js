@@ -33,7 +33,7 @@ function validateSettingsForPlan(settings, plan) {
 	return errors;
 }
 
-// Generate melody on backend (new endpoint to replace frontend generation)
+// Generate melody on backend (works for both authenticated and anonymous users)
 exports.generateMelody = async (req, res, next) => {
 	try {
 		const { settings } = req.body;
@@ -43,13 +43,14 @@ exports.generateMelody = async (req, res, next) => {
 
 		let userPlan = null;
 		
-		// Check if user is authenticated
+		// Check if user is authenticated (req.userData set by optional-auth middleware)
 		if (req.userData && req.userData.userId) {
 			const user = await User.findById(req.userData.userId);
 			if (user) {
 				userPlan = user.plan;
 			}
 		}
+		// If not authenticated, userPlan remains null (free plan restrictions applied)
 		
 		// Validate settings based on user plan
 		const validationErrors = validateSettingsForPlan(settings, userPlan);

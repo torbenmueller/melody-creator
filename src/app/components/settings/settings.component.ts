@@ -77,9 +77,7 @@ export class SettingsComponent {
   userIsAuthenticated: boolean = false;
   isPlaying: boolean = false;
 
-
   private authListenerSubs!: Subscription;
-  Scale: any;
 
   constructor(
     public creationService: CreationService,
@@ -169,57 +167,38 @@ export class SettingsComponent {
   onSubmit() {
     this.isLoading = true;
     
-    // First, validate settings in backend
-    this.creationService.validateSettings(this.settings).subscribe({
-      next: (validationResponse: { valid: boolean; message?: string; errors?: string[] }) => {
-        if (!validationResponse.valid) {
-          // Settings are invalid for user's plan
-          this.isLoading = false;
-          const errorMsg = validationResponse.errors?.join(', ') || validationResponse.message || 'Invalid settings';
-          this.toastr.error(errorMsg);
-          return;
-        }
-        
-        // Settings are valid, proceed with credit check and melody creation
-        if (!this.userIsAuthenticated) {
-          // For unauthenticated users, proceed without credit checks
-          this.createMelody();
-          return;
-        }
+    // For unauthenticated users, proceed directly to generation
+    if (!this.userIsAuthenticated) {
+      this.createMelody();
+      return;
+    }
 
-        // Check if user has enough credits before creating melody
-        this.userService.checkCreditsAvailable(1).subscribe({
-          next: (response: { hasEnoughCredits: boolean; plan?: string; creditsAvailable?: number; creditsRequired?: number; message?: string }) => {
-            if (response.hasEnoughCredits) {
-              // User has enough credits, proceed with melody creation
-              this.createMelody();
-              
-              // Consume credit after successful creation
-              this.userService.consumeCredits(1).subscribe({
-                next: (consumeResponse) => {
-                  console.log('Credit consumed successfully', consumeResponse);
-                },
-                error: (error) => {
-                  console.error('Failed to consume credit', error);
-                }
-              });
-            } else {
-              // Insufficient credits
-              this.isLoading = false;
-              this.toastr.error(`Cannot create melody: ${response.message || 'Insufficient credits'}`);
+    // Check if user has enough credits before creating melody
+    this.userService.checkCreditsAvailable(1).subscribe({
+      next: (response: { hasEnoughCredits: boolean; plan?: string; creditsAvailable?: number; creditsRequired?: number; message?: string }) => {
+        if (response.hasEnoughCredits) {
+          // User has enough credits, proceed with melody creation
+          this.createMelody();
+          
+          // Consume credit after successful creation
+          this.userService.consumeCredits(1).subscribe({
+            next: (consumeResponse) => {
+              console.log('Credit consumed successfully', consumeResponse);
+            },
+            error: (error) => {
+              console.error('Failed to consume credit', error);
             }
-          },
-          error: (error: any) => {
-            this.isLoading = false;
-            console.error('Failed to check credits', error);
-            this.toastr.error('Error checking credits. Please try again.');
-          }
-        });
+          });
+        } else {
+          // Insufficient credits
+          this.isLoading = false;
+          this.toastr.error(`Cannot create melody: ${response.message || 'Insufficient credits'}`);
+        }
       },
       error: (error: any) => {
         this.isLoading = false;
-        console.error('Failed to validate settings', error);
-        this.toastr.error('Error validating settings. Please try again.');
+        console.error('Failed to check credits', error);
+        this.toastr.error('Error checking credits. Please try again.');
       }
     });
   }
@@ -227,8 +206,6 @@ export class SettingsComponent {
   private createMelody() {
     this.creationService.submitSettings(this.settings).subscribe({
       next: (result) => {
-        // TODO: Use credit here, remove from balance if it is positive
-        console.log(result);
         this.melody = result.melody;
         this.intervals = result.intervals;
         this.isLoading = false;
@@ -237,7 +214,14 @@ export class SettingsComponent {
       error: (error: any) => {
         this.isLoading = false;
         console.error('Failed to generate melody', error);
-        this.toastr.error('Error generating melody. Please try again.');
+        // Show backend validation errors if present
+        if (error.error?.errors) {
+          this.toastr.error(error.error.errors.join(', '));
+        } else if (error.error?.message) {
+          this.toastr.error(error.error.message);
+        } else {
+          this.toastr.error('Error generating melody. Please try again.');
+        }
       }
     });
   }

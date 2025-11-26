@@ -93,7 +93,7 @@ export class CreationService {
 
 	// INITIAL CALL FROM COMPONENT - Now calls backend for generation
 	submitSettings(settings: Settings): Observable<any> {
-		// Call backend to generate melody
+		// Call backend to generate melody (backend handles authentication detection)
 		return this.http.post<{
 			melody: any[];
 			scale: any;

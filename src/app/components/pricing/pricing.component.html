@@ -126,14 +126,18 @@
 					</ul>
 					<button class="btn btn-light" (click)="choosePlan('enterprise')">Start Enterprise</button>
 				</div>
-				@if (userIsNotAuthenticated) {
+			</div>
+		</div>
+	</div>
+	<div class="row mt-4">
+		<div class="col-12 center-h">
+			@if (userIsNotAuthenticated) {
 				<div class="badge-orange alert-box" role="alert">
 					<p class="mb-0">You must first <a class="hyperlink-white" routerLink="/auth/signup">create an
 							account</a> and <a class="hyperlink-white" routerLink="/auth/login">log in</a> before you
 						can take out a paid subscription.</p>
 				</div>
-				}
-			</div>
+			}
 		</div>
 	</div>
 </div>
