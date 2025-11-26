@@ -5,7 +5,6 @@ const optionalAuth = require('../middleware/optional-auth');
 const MelodiesController = require('../controllers/melodies');
 
 router.post('/generate', optionalAuth, MelodiesController.generateMelody);
-router.post('/validate-settings', optionalAuth, MelodiesController.validateSettings);
 router.post('', checkAuth, MelodiesController.saveMelody);
 router.get('', checkAuth, MelodiesController.loadMelodies);
 router.get('/modes', checkAuth, MelodiesController.getModes);

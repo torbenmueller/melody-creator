@@ -118,16 +118,6 @@ export class CreationService {
 		return this.melody;
 	}
 
-	/**
-	 * Validates settings with backend before melody creation
-	 */
-	validateSettings(settings: Settings): Observable<{ valid: boolean; message?: string; errors?: string[] }> {
-		return this.http.post<{ valid: boolean; message?: string; errors?: string[] }>(
-			BACKEND_URL + '/validate-settings',
-			{ settings }
-		);
-	}
-
 	getSettings() {
 		return this.settings;
 	}

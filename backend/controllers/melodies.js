@@ -80,43 +80,6 @@ exports.generateMelody = async (req, res, next) => {
 	}
 };
 
-// Validate settings before melody creation (called from frontend before generation)
-exports.validateSettings = async (req, res, next) => {
-	try {
-		let userPlan = null;
-		
-		// Check if user is authenticated
-		if (req.userData && req.userData.userId) {
-			const user = await User.findById(req.userData.userId);
-			if (user) {
-				userPlan = user.plan;
-			}
-		}
-		// If not authenticated or user not found, userPlan remains null (will apply restrictions)
-		
-		const validationErrors = validateSettingsForPlan(req.body.settings, userPlan);
-		
-		if (validationErrors.length > 0) {
-			return res.status(403).json({ 
-				valid: false,
-				message: 'Invalid settings for your plan',
-				errors: validationErrors
-			});
-		}
-		
-		return res.status(200).json({ 
-			valid: true,
-			message: 'Settings are valid'
-		});
-	} catch (error) {
-		console.error('Validate settings error:', error);
-		return res.status(500).json({
-			valid: false,
-			message: 'Validation failed due to server error'
-		});
-	}
-}
-
 exports.saveMelody = async (req, res, next) => {
 	try {
 		// Fetch user from database to get current plan
