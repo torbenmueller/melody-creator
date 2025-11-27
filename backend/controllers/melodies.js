@@ -65,6 +65,25 @@ exports.generateMelody = async (req, res, next) => {
 		const generator = new MelodyGenerator();
 		const result = generator.generateMelody(settings);
 		
+		// If user is authenticated, consume credit after successful generation
+		if (req.userData && req.userData.userId) {
+			const user = await User.findById(req.userData.userId);
+			if (user) {
+				// Consume 1 credit
+				if (user.plan === 'pro' || user.plan === 'enterprise') {
+					user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
+				} else {
+					// For free plan, consume daily credits first, then permanent
+					if (user.creditsDaily > 0) {
+						user.creditsDaily = Math.max(0, user.creditsDaily - 1);
+					} else {
+						user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
+					}
+				}
+				await user.save();
+			}
+		}
+		
 		return res.status(200).json({
 			melody: result.melody,
 			scale: result.scale,
@@ -125,6 +144,22 @@ exports.saveMelody = async (req, res, next) => {
 		if (melody.settings.name === '') melody.settings.name = 'Melody';
 
 		await melody.save();
+		
+		// Only consume credit if explicitly requested (for melodies created before authentication)
+		if (req.body.consumeCredit === true) {
+			if (user.plan === 'pro' || user.plan === 'enterprise') {
+				user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
+			} else {
+				// For free plan, consume daily credits first, then permanent
+				if (user.creditsDaily > 0) {
+					user.creditsDaily = Math.max(0, user.creditsDaily - 1);
+				} else {
+					user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
+				}
+			}
+			await user.save();
+		}
+		
 		res.status(201).json({
 			message: 'Melody saved successfully!'
 		});

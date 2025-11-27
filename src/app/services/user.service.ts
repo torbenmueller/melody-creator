@@ -122,19 +122,13 @@ export class UserService {
   }
 
   /**
-   * Consumes a specified amount of credits from the user's account.
-   * Deducts from daily credits first, then permanent credits.
+   * Triggers a refresh of user data (useful after backend operations that modify user state)
    */
-  consumeCredits(amount: number): Observable<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }> {
-    return this.http.post<{ plan?: string; creditsPermanent: number; creditsDaily: number; creditsDailyExpiresAt: string | null }>(
-      `${BACKEND_URL}/user/credits/consume`,
-      { amount }
-    ).pipe(
-      tap(() => {
-        // Emit credit update event after successful consumption
-        this.creditUpdateSubject.next();
-      })
-    );
+  refreshUser(): void {
+    this.getUser(true).subscribe(() => {
+      // Emit credit update event to notify components
+      this.creditUpdateSubject.next();
+    });
   }
 
 }

@@ -9,6 +9,8 @@ import { ScoreComponent } from '../score/score.component';
 import * as Tone from 'tone';
 import { SettingComponent } from "../shared/setting/setting.component";
 import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
+import { MatModalComponent } from '../mat-modal/mat-modal.component';
 
 @Component({
   selector: 'app-settings',
@@ -76,6 +78,7 @@ export class SettingsComponent {
   isLoading: boolean = false;
   userIsAuthenticated: boolean = false;
   isPlaying: boolean = false;
+  private melodyCreatedWhileAuthenticated: boolean = false;
 
   private authListenerSubs!: Subscription;
 
@@ -84,6 +87,7 @@ export class SettingsComponent {
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -178,17 +182,8 @@ export class SettingsComponent {
       next: (response: { hasEnoughCredits: boolean; plan?: string; creditsAvailable?: number; creditsRequired?: number; message?: string }) => {
         if (response.hasEnoughCredits) {
           // User has enough credits, proceed with melody creation
+          // Credits will be consumed by backend after successful generation
           this.createMelody();
-          
-          // Consume credit after successful creation
-          this.userService.consumeCredits(1).subscribe({
-            next: (consumeResponse) => {
-              console.log('Credit consumed successfully', consumeResponse);
-            },
-            error: (error) => {
-              console.error('Failed to consume credit', error);
-            }
-          });
         } else {
           // Insufficient credits
           this.isLoading = false;
@@ -210,6 +205,12 @@ export class SettingsComponent {
         this.intervals = result.intervals;
         this.isLoading = false;
         this.melodyDescription = this.setDescription(this.settings);
+        // Track whether user was authenticated when melody was created
+        this.melodyCreatedWhileAuthenticated = this.userIsAuthenticated;
+        // Refresh user data to update credits display (if authenticated)
+        if (this.userIsAuthenticated) {
+          this.userService.refreshUser();
+        }
       },
       error: (error: any) => {
         this.isLoading = false;
@@ -231,9 +232,81 @@ export class SettingsComponent {
     this.creationService.playMelody();
   }
 
-  save() {
-    this.creationService.save();
-  }
+	save() {
+		// If melody was created while authenticated, credits were already consumed during creation
+		if (this.melodyCreatedWhileAuthenticated) {
+			// Save without consuming additional credits
+			this.creationService.save(false).subscribe({
+				next: (response) => {
+					this.toastr.success(response.message);
+					// Reset melody after saving to prevent double saves
+					this.creationService.resetMelody();
+					this.melody = [];
+					this.intervals = [];
+					this.melodyCreatedWhileAuthenticated = false;
+				},
+				error: (error) => {
+					if (error.status === 403) {
+						const errorMsg = error.error.errors?.join(', ') || error.error.message || 'Cannot save melody with current settings';
+						this.toastr.error(errorMsg);
+					} else {
+						this.toastr.error('Failed to save melody. Please try again.');
+					}
+				}
+			});
+			return;
+		}
+
+		// Melody was created before authentication - show confirmation modal
+		const dialogRef = this.dialog.open(MatModalComponent, {
+			data: {
+				title: 'Save Melody',
+				message: 'This melody was created before you logged in. You can save it for 1 credit.'
+			}
+		});
+
+		dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+			if (!confirmed) {
+				return; // User cancelled
+			}
+
+			// User confirmed - check and consume credits
+			this.userService.checkCreditsAvailable(1).subscribe({
+				next: (response: { hasEnoughCredits: boolean; plan?: string; creditsAvailable?: number; creditsRequired?: number; message?: string }) => {
+					if (response.hasEnoughCredits) {
+						// User has enough credits, proceed with save and consume credit
+						this.creationService.save(true).subscribe({
+							next: (saveResponse) => {
+								this.toastr.success(saveResponse.message);
+								// Refresh user data to update credits display
+								this.userService.refreshUser();
+								// Reset melody after saving to prevent double saves
+								this.creationService.resetMelody();
+								this.melody = [];
+								this.intervals = [];
+								this.melodyCreatedWhileAuthenticated = false;
+							},
+							error: (error) => {
+								if (error.status === 403) {
+									const errorMsg = error.error.errors?.join(', ') || error.error.message || 'Cannot save melody with current settings';
+									this.toastr.error(errorMsg);
+								} else {
+									this.toastr.error('Failed to save melody. Please try again.');
+								}
+							}
+						});
+					} else {
+						// Insufficient credits
+						this.toastr.error(`Cannot save melody: ${response.message || 'Insufficient credits'}`);
+					}
+				},
+				error: (error: any) => {
+					console.error('Failed to check credits for save', error);
+					this.toastr.error('Error checking credits. Please try again.');
+				}
+			});
+		});
+	}
 
   initialSettings() {
     const initlialSetting = {

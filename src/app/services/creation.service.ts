@@ -43,25 +43,13 @@ export class CreationService {
 		private toastr: ToastrService
 	) { }
 
-	addMelody(melody: object) {
+	addMelody(melody: object, consumeCredit: boolean = false): Observable<{message: string}> {
 		const post: object = {
 			melody: melody,
-			settings: this.settings
+			settings: this.settings,
+			consumeCredit: consumeCredit
 		}
-		this.http.post<{message: string}>(BACKEND_URL, post)
-			.subscribe({
-				next: (responseData) => {
-					this.toastr.success(responseData.message);
-				},
-				error: (error) => {
-					if (error.status === 403) {
-						const errorMsg = error.error.errors?.join(', ') || error.error.message || 'Cannot save melody with current settings';
-						this.toastr.error(errorMsg);
-					} else {
-						this.toastr.error('Failed to save melody. Please try again.');
-					}
-				}
-			});
+		return this.http.post<{message: string}>(BACKEND_URL, post);
 	}
 
 	getMelodies(melodiesPerPage: number, currentPage: number, sortByType: string, order: number ) {
@@ -163,12 +151,22 @@ export class CreationService {
 		});
 	}
 
-	save() {
-		this.addMelody(this.melody);
+	save(consumeCredit: boolean = false): Observable<{message: string}> {
+		return this.addMelody(this.melody, consumeCredit);
 	}
 
 	play(melody: any) {
 		this.melody = melody;
 		this.playMelody();
+	}
+
+	/**
+	 * Reset melody to prevent unauthorized saves
+	 */
+	resetMelody() {
+		this.melody = [];
+		this.scale = null;
+		this.intervalCheck = [];
+		this.rootKey = '';
 	}
 }

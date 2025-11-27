@@ -56,28 +56,30 @@
 						}
 					</button>
 					<button id="playMelody" [disabled]="
-              isPlaying || isLoading || (melody === undefined && intervals === undefined)
+              isPlaying || isLoading || !melody || melody.length === 0
             " type="button" (click)="play()" class="btn btn-light ms-3">
 						Play
 					</button>
 					@if (userIsAuthenticated) {
 					<button [disabled]="
-              isPlaying || isLoading || (melody === undefined && intervals === undefined)
+              isPlaying || isLoading || !melody || melody.length === 0
             " type="button" (click)="save()" class="btn btn-success ms-3">
 						Save
 					</button>
 					}
 				</div>
 			</form>
-			@if (melody) {
+			@if (melody && melody.length > 0) {
 			<div class="mt-3">
 				<p>{{ melodyDescription }} <span class="bold">Note:</span> Generated melodies might resemble existing
 					music. Please review them before commercial use.</p>
 			</div>
 			}
+			@if (melody && melody.length > 0) {
 			<div class="white-bg">
 				<app-score></app-score>
 			</div>
+			}
 		</div>
 	</div>
 </div>

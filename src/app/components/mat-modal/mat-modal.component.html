@@ -10,6 +10,12 @@
       <button type="button" class="btn btn-danger" (click)="onConfirm()">Yes</button>
     </mat-dialog-actions>
   }
+  @case ('Save Melody') {
+    <mat-dialog-actions>
+      <button type="button" class="btn btn-light me-2" mat-dialog-close>Cancel</button>
+      <button type="button" class="btn primary-button" (click)="onConfirm()">Save for 1 Credit</button>
+    </mat-dialog-actions>
+  }
   @case ('Automatically logged out') {
     <mat-dialog-actions>
       <button type="button" class="btn btn-light me-3" mat-dialog-close>Close</button>
