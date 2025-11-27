@@ -9,6 +9,7 @@ router.post('', checkAuth, MelodiesController.saveMelody);
 router.get('', checkAuth, MelodiesController.loadMelodies);
 router.get('/modes', checkAuth, MelodiesController.getModes);
 router.delete('/:id', checkAuth, MelodiesController.deleteMelody);
+router.patch('/:id', checkAuth, MelodiesController.updateMelodyName);
 router.get('/midi/:id', checkAuth, MelodiesController.getMidiFile);
 
 module.exports = router;

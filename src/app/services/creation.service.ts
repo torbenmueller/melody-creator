@@ -75,6 +75,10 @@ export class CreationService {
 		return this.http.delete(`${BACKEND_URL}/${id}`);
 	}
 
+	updateMelodyName(id: string, name: string): Observable<{message: string}> {
+		return this.http.patch<{message: string}>(`${BACKEND_URL}/${id}`, { name });
+	}
+
 	getMelodiesUpdateListener() {
 		return this.melodiesUpdated.asObservable();
 	}

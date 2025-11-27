@@ -221,6 +221,35 @@ exports.deleteMelody = (req, res, next) => {
 		});
 }
 
+exports.updateMelodyName = async (req, res, next) => {
+	try {
+		const { name } = req.body;
+		
+		if (!name || !name.trim()) {
+			return res.status(400).json({ message: 'Melody name is required' });
+		}
+
+		const melody = await Melody.findById(req.params.id);
+		
+		if (!melody) {
+			return res.status(404).json({ message: 'Melody not found' });
+		}
+
+		// Check if user owns this melody
+		if (melody.creator.toString() !== req.userData.userId) {
+			return res.status(403).json({ message: 'Not authorized to update this melody' });
+		}
+
+		melody.settings.name = name.trim();
+		await melody.save();
+
+		res.status(200).json({ message: 'Melody name updated successfully' });
+	} catch (error) {
+		console.error('Update melody name error:', error);
+		res.status(500).json({ message: 'Updating melody name failed' });
+	}
+}
+
 exports.getModes = (req, res, next) => {
 	let allMelodies = Melody.find({ creator: req.userData.userId }).sort({ time: -1 });
 	allMelodies

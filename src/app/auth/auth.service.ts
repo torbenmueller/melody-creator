@@ -4,6 +4,7 @@ import { catchError, map, Observable, Subject, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { UserService } from '../services/user.service';
+import { CreationService } from '../services/creation.service';
 import { AuthData } from './auth-data';
 import { ToastrService } from 'ngx-toastr';
 import { EditEmailModel } from '../interfaces/edit-email-model';
@@ -26,6 +27,7 @@ export class AuthService {
     private router: Router,
     private toastr: ToastrService,
     private userService: UserService,
+    private creationService: CreationService,
     @Inject(DOCUMENT) private document: Document
   ) {}
 
@@ -157,6 +159,7 @@ export class AuthService {
     this.authStatusListener.next(false);
     clearTimeout(this.tokenTimer);
     this.clearAuthData();
+    this.creationService.resetMelody();
     this.router.navigate(['/']);
   }
 

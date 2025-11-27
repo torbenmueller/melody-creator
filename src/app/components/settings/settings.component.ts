@@ -97,6 +97,11 @@ export class SettingsComponent {
       .subscribe((isAuthenticated) => {
         this.userIsAuthenticated = isAuthenticated;
         this.isLoading = false;
+        if (!isAuthenticated) {
+          this.melody = [];
+          this.intervals = [];
+          this.melodyCreatedWhileAuthenticated = false;
+        }
         this.loadUserPlanAndApplyRestrictions();
       });
     this.creationService.isPlaying.subscribe((e) => {

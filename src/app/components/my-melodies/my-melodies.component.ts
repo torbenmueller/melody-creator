@@ -8,11 +8,12 @@ import { DatePipe, NgClass } from '@angular/common';
 import { ScoreComponent } from '../score/score.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { MusicxmlConverterService } from '../../services/musicxml-converter.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-my-melodies',
   standalone: true,
-  imports: [NgClass, DatePipe, ScoreComponent],
+  imports: [NgClass, DatePipe, ScoreComponent, FormsModule],
   templateUrl: './my-melodies.component.html',
   styleUrl: './my-melodies.component.css',
   animations: [
@@ -40,6 +41,9 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   melodyName: string = '';
   // track which melody (by id) is expanded to show the score
   expandedMelodyId: string | null = null;
+  // track which melody name is being edited
+  editingMelodyId: string | null = null;
+  editingMelodyName: string = '';
   sortByType: string = 'time';
   order: number = -1;
 
@@ -241,5 +245,41 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     if (this.currentPage < this.totalPages) {
       this.goToPage(this.currentPage + 1);
     }
+  }
+
+  startEditingName(melody: any) {
+    this.editingMelodyId = melody._id;
+    this.editingMelodyName = melody.settings.name;
+  }
+
+  cancelEditingName() {
+    this.editingMelodyId = null;
+    this.editingMelodyName = '';
+  }
+
+  saveMelodyName(melodyId: string) {
+    if (!this.editingMelodyName.trim()) {
+      this.toastr.error('Melody name cannot be empty');
+      return;
+    }
+
+    this.creationService.updateMelodyName(melodyId, this.editingMelodyName).subscribe({
+      next: () => {
+        this.toastr.success('Melody name updated successfully');
+        this.editingMelodyId = null;
+        this.editingMelodyName = '';
+        // Reload melodies to show updated name
+        this.creationService.getMelodies(
+          this.melodiesPerPage,
+          this.currentPage,
+          this.sortByType,
+          this.order
+        );
+      },
+      error: (error) => {
+        this.toastr.error('Failed to update melody name');
+        console.error('Update error:', error);
+      }
+    });
   }
 }

@@ -24,6 +24,11 @@
 	--bs-modal-footer-border-width: 0;
 }
 
+.edit-melody {
+	opacity: 0;
+	transition: opacity 0.3s;
+}	
+
 .card-header {
 	color: var(--white);
 }
@@ -43,6 +48,22 @@
 
 .list-group-item {
 	border: 0;
+}
+
+.list-group-item:hover {
+	background-color: var(--background-color);
+}
+
+.list-group-item:hover .edit-melody {
+	opacity: 1;
+}
+
+.melody-name {
+	display: inline-block;
+	max-width: 150px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .melody-action {

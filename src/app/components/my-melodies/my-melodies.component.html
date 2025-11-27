@@ -78,10 +78,31 @@
 						@for (melody of melodies; track melody) {
 							<li class="list-group-item">
 								<div class="space-between center-v">
-									<div style="width: 20%">
-										<span class="white-color">{{(melodiesPerPage * (currentPage - 1) + $index + 1)}}. </span><span class="white-color">{{melody.settings?.name}}</span>
-										@if (isLessThanThreeDaysAgo(melody.time)) {
-											<span class="badge text-bg-success ms-2">New</span>
+									<div class="center-v" style="width: 20%">
+										<span class="white-color">{{(melodiesPerPage * (currentPage - 1) + $index + 1)}}.</span>
+										@if (editingMelodyId === melody._id) {
+											<input 
+												type="text" 
+												class="form-control form-control-sm d-inline-block my-2" 
+												[(ngModel)]="editingMelodyName"
+												(keydown.enter)="saveMelodyName(melody._id)"
+												(keydown.escape)="cancelEditingName()"
+												autofocus
+											/>
+											<button class="btn btn-sm btn-success" (click)="saveMelodyName(melody._id)" title="Save">
+												<i class="fas fa-check"></i>
+											</button>
+											<button class="btn btn-sm btn-secondary ms-2" (click)="cancelEditingName()" title="Cancel">
+												<i class="fas fa-times"></i>
+											</button>
+										} @else {
+											<span class="white-color melody-name ms-2" title="{{melody.settings?.name}}">{{melody.settings?.name}}</span>
+											@if (isLessThanThreeDaysAgo(melody.time)) {
+												<span class="badge rounded-pill text-bg-success ms-2">New</span>
+											}
+											<button class="btn btn-sm btn-link text-white p-0 ms-2 edit-melody" (click)="startEditingName(melody)" title="Edit name">
+												<i class="fas fa-pencil-alt"></i>
+											</button>
 										}
 									</div>
 									<div class="text-center" style="width: 20%">
