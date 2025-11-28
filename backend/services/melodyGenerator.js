@@ -41,7 +41,8 @@ class MelodyGenerator {
 		wholetone: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 	};
 
-	static NOTE_LENGTH = ["2n", "4n", "8n"];
+	/* static NOTE_LENGTH = ["2n", "4n", "8n", "8n.", "16n", "16n.", "32n", "8t"]; */
+	static NOTE_LENGTH = ["2n", "4n", "8n", "16n", "8n.", "8t"];
 	static NAMES_OF_SCALES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 	constructor() {
@@ -55,6 +56,7 @@ class MelodyGenerator {
 		this.noteIndex = 0;
 		this.difference = 0;
 		this.bars = 0;
+		this.complexity = 0;
 	}
 
 	// Main entry point
@@ -122,6 +124,7 @@ class MelodyGenerator {
 		this.noteIndex = 0;
 		this.difference = 0;
 		this.bars = this.settings.bar;
+		this.complexity = this.settings.complex === 'Low' ? 2 : this.settings.complex === 'Medium' ? 3 : 4;
 		this.createNotes();
 	}
 
@@ -149,16 +152,41 @@ class MelodyGenerator {
 	}
 
 	setTime() {
-		let timeIndex = this.randomNote(0, 2);
+		let timeIndex = this.randomNote(0, this.complexity);
 		return MelodyGenerator.NOTE_LENGTH[timeIndex];
 	}
 
 	calculateLeftTimeAndPushToMelody(bar, time) {
-		let timeLength = parseInt(time.charAt(0));
-		bar -= 1 / timeLength;
+		let timeLength = 0;
+
+		// 1/2, 1/4 and 1/8 notes
+		if (time.length === 2 && !time.endsWith('t')) {
+			timeLength = 1 / parseInt(time.charAt(0));
+			bar -= timeLength;
+		}
+		
+		// 1/16 and 1/32 notes
+		if (time.length === 3 && !time.endsWith('.')) {
+			timeLength = 1 / parseInt(time.substring(0, time.length - 1));
+			bar -= timeLength;
+		}
+
+		// Dotted 1/8 notes
+		if (time.length === 3 && time.endsWith('.')) {
+			timeLength = (1 / (parseInt(time.charAt(0)) * 2)) * 3;
+			bar -= timeLength;
+			console.log("bar dotted", timeLength);
+		}
+
+		// Triplet 1/8 notes
+		/* if (time.length === 2 && time.endsWith('t')) {
+			timeLength = (1 / (parseInt(time.charAt(0)) * 3)) * 2;
+			bar -= timeLength;
+		} */
+
 		let moveOn = bar >= 0;
 		if (bar < 0) {
-			bar += 1 / timeLength;
+			bar += timeLength;
 		}
 		return { bar, moveOn };
 	}

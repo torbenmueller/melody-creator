@@ -207,6 +207,7 @@ export class SettingsComponent {
     this.creationService.submitSettings(this.settings).subscribe({
       next: (result) => {
         this.melody = result.melody;
+        console.log("melody", this.melody);
         this.intervals = result.intervals;
         this.isLoading = false;
         this.melodyDescription = this.setDescription(this.settings);

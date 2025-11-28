@@ -145,8 +145,24 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.melodySettings.beat === '3/4') beat = 0.75;
       while (measure < beat) {
         const timeToken = this.composedMelody[index].time;
-        let duration = timeToken.charAt(0);
-        const isDotted = timeToken.length > 2 || timeToken.includes('.');
+        let duration = "";
+
+        // 1/2, 1/4 and 1/8 notes
+        if (timeToken.length === 2 && !timeToken.endsWith('t')) {
+          duration = timeToken.charAt(0);
+        }
+        
+        // 1/16 and 1/32 notes
+        if (timeToken.length === 3 && !timeToken.endsWith('.')) {
+          duration = timeToken.substring(0, timeToken.length - 1);
+        }
+
+        // Dotted 1/8 notes
+        if (timeToken.length === 3 && timeToken.endsWith('.')) {
+          duration = timeToken.charAt(0);
+        }
+
+        const isDotted = timeToken.includes('.');
         let note = this.composedMelody[index].note;
         let noteLowerCase = this.firstCharToLowerCase(note);
         let keys = this.addSlash(noteLowerCase);
@@ -270,7 +286,6 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
     const timeTokenLast = this.composedMelody[this.composedMelody.length - 1].time;
     let duration = timeTokenLast.charAt(0);
     const isDottedLast = timeTokenLast.length > 2 || timeTokenLast.includes('.');
-    console.log("Last note duration", timeTokenLast);
     let note = this.composedMelody[this.composedMelody.length - 1].note;
     let noteLowerCase = this.firstCharToLowerCase(note);
     let keys = this.addSlash(noteLowerCase);
