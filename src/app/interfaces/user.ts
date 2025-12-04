@@ -2,6 +2,7 @@ export interface User {
 	email: string;
 	userId: string;
 	plan?: string; // 'free', 'pro', or 'enterprise'
+	planValidUntil: Date;
 	isEmailVerified?: boolean;
 	creditsPermanent?: number;
 	creditsDaily?: number;

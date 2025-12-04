@@ -50,8 +50,8 @@
 					</div>
 					<div class="custom-tooltip white-color hand" routerLink="/pricing">
 						<span class="custom-badge" [ngClass]="{
-									  'badge-green':userPlan.toLowerCase() === 'free',
-									  'badge-purple': userPlan.toLowerCase() === 'pro',
+									  'badge-light':userPlan.toLowerCase() === 'free',
+									  'badge-green': userPlan.toLowerCase() === 'pro',
 									  'badge-gold': userPlan.toLowerCase() === 'enterprise'
 									}">{{userPlan}} Plan</span>
 						<span class="tooltiptext">Update plan</span>

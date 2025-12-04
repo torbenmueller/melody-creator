@@ -1,6 +1,40 @@
 <h1 mat-dialog-title>{{ data.title }}</h1>
 <div mat-dialog-content>
-  <p>{{ data.message }}</p>
+  @if (data.message === 'credit-info') {
+    <div class="credit-info-modal">
+      <p class="mb-3"><strong>1 Credit = 1 Melody Generation</strong></p>
+      <p class="mb-4">Every time you create a new melody, it costs 1 credit. Your credit balance is shown in the top navigation.</p>
+      
+      <div class="row">
+        <div class="col-md-4">
+          <h5><i class="fas fa-gift me-1"></i> Free Composer</h5>
+          <ul>
+            <li><strong>100 permanent credits</strong> (one-time bonus)</li>
+            <li><strong>10 daily credits</strong> (when permanent = 0)</li>
+            <li>Daily credits reset every 24 hours</li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5><i class="fas fa-crown me-1"></i> Pro Composer</h5>
+          <ul>
+            <li><strong>1000 permanent credits</strong> per month</li>
+            <li>No daily credit limits</li>
+            <li>Create up to 1000 melodies monthly</li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5><i class="fas fa-building me-1"></i> Enterprise</h5>
+          <ul>
+            <li><strong>3000 permanent credits</strong> per month</li>
+            <li>No daily credit limits</li>
+            <li>Create up to 3000 melodies monthly</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <p>{{ data.message }}</p>
+  }
 </div>
 
 @switch (data.title) {
@@ -25,6 +59,11 @@
   @case ('An error occurred!') {
     <mat-dialog-actions>
       <button type="button" class="btn btn-light" mat-dialog-close>Close</button>
+    </mat-dialog-actions>
+  }
+  @case ('How Credits Work') {
+    <mat-dialog-actions>
+      <button type="button" class="btn primary-button" mat-dialog-close>Got it!</button>
     </mat-dialog-actions>
   }
 }

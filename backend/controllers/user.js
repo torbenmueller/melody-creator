@@ -17,6 +17,7 @@ exports.createUser = (req, res, next) => {
 				email: req.body.email,
 				password: hash,
 				plan: 'free',
+				planValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
 				// initialize credits for free plan
 				creditsPermanent: 100, // one-time non-expiring
 				creditsDaily: 10, // daily credits

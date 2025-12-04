@@ -106,16 +106,16 @@
 										}
 									</div>
 									<div class="text-center" style="width: 20%">
-										<span class="custom-badge badge-purple">{{melody.settings?.key}} {{melody.settings?.scale}}</span>
+										<span class="custom-badge badge-purple-light">{{melody.settings?.key}} {{melody.settings?.scale}}</span>
 									</div>
 									<div class="text-center" style="width: 5%">
 										<span>{{melody.settings?.bar}}</span>
 									</div>
 									<div class="text-center" style="width: 15%">
 									<span class="custom-badge" [ngClass]="{
-									  'badge-green': melody.settings?.complex === 'Low',
-									  'badge-orange': melody.settings?.complex === 'Medium',
-									  'badge-red': melody.settings?.complex === 'High'
+									  'badge-low': melody.settings?.complex === 'Low',
+									  'badge-medium': melody.settings?.complex === 'Medium',
+									  'badge-high': melody.settings?.complex === 'High'
 									}">
 									  {{melody.settings?.complex}}
 									</span>

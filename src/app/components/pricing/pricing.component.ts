@@ -5,6 +5,8 @@ import { AuthService } from '../../auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
+import { MatModalComponent } from '../mat-modal/mat-modal.component';
 
 @Component({
   selector: 'app-pricing',
@@ -22,6 +24,7 @@ export class PricingComponent implements OnInit {
     private authService: AuthService,
     private toastr: ToastrService,
     private destroyRef: DestroyRef,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -63,5 +66,16 @@ export class PricingComponent implements OnInit {
 
   showCommercialLicenseAgreement(): void {
     this.router.navigate(['/commercial-license-agreement']);
+  }
+
+  openCreditInfoModal(): void {
+    this.dialog.open(MatModalComponent, {
+      data: {
+        title: 'How Credits Work',
+        message: 'credit-info'
+      },
+      width: '1100px',
+      maxWidth: '95vw'
+    });
   }
 }

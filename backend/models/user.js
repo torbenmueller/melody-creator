@@ -4,18 +4,19 @@ const userSchema = mongoose.Schema({
 	email: { type: String, required: true },
 	password: { type: String, required: true },
 	resetToken: String,
-	resetTokenExpiration: Date,
+	resetTokenExpiration: { type: Date },
 	// Email verification fields
 	isEmailVerified: { type: Boolean, default: false },
 	emailVerificationToken: String,
-	emailVerificationTokenExpiration: Date,
+	emailVerificationTokenExpiration: { type: Date },
 	// Pending email change fields
 	pendingEmail: String,
 	pendingEmailToken: String,
-	pendingEmailTokenExpiration: Date,
+	pendingEmailTokenExpiration: { type: Date },
 	// When the last activation (verification) email was sent
-	lastActivationSent: Date,
+	lastActivationSent: { type: Date },
 	plan: { type: String, enum: ['free', 'pro', 'enterprise'], default: 'free' },
+	planValidUntil: { type: Date },
 	// Credit system
 	creditsPermanent: { type: Number, default: 0 },
 	creditsDaily: { type: Number, default: 0 },

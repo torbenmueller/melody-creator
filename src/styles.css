@@ -369,6 +369,10 @@ progress::-moz-progress-bar {
   color: var(--green-color);
 }
 
+.gold-color {
+  color: var(--gold-color);
+}
+
 .blue-color {
   color: var(--blue-color);
 }
@@ -732,7 +736,6 @@ a:focus-visible,
 
 .custom-badge {
   padding: 0.25rem 0.75rem;
-  font-weight: 700;
   border-radius: 1rem;
 }
 
@@ -740,6 +743,18 @@ a:focus-visible,
   background-color: rgba(168, 85, 247, 0.15);
   border: 1px solid rgba(168, 85, 247, 0.5);
   color: var(--purple);
+}
+
+.badge-purple-light {
+  background-color: rgba(212, 170, 251, 0.1);
+  border: 1px solid rgba(212, 170, 251, 0.3);
+  color: #d4aafb;
+}
+
+.badge-light {
+  background-color: rgba(2255, 255, 255, 0.1);
+  border: 1px solid rgba(2255, 255, 255, 0.3);
+  color: #fff;
 }
 
 .badge-green {
@@ -766,6 +781,24 @@ a:focus-visible,
   color: var(--gold-color);
 }
 
+.badge-low {
+  background-color: rgba(165, 214, 167, 0.15);
+  border: 1px solid rgba(165, 214, 167, 0.5);
+  color: #A5D6A7;
+}
+
+.badge-medium {
+  background-color: rgba(255, 224, 130, 0.15);
+  border: 1px solid rgba(255, 224, 130, 0.5);
+  color: #FFE082;
+}
+
+.badge-high {
+  background-color: rgba(239, 154, 154, 0.15);
+  border: 1px solid rgba(239, 154, 154, 0.5);
+  color: #EF9A9A;
+}
+
 .alert-box {
   border-radius: 10px;
   padding: 1rem;
@@ -776,6 +809,14 @@ a:focus-visible,
   font-weight: bold;
   color: var(--white);
   margin-bottom: 0;
+}
+
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 10px !important;
+}
+
+.credit-info-modal ul {
+  padding-left: 1rem;
 }
 
 @media (max-width: 992px) {
