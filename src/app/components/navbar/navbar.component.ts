@@ -7,6 +7,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { DOCUMENT, NgClass } from '@angular/common';
 import { UserService } from '../../services/user.service';
+import { StringUtilsService } from '../../services/string-utils.service';
 
 @Component({
   selector: 'app-navbar',
@@ -31,7 +32,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private authService: AuthService,
     private dialog: MatDialog,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private stringUtils: StringUtilsService
   ) {}
 
   ngOnInit(): void {
@@ -90,7 +92,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     // Get both plan and credits from a single call
     this.userService.getCredits().subscribe({
       next: (credits) => {
-        this.userPlan = this.capitalizeFirstLetter(credits.plan ?? '');
+        this.userPlan = this.stringUtils.capitalizeFirstLetter(credits.plan ?? '');
         
         // Check if permanent credits are exhausted for free users
         if ((credits.creditsPermanent || 0) === 0 && this.userPlan.toLowerCase() === 'free') {
@@ -168,13 +170,5 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.countdown) clearInterval(this.countdown);
     this.expirationTimeMs = newExpiration.getTime();
     this.startInterval();
-  }
-
-  capitalizeFirstLetter(str?: string): string {
-    // Be defensive: handle undefined/null and trim whitespace
-    if (!str) return '';
-    const s = str.trim();
-    if (!s) return '';
-    return s[0].toUpperCase() + s.slice(1);
   }
 }

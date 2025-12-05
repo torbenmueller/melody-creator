@@ -343,6 +343,12 @@ progress::-moz-progress-bar {
   align-items: flex-start;
 }
 
+.grid-three-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
 .column-gap-20 {
   column-gap: 20px;
 }
@@ -753,7 +759,6 @@ a:focus-visible,
 
 .badge-light {
   background-color: rgba(2255, 255, 255, 0.1);
-  border: 1px solid rgba(2255, 255, 255, 0.3);
   color: #fff;
 }
 

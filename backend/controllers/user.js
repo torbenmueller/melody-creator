@@ -17,7 +17,7 @@ exports.createUser = (req, res, next) => {
 				email: req.body.email,
 				password: hash,
 				plan: 'free',
-				planValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+				planValidUntil: null, // Free plan doesn't expire
 				// initialize credits for free plan
 				creditsPermanent: 100, // one-time non-expiring
 				creditsDaily: 10, // daily credits
@@ -85,12 +85,31 @@ async function refreshDailyCreditsIfNeeded(user) {
     }
 }
 
+// Helper to check if plan has expired and downgrade to free if needed
+async function checkAndDowngradeExpiredPlan(user) {
+    const now = Date.now();
+    const planExpiry = user.planValidUntil ? new Date(user.planValidUntil).getTime() : 0;
+    
+    // If plan has expired and user is not already on free plan, downgrade to free
+    if (planExpiry && now >= planExpiry && user.plan !== 'free') {
+        user.plan = 'free';
+        // Keep permanent credits (they roll over)
+        // Clear daily credits for non-free plans that expired
+        user.creditsDaily = 0;
+        user.creditsDailyExpiresAt = null;
+        // Free plan doesn't have an expiration date
+        user.planValidUntil = null;
+        await user.save();
+    }
+}
+
 // Return current credit balances, refreshing daily credits for free users
 exports.getCredits = async (req, res, next) => {
     try {
         if (!req.userData || !req.userData.userId) return res.status(401).json({ message: 'Not authenticated' });
         const user = await User.findOne({ _id: req.userData.userId });
         if (!user) return res.status(404).json({ message: 'User not found' });
+        await checkAndDowngradeExpiredPlan(user);
         await refreshDailyCreditsIfNeeded(user);
         return res.status(200).json({
             plan: user.plan,
@@ -532,9 +551,12 @@ exports.postNewPassword = (req, res, next) => {
 exports.getUser = async (req, res, next) => {
 	try {
 		const user = await User.findOne({ _id: req.userData.userId });
+		if (!user) return res.status(404).json({ message: 'User not found' });
+		await checkAndDowngradeExpiredPlan(user);
+		await refreshDailyCreditsIfNeeded(user);
 		res.send(user);
 	} catch (error) {
-		res.send(error);
+		res.status(500).send(error);
 	}
 }
 

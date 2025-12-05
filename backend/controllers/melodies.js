@@ -3,6 +3,24 @@ const User = require('../models/user');
 const MidiWriter = require('midi-writer-js');
 const MelodyGenerator = require('../services/melodyGenerator');
 
+// Helper to check if plan has expired and downgrade to free if needed
+async function checkAndDowngradeExpiredPlan(user) {
+    const now = Date.now();
+    const planExpiry = user.planValidUntil ? new Date(user.planValidUntil).getTime() : 0;
+    
+    // If plan has expired and user is not already on free plan, downgrade to free
+    if (planExpiry && now >= planExpiry && user.plan !== 'free') {
+        user.plan = 'free';
+        // Keep permanent credits (they roll over)
+        // Clear daily credits for non-free plans that expired
+        user.creditsDaily = 0;
+        user.creditsDailyExpiresAt = null;
+        // Extend planValidUntil by 30 days for the new free plan period
+        user.planValidUntil = new Date(now + 30 * 24 * 60 * 60 * 1000);
+        await user.save();
+    }
+}
+
 // Validate settings based on user plan (unauthenticated or free users have restrictions)
 function validateSettingsForPlan(settings, plan) {
 	const errors = [];
@@ -47,6 +65,8 @@ exports.generateMelody = async (req, res, next) => {
 		if (req.userData && req.userData.userId) {
 			const user = await User.findById(req.userData.userId);
 			if (user) {
+				// Check and downgrade expired plan
+				await checkAndDowngradeExpiredPlan(user);
 				userPlan = user.plan;
 			}
 		}
@@ -107,22 +127,27 @@ exports.saveMelody = async (req, res, next) => {
 			return res.status(404).json({ message: 'User not found' });
 		}
 		
-		// Check if user has enough credits to save
-		const requiredCredits = 1;
-		let availableCredits = 0;
+		// Check and downgrade expired plan
+		await checkAndDowngradeExpiredPlan(user);
 		
-		if (user.plan === 'pro' || user.plan === 'enterprise') {
-			availableCredits = user.creditsPermanent || 0;
-		} else {
-			// For free plan, check both daily and permanent credits
-			availableCredits = (user.creditsDaily || 0) + (user.creditsPermanent || 0);
-		}
-		
-		if (availableCredits < requiredCredits) {
-			return res.status(403).json({ 
-				message: `Insufficient credits to save melody. You have ${availableCredits} credits but need ${requiredCredits}.`,
-				hasEnoughCredits: false
-			});
+		// Only check credits if we need to consume a credit (melody created before login)
+		if (req.body.consumeCredit === true) {
+			const requiredCredits = 1;
+			let availableCredits = 0;
+			
+			if (user.plan === 'pro' || user.plan === 'enterprise') {
+				availableCredits = user.creditsPermanent || 0;
+			} else {
+				// For free plan, check both daily and permanent credits
+				availableCredits = (user.creditsDaily || 0) + (user.creditsPermanent || 0);
+			}
+			
+			if (availableCredits < requiredCredits) {
+				return res.status(403).json({ 
+					message: `Insufficient credits to save melody. You have ${availableCredits} credits but need ${requiredCredits}.`,
+					hasEnoughCredits: false
+				});
+			}
 		}
 		
 		// Validate settings based on user plan

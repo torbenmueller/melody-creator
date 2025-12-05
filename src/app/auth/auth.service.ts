@@ -159,6 +159,7 @@ export class AuthService {
     this.authStatusListener.next(false);
     clearTimeout(this.tokenTimer);
     this.clearAuthData();
+    this.userService.clearUser();
     this.creationService.resetMelody();
     this.router.navigate(['/']);
   }

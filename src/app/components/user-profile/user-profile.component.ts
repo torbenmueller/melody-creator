@@ -7,15 +7,17 @@ import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { UserService } from '../../services/user.service';
 import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
+import { StringUtilsService } from '../../services/string-utils.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { User } from '../../interfaces/user';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule, DatePipe, RouterLink],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.css',
 })
@@ -45,19 +47,24 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   emailAvailable: boolean | null = null; // null = unknown, true = available, false = taken
   emailAvailabilityMessage: string = '';
   passwordChangeRequestsLimitReached: boolean = false;
+  userPlan: string = '';
+
+  isDateInFuture(date: Date | string): boolean {
+    if (!date) return false;
+    return new Date(date) > new Date();
+  }
 
   constructor(
     private userService: UserService,
     public creationService: CreationService,
     public authService: AuthService,
     private dialog: MatDialog,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private stringUtils: StringUtilsService
   ) {}
 
   ngOnInit(): void {
-    this.getUser();
-    this.getMelodies();
-    this.getModes();
+    this.loadUserData();
 
     // Debounced email availability check
     this.emailCheckSub = this.emailInput$
@@ -92,20 +99,26 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.emailCheckSub?.unsubscribe();
   }
 
+  loadUserData(): void {
+    this.getUser();
+    this.getMelodies();
+    this.getModes();
+  }
+
   getUser() {
-    // Subscribe to user updates (BehaviorSubject will immediately emit current value if present)
+    // Subscribe to user updates
     this.userSub = this.userService.user$.subscribe((u: User | null) => {
       if (u) {
         this.user = u;
         this.currentEmail = u.email;
         this.newEmail = u.email;
+        this.userPlan = this.stringUtils.capitalizeFirstLetter(u.plan ?? '');
       }
     });
 
-    // If there's not already a cached user, request it from the backend
-    const current = this.userService.getCurrentUser();
-    if (!current) {
-      this.userService.getUser().subscribe({ next: () => {}, error: () => {} });
+    // Request user from backend if not cached
+    if (!this.userService.getCurrentUser()) {
+      this.userService.getUser().subscribe();
     }
   }
 

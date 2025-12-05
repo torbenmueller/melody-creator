@@ -131,4 +131,12 @@ export class UserService {
     });
   }
 
+  /**
+   * Clears the cached user data (called on logout)
+   */
+  clearUser(): void {
+    this.user.next(null);
+    this.inFlightRequest = null;
+  }
+
 }

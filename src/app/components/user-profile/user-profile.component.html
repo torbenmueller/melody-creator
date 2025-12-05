@@ -50,14 +50,70 @@
 					<button type="submit" class="btn btn-success">Change email</button>
 				</form>
 				<div>
-					<p class="mb-1">Member since</p>
+					<p class="mb-0">Member since</p>
 					<p class="white-color mb-0">{{ user?.time | date: 'dd.MM.yyyy' }}</p>
 				</div>
-				<div>
-					<p class="mb-1">Your Plan</p>
-					<p class="white-color mb-0">{{ user?.plan }}</p>
-				</div>
 			</div>
+
+			<div class="features-box mb-24">
+				<div>
+				<div class="center-v">
+					<h4 class="white-color">Your current plan</h4>
+					@switch (user?.plan) {
+						@case ('free') {
+							<i class="purple-color fas fa-gift medium-icon"></i>
+						}
+						@case ('pro') {
+							<i class="purple-color fas fa-crown medium-icon"></i>
+						}
+						@case ('enterprise') {
+							<i class="purple-color fas fa-building medium-icon"></i>
+						}
+						@default {
+							<i class="purple-color fas fa-crown medium-icon"></i>
+						}
+					}
+				</div>
+					<p class="mb-0">Adjust your plan anytime</p>
+				</div>
+				<div class="grid-three-columns">
+					<div>
+						<p class="mb-0">Your plan</p>
+						<p class="white-color mb-0">{{ userPlan }} Plan</p>
+					</div>
+					<div>
+						<p class="mb-0">Plan valid until</p>
+						<p class="white-color mb-0">
+							{{ user?.planValidUntil ? (user?.planValidUntil | date: 'dd.MM.yyyy HH:mm:ss') : '—' }}
+						</p>
+					</div>
+					<div>
+						<p class="mb-0">Remaining credits</p>
+						@if (user?.plan === 'free' && user?.creditsPermanent === 0) {
+							<p class="white-color mb-0">
+								{{ user?.creditsDaily ?? '—' }} 
+								<span class="custom-tooltip">
+									<i class="fas fa-clock ms-1 grey-color"></i>
+									<span class="tooltiptext">Using daily credits</span>
+								</span>
+							</p>
+						} @else {
+							<p class="white-color mb-0">{{ user?.creditsPermanent ?? '—' }}</p>
+						}
+					</div>
+				</div>
+				@if (user?.plan !== 'enterprise') {
+					<div>
+						<button class="btn primary-button" routerLink="/pricing">Update Plan</button>
+					</div>
+				}
+				@if ((user?.plan === 'pro' || user?.plan === 'enterprise') && user?.planValidUntil && isDateInFuture(user?.planValidUntil)) {
+					<div>
+						<button class="btn btn-success" routerLink="/pricing">Purchase Extra Credits</button>
+					</div>
+				}
+			</div>
+
 			<div class="features-box mb-24">
 				<div>
 					<div class="center-v">
@@ -190,7 +246,7 @@
 				@for (melody of latestMelodies; track melody) {
 					<div class="mb-1">
 						<p class="no-margin">Created melody: <span class="white-color">{{melody?.settings.name}}</span></p>
-						<p class="no-margin">{{ melody?.time | date: 'dd.MM.yyyy' }}</p>
+						<p class="no-margin">{{ melody?.time | date: 'dd.MM.yyyy HH:mm:ss' }}</p>
 					</div>
 				}
 			</div>

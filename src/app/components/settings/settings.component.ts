@@ -213,9 +213,11 @@ export class SettingsComponent {
         this.melodyDescription = this.setDescription(this.settings);
         // Track whether user was authenticated when melody was created
         this.melodyCreatedWhileAuthenticated = this.userIsAuthenticated;
-        // Refresh user data to update credits display (if authenticated)
+        // Refresh user data to update credits display and plan (if authenticated)
+        // This ensures we have the latest plan info in case it was downgraded during generation
         if (this.userIsAuthenticated) {
           this.userService.refreshUser();
+          this.loadUserPlanAndApplyRestrictions();
         }
       },
       error: (error: any) => {
@@ -282,16 +284,16 @@ export class SettingsComponent {
 					if (response.hasEnoughCredits) {
 						// User has enough credits, proceed with save and consume credit
 						this.creationService.save(true).subscribe({
-							next: (saveResponse) => {
-								this.toastr.success(saveResponse.message);
-								// Refresh user data to update credits display
-								this.userService.refreshUser();
-								// Reset melody after saving to prevent double saves
-								this.creationService.resetMelody();
-								this.melody = [];
-								this.intervals = [];
-								this.melodyCreatedWhileAuthenticated = false;
-							},
+						next: (saveResponse) => {
+							this.toastr.success(saveResponse.message);
+							// Refresh user data to update credits display
+							this.userService.refreshUser();
+							// Reset melody after saving to prevent double saves
+							this.creationService.resetMelody();
+							this.melody = [];
+							this.intervals = [];
+							this.melodyCreatedWhileAuthenticated = false;
+						},
 							error: (error) => {
 								if (error.status === 403) {
 									const errorMsg = error.error.errors?.join(', ') || error.error.message || 'Cannot save melody with current settings';
