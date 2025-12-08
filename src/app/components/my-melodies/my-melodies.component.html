@@ -83,13 +83,13 @@
 										@if (editingMelodyId === melody._id) {
 											<input 
 												type="text" 
-												class="form-control form-control-sm d-inline-block my-2" 
+												class="form-control form-control-sm d-inline-block my-2 ms-2" 
 												[(ngModel)]="editingMelodyName"
 												(keydown.enter)="saveMelodyName(melody._id)"
 												(keydown.escape)="cancelEditingName()"
 												autofocus
 											/>
-											<button class="btn btn-sm btn-success" (click)="saveMelodyName(melody._id)" title="Save">
+											<button class="btn btn-sm btn-success ms-2" (click)="saveMelodyName(melody._id)" title="Save">
 												<i class="fas fa-check"></i>
 											</button>
 											<button class="btn btn-sm btn-secondary ms-2" (click)="cancelEditingName()" title="Cancel">
@@ -132,13 +132,13 @@
 									<div style="width: 15%" class="text-right" [ngClass]="isPlaying ? 'disabled' : 'enabled'">
 										<div class="custom-tooltip inline-block me-3">
 											<button class="btn btn-success btn-sm" (click)="play(melody.melody)">
-												<i class="fas fa-play fa-lg white-color"></i>
+												<i class="fas fa-play white-color"></i>
 											</button>
 											<span class="tooltiptext">Play melody</span>
 										</div>
 										<div class="custom-tooltip inline-block me-3">
 											<button class="btn btn-light btn-sm" (click)="showMelody(melody)">
-												<i class="fas fa-eye fa-lg black-color"></i>
+												<i class="fas fa-eye black-color"></i>
 											</button>
 											<span class="tooltiptext">Show melody</span>
 										</div>

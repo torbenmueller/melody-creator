@@ -78,7 +78,6 @@ export class SettingsComponent {
   isLoading: boolean = false;
   userIsAuthenticated: boolean = false;
   isPlaying: boolean = false;
-  private melodyCreatedWhileAuthenticated: boolean = false;
 
   private authListenerSubs!: Subscription;
 
@@ -100,7 +99,7 @@ export class SettingsComponent {
         if (!isAuthenticated) {
           this.melody = [];
           this.intervals = [];
-          this.melodyCreatedWhileAuthenticated = false;
+          this.creationService.melodyCreatedWhileAuthenticated = false;
         }
         this.loadUserPlanAndApplyRestrictions();
       });
@@ -204,15 +203,13 @@ export class SettingsComponent {
   }
 
   private createMelody() {
-    this.creationService.submitSettings(this.settings).subscribe({
+    this.creationService.submitSettings(this.settings, this.userIsAuthenticated).subscribe({
       next: (result) => {
         this.melody = result.melody;
         console.log("melody", this.melody);
         this.intervals = result.intervals;
         this.isLoading = false;
         this.melodyDescription = this.setDescription(this.settings);
-        // Track whether user was authenticated when melody was created
-        this.melodyCreatedWhileAuthenticated = this.userIsAuthenticated;
         // Refresh user data to update credits display and plan (if authenticated)
         // This ensures we have the latest plan info in case it was downgraded during generation
         if (this.userIsAuthenticated) {
@@ -242,16 +239,15 @@ export class SettingsComponent {
 
 	save() {
 		// If melody was created while authenticated, credits were already consumed during creation
-		if (this.melodyCreatedWhileAuthenticated) {
+		if (this.creationService.melodyCreatedWhileAuthenticated) {
 			// Save without consuming additional credits
 			this.creationService.save(false).subscribe({
 				next: (response) => {
 					this.toastr.success(response.message);
 					// Reset melody after saving to prevent double saves
-					this.creationService.resetMelody();
 					this.melody = [];
 					this.intervals = [];
-					this.melodyCreatedWhileAuthenticated = false;
+					this.creationService.resetMelody();
 				},
 				error: (error) => {
 					if (error.status === 403) {
@@ -285,14 +281,13 @@ export class SettingsComponent {
 						// User has enough credits, proceed with save and consume credit
 						this.creationService.save(true).subscribe({
 						next: (saveResponse) => {
-							this.toastr.success(saveResponse.message);
-							// Refresh user data to update credits display
-							this.userService.refreshUser();
-							// Reset melody after saving to prevent double saves
-							this.creationService.resetMelody();
-							this.melody = [];
-							this.intervals = [];
-							this.melodyCreatedWhileAuthenticated = false;
+						this.toastr.success(saveResponse.message);
+						// Refresh user data to update credits display
+						this.userService.refreshUser();
+						// Reset melody after saving to prevent double saves
+						this.melody = [];
+						this.intervals = [];
+						this.creationService.resetMelody();
 						},
 							error: (error) => {
 								if (error.status === 403) {
@@ -355,5 +350,10 @@ export class SettingsComponent {
 
   onBeatChange(beat: string): void {
     this.settings.beat = beat;
+  }
+
+  resetSettings(): void {
+    this.settings = this.initialSettings();
+    this.melodyDescription = this.setDescription(this.settings);
   }
 }

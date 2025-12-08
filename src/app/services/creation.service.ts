@@ -18,6 +18,7 @@ export class CreationService {
 	melody!: any[];
 	intervalCheck: number[] = [];
 	sampler!: Tone.Sampler;
+	melodyCreatedWhileAuthenticated: boolean = false;
 
 	initSampler() {
 		this.sampler = new Tone.Sampler({
@@ -84,7 +85,7 @@ export class CreationService {
 	}
 
 	// INITIAL CALL FROM COMPONENT - Now calls backend for generation
-	submitSettings(settings: Settings): Observable<any> {
+	submitSettings(settings: Settings, isAuthenticated: boolean): Observable<any> {
 		// Call backend to generate melody (backend handles authentication detection)
 		return this.http.post<{
 			melody: any[];
@@ -99,6 +100,7 @@ export class CreationService {
 				this.settings = result.settings;
 				this.intervalCheck = result.intervals;
 				this.rootKey = result.settings.rootKey;
+				this.melodyCreatedWhileAuthenticated = isAuthenticated;
 				
 				// Notify components of new melody
 				this.getScoreData();
@@ -172,5 +174,6 @@ export class CreationService {
 		this.scale = null;
 		this.intervalCheck = [];
 		this.rootKey = '';
+		this.melodyCreatedWhileAuthenticated = false;
 	}
 }

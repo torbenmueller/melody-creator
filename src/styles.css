@@ -325,6 +325,11 @@ progress::-moz-progress-bar {
   justify-content: space-between;
 }
 
+.flex-end {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .center-v {
   display: flex;
   align-items: center;
