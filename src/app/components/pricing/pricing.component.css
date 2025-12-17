@@ -21,20 +21,6 @@ ul li:not(:last-child) {
   margin-bottom: 10px;
 }
 
-.most-popular-badge {
-  position: absolute;
-  top: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--purple);
-  color: var(--white);
-  padding: 5px 15px;
-  font-size: 0.875rem;
-  font-weight: bold;
-  border-radius: 9999px;
-  width: auto;
-}
-
 .most-popular {
   border-color: var(--purple);
   background-image: linear-gradient(to bottom, rgb(168 85 247 / 0.2) , rgb(236 72 153 / 0.2));

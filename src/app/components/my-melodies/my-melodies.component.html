@@ -129,12 +129,19 @@
 									<div class="text-center" style="width: 10%">
 										<span>{{melody.time | date: 'dd.MM.yyyy'}}</span>
 									</div>
-									<div style="width: 15%" class="text-right" [ngClass]="isPlaying ? 'disabled' : 'enabled'">
+									<div style="width: 15%" class="text-right">
 										<div class="custom-tooltip inline-block me-3">
-											<button class="btn btn-success btn-sm" (click)="play(melody.melody)">
-												<i class="fas fa-play white-color"></i>
-											</button>
-											<span class="tooltiptext">Play melody</span>
+											@if (playingMelodyId !== melody._id) {
+												<button class="btn btn-success btn-sm" (click)="play(melody.melody, melody._id)" [disabled]="isPlaying">
+													<i class="fas fa-play white-color"></i>
+												</button>
+												<span class="tooltiptext">Play melody</span>
+											} @else {
+												<button class="btn btn-danger btn-sm" (click)="stop()">
+													<i class="fas fa-stop white-color"></i>
+												</button>
+												<span class="tooltiptext">Stop melody</span>
+											}
 										</div>
 										<div class="custom-tooltip inline-block me-3">
 											<button class="btn btn-light btn-sm" (click)="showMelody(melody)">

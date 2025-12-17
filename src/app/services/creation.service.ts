@@ -31,6 +31,7 @@ export class CreationService {
 	}
 
 	private melodiesUpdated = new Subject<{melodies: any, melodiesCount: number}>();
+	private countdownInterval: any = null;
 
 	fetchedMelodies: any = [];
 	maxMelodies: number = 0;
@@ -147,14 +148,30 @@ export class CreationService {
 
 
 			let timeLeft = Math.round(duration * 10) / 10;
-			let countdown = setInterval(() => {
+			this.countdownInterval = setInterval(() => {
 				if (timeLeft <= 0) {
-					clearInterval(countdown);
+					clearInterval(this.countdownInterval);
+					this.countdownInterval = null;
 					this.isPlaying.next(false);
 				}
 				timeLeft -= 1;
 			}, 1000);
 		});
+	}
+
+	stop() {
+		if (this.countdownInterval) {
+			clearInterval(this.countdownInterval);
+			this.countdownInterval = null;
+		}
+		
+		if (this.sampler) {
+			this.sampler.releaseAll();
+			this.sampler.dispose();
+			this.initSampler();
+		}
+		
+		this.isPlaying.next(false);
 	}
 
 	save(consumeCredit: boolean = false): Observable<{message: string}> {

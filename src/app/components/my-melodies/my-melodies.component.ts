@@ -37,6 +37,7 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   currentPage: number = 1;
   isLoading: boolean = false;
   isPlaying!: boolean;
+  playingMelodyId: string | null = null;
   melodyId: string = '';
   melodyName: string = '';
   // track which melody (by id) is expanded to show the score
@@ -136,8 +137,14 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     });
   }
 
-  play(melody: any[]) {
+  play(melody: any[], melodyId: string) {
+    this.playingMelodyId = melodyId;
     this.creationService.play(melody);
+  }
+
+  stop() {
+    this.playingMelodyId = null;
+    this.creationService.stop();
   }
 
   openConfirmationDialog() {

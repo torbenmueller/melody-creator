@@ -1,5 +1,5 @@
 <div class="container">
-	<div class="row title-row">
+	<div class="row title-row-mb-3 text-center">
 		<div class="col-12">
 			<h2 class="purple-color">Choose Your Composing Plan</h2>
 		</div>
@@ -25,7 +25,7 @@
 						€ 0
 					</h2>
 						<ul class="checks-svg white-color">
-							<li>10 credits per day</li>
+							<li>10 credits daily</li>
 							<li>Save up to 50 melodies</li>
 							<li>Major and minor scale</li>
 							<li>All keys</li>
@@ -39,16 +39,16 @@
 					<button class="btn btn-light" (click)="choosePlan('free')">Get Started</button>
 				</div>
 				<div class="pricing-box dark-bg most-popular relative">
-					<div class="most-popular-badge">Most Popular</div>
+					<div class="most-popular-badge absolute most-popular-badge-pricing">Most Popular</div>
 					<div>
 						<p class="pricing-title">Pro</p>
 						<p class="mb-0">For serious creators</p>
 					</div>
 					<h2 class="bold white-color mb-0">
-						€ 9 <span class="bold text-small body-color">per month</span>
+						€ 9 <span class="bold text-small body-color">/ month*</span>
 					</h2>
 					<ul class="checks-svg white-color">
-						<li>1000 credits per month</li>
+						<li>1000 credits monthly</li>
 						<li>Save up to 200 melodies</li>
 						<li>All scales</li>
 						<li>All keys</li>
@@ -64,7 +64,7 @@
 						</li>
 						<li>Email support</li>
 					</ul>
-					<button class="btn primary-button" (click)="choosePlan('pro')">Start Pro Composer</button>
+					<button class="btn primary-button" (click)="choosePlan('pro')">Start Pro Plan</button>
 				</div>
 				<div class="pricing-box">
 					<div>
@@ -72,10 +72,10 @@
 						<p class="mb-0">For teams and studios</p>
 					</div>
 					<h2 class="bold white-color mb-0">
-						€ 19 <span class="bold text-small body-color">per month</span>
+						€ 19 <span class="bold text-small body-color">/ month*</span>
 					</h2>
 					<ul class="checks-svg white-color">
-						<li>3000 credits per month</li>
+						<li>3000 credits monthly</li>
 						<li>Save up to 500 melodies</li>
 						<li>All scales</li>
 						<li>All keys</li>
@@ -91,20 +91,23 @@
 						</li>
 						<li>Email support</li>
 					</ul>
-					<button class="btn btn-light" (click)="choosePlan('enterprise')">Start Enterprise</button>
+					<button class="btn btn-light" (click)="choosePlan('enterprise')">Start Enterprise Plan</button>
 				</div>
 			</div>
 		</div>
+		<div class="col-12 text-center mt-1">
+			<p class="no-margin">*one time payment, no subscription</p>
+		</div>
 	</div>
-	<div class="row mt-4">
-		<div class="col-12 center-h">
-			@if (userIsNotAuthenticated) {
+	@if (userIsNotAuthenticated) {
+		<div class="row mt-4">
+			<div class="col-12 center-h">
 				<div class="badge-orange alert-box" role="alert">
 					<p class="mb-0">You must first <a class="hyperlink-white" routerLink="/auth/signup">create an
 							account</a> and <a class="hyperlink-white" routerLink="/auth/login">log in</a> before you
 						can take out a paid subscription.</p>
 				</div>
-			}
+			</div>
 		</div>
-	</div>
+	}
 </div>
