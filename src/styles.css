@@ -842,6 +842,18 @@ a:focus-visible,
   width: auto;
 }
 
+.best-value-badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  background-color: var(--success-color);
+  color: var(--white);
+  padding: 5px 15px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  border-radius: 0 10px 0 10px;
+}
+
 .most-popular-badge-pricing {
   top: -15px;
   left: 50%;

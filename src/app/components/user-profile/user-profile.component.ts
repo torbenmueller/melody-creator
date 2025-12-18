@@ -54,6 +54,25 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     return new Date(date) > new Date();
   }
 
+  openPurchaseCreditsModal(): void {
+    const dialogRef = this.dialog.open(MatModalComponent, {
+      width: '800px',
+      data: {
+        title: 'Purchase Additional Credits',
+        isPurchaseCreditsModal: true
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.purchased) {
+        // Handle successful purchase
+        console.log('Credits purchased:', result.amount);
+        // Refresh user data to show updated credits
+        this.loadUserData();
+      }
+    });
+  }
+
   constructor(
     private userService: UserService,
     public creationService: CreationService,

@@ -32,6 +32,34 @@
         </div>
       </div>
     </div>
+  } @else if (data.isPurchaseCreditsModal) {
+    <div class="purchase-credits-modal">
+      <p class="mb-4">Purchase additional credits whenever you need them</p>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <div class="pricing-box">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="bold purple-color mb-0"><i class="fas fa-coins me-2 purple-color"></i>500</h2>
+            <h2 class="white-color mb-0">€ 2,49</h2>
+          </div>
+          <button class="btn primary-button w-100" (click)="onPurchaseCredits(500)">Buy Now</button>
+        </div>
+        <div class="pricing-box">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="bold purple-color mb-0"><i class="fas fa-coins me-2 purple-color"></i>1000</h2>
+            <h2 class="white-color mb-0">€ 4,49</h2>
+          </div>
+          <button class="btn primary-button w-100" (click)="onPurchaseCredits(1000)">Buy Now</button>
+        </div>
+        <div class="pricing-box position-relative">
+          <div class="best-value-badge">Best Value</div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="bold purple-color mb-0"><i class="fas fa-coins me-2 purple-color"></i>2000</h2>
+            <h2 class="white-color mb-0">€ 7,99</h2>
+          </div>
+          <button class="btn primary-button w-100" (click)="onPurchaseCredits(2000)">Buy Now</button>
+        </div>
+      </div>
+    </div>
   } @else {
     <p>{{ data.message }}</p>
   }
@@ -64,6 +92,11 @@
   @case ('How Credits Work') {
     <mat-dialog-actions>
       <button type="button" class="btn primary-button" mat-dialog-close>Got it!</button>
+    </mat-dialog-actions>
+  }
+  @case ('Purchase Additional Credits') {
+    <mat-dialog-actions>
+      <button type="button" class="btn btn-secondary" mat-dialog-close>Close</button>
     </mat-dialog-actions>
   }
 }

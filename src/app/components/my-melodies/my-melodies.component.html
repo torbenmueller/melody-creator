@@ -172,13 +172,14 @@
 										</div>
 									</div>
 								</div>
-								@if (expandedMelodyId === melody._id) {
-									<div class="col-12 pt-3" [@slideDown]="expandedMelodyId === melody._id">
-										<div class="white-bg">
-											<app-score></app-score>
-										</div>
+							@if (expandedMelodyId === melody._id) {
+								<div class="col-12 pt-3" [@slideDown]="expandedMelodyId === melody._id">
+									<div class="white-bg position-relative">
+										<button class="btn btn-sm btn-close position-absolute top-0 end-0 m-2" (click)="showMelody(melody)" aria-label="Close"></button>
+										<app-score></app-score>
 									</div>
-								}
+								</div>
+							}
 							</li>
 						}
 					</ul>

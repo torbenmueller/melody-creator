@@ -19,7 +19,7 @@
 					<p class="mb-0">Change your email address</p>
 				</div>
 				<form (submit)="onSubmitNewEmail(editUserEmail)" #editUserEmail="ngForm">
-					<div class="mb-3">
+					<div class="mb-20">
 						<label for="inputEmail" class="form-label">Email address</label>
 						<input
 							type="email"
@@ -82,12 +82,6 @@
 						<p class="white-color mb-0">{{ userPlan }} Plan</p>
 					</div>
 					<div>
-						<p class="mb-0">Plan valid until</p>
-						<p class="white-color mb-0">
-							{{ user?.planValidUntil ? (user?.planValidUntil | date: 'dd.MM.yyyy HH:mm:ss') : '—' }}
-						</p>
-					</div>
-					<div>
 						<p class="mb-0">Remaining credits</p>
 						@if (user?.plan === 'free' && user?.creditsPermanent === 0) {
 							<p class="white-color mb-0">
@@ -101,17 +95,25 @@
 							<p class="white-color mb-0">{{ user?.creditsPermanent ?? '—' }}</p>
 						}
 					</div>
+					<div>
+						<p class="mb-0">Plan valid until</p>
+						<p class="white-color mb-0">
+							{{ user?.planValidUntil ? (user?.planValidUntil | date: 'dd.MM.yyyy HH:mm:ss') : '—' }}
+						</p>
+					</div>
 				</div>
-				@if (user?.plan !== 'enterprise') {
+				<div class="grid-three-columns">
 					<div>
-						<button class="btn primary-button" routerLink="/pricing">Update Plan</button>
+						@if (user?.plan !== 'enterprise') {
+							<button class="btn primary-button" routerLink="/pricing">Update Plan</button>
+						}
 					</div>
-				}
-				@if ((user?.plan === 'pro' || user?.plan === 'enterprise') && user?.planValidUntil && isDateInFuture(user?.planValidUntil)) {
-					<div>
-						<button class="btn btn-success" routerLink="/pricing">Purchase Extra Credits</button>
-					</div>
-				}
+					@if ((user?.plan === 'pro' || user?.plan === 'enterprise') && user?.planValidUntil && isDateInFuture(user?.planValidUntil)) {
+						<div>
+							<button class="btn btn-success" (click)="openPurchaseCreditsModal()">Purchase Credits</button>
+						</div>
+					}
+				</div>
 			</div>
 
 			<div class="features-box mb-24">

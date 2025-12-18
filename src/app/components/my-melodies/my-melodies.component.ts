@@ -77,6 +77,9 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     this.load();
     this.creationService.isPlaying.subscribe((e) => {
       this.isPlaying = e;
+      if (!e) {
+        this.playingMelodyId = null;
+      }
     });
   }
 
@@ -102,12 +105,9 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   }
 
   showMelody(melody: any): void {
-    // toggle expanded view for the clicked melody
     if (this.expandedMelodyId === melody._id) {
-      // collapse
       this.expandedMelodyId = null;
     } else {
-      // expand this melody and push score data to service
       this.expandedMelodyId = melody._id;
       this.creationService.setMelody(melody);
     }
