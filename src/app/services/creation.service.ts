@@ -5,7 +5,6 @@ import { Observable, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { ToastrService } from 'ngx-toastr';
 
 const BACKEND_URL = environment.apiUrl + "/melodies";
 
@@ -41,8 +40,7 @@ export class CreationService {
 	scoreData = new Subject<any>();
 
 	constructor(
-		private http: HttpClient,
-		private toastr: ToastrService
+		private http: HttpClient
 	) { }
 
 	addMelody(melody: object, consumeCredit: boolean = false): Observable<{message: string}> {

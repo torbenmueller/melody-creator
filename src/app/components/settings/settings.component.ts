@@ -54,6 +54,32 @@ export class SettingsComponent {
     'Bb',
     'B',
   ];
+
+  enharmonicKeys: { [key: string]: string } = {
+    'Db': 'C#',
+    'Eb': 'D#',
+    'Gb': 'F#',
+    'Ab': 'G#',
+    'Bb': 'A#',
+  };
+
+  private readonly MODES = new Set([
+    'Minor',
+    'Dorian',
+    'Phrygian',
+    'Lydian',
+    'Mixolydian',
+    'Locrian'
+  ]);
+
+  private readonly CROSS_KEYS = new Set([
+    'G',
+    'D',
+    'A',
+    'E',
+    'B',
+    'F#'
+  ]);
   
   allBars: number[] = [2, 4, 8];
   restrictedBars: number[] = [2, 4];
@@ -209,7 +235,7 @@ export class SettingsComponent {
         console.log("melody", this.melody);
         this.intervals = result.intervals;
         this.isLoading = false;
-        this.melodyDescription = this.setDescription(this.settings);
+        this.melodyDescription = this.setDescription(result.settings);
         // Refresh user data to update credits display and plan (if authenticated)
         // This ensures we have the latest plan info in case it was downgraded during generation
         if (this.userIsAuthenticated) {
@@ -311,7 +337,7 @@ export class SettingsComponent {
 		});
 	}
 
-  initialSettings() {
+  initialSettings(): Settings {
     const initlialSetting = {
       scale: this.scales[0],
       key: this.keys[0],
@@ -324,12 +350,33 @@ export class SettingsComponent {
     return initlialSetting;
   }
 
-  setDescription(settings: Settings) {
-    const scale = settings.scale.toLowerCase();
+  setDescription(settings: Settings): string {
     const complex = settings.complex.toLowerCase();
-    const description = `Your melody is in ${settings.key} ${scale}, has ${settings.bar} bars, a ${complex} complexity and a
+    const key = this.checkForEnharmonicConfusion(settings);
+    const description = `Your melody is in ${key} ${settings.scale}, has ${settings.bar} bars, ${complex} complexity and a
 		${settings.beat} beat.`;
     return description;
+  }
+
+  checkForEnharmonicConfusion(settings: Settings): string {
+    if (this.isMode(settings.scale)) {
+      const hasFlat = settings.key.includes('b') || settings.key === 'F';
+      const hasCrossKey = this.isCrossKey(settings.rootKey);
+      
+      if (hasFlat && hasCrossKey) {
+        const enharmonic = this.enharmonicKeys[settings.key];
+        return enharmonic ? `${enharmonic} (enharm. ${settings.key})` : settings.key;
+      }
+    }
+    return settings.key;
+  }
+
+  isMode(scale: string): boolean {
+    return this.MODES.has(scale);
+  }
+
+  isCrossKey(rootKey: string): boolean {
+    return this.CROSS_KEYS.has(rootKey);
   }
 
   onScaleChange(scale: string): void {
