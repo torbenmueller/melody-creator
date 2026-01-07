@@ -15,11 +15,10 @@ import { User } from '../../interfaces/user';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-user-profile',
-  standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, RouterLink],
-  templateUrl: './user-profile.component.html',
-  styleUrl: './user-profile.component.css',
+    selector: 'app-user-profile',
+    imports: [CommonModule, FormsModule, DatePipe, RouterLink],
+    templateUrl: './user-profile.component.html',
+    styleUrl: './user-profile.component.css'
 })
 export class UserProfileComponent implements OnInit, OnDestroy {
   private userSub!: Subscription;

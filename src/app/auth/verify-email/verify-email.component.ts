@@ -6,11 +6,10 @@ import { AuthService } from '../auth.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
-  selector: 'app-verify-email',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './verify-email.component.html',
-  styleUrl: './verify-email.component.css'
+    selector: 'app-verify-email',
+    imports: [CommonModule],
+    templateUrl: './verify-email.component.html',
+    styleUrl: './verify-email.component.css'
 })
 export class VerifyEmailComponent implements OnInit {
   statusMessage = 'Verifying your email...';

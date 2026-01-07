@@ -11,23 +11,22 @@ import { MusicxmlConverterService } from '../../services/musicxml-converter.serv
 import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-my-melodies',
-  standalone: true,
-  imports: [NgClass, DatePipe, ScoreComponent, FormsModule],
-  templateUrl: './my-melodies.component.html',
-  styleUrl: './my-melodies.component.css',
-  animations: [
-    trigger('slideDown', [
-      transition(':enter', [
-        style({ height: 0, opacity: 0, overflow: 'hidden' }),
-        animate('200ms ease-out', style({ height: '*', opacity: 1 })),
-      ]),
-      transition(':leave', [
-        style({ overflow: 'hidden' }),
-        animate('150ms ease-in', style({ height: 0, opacity: 0 })),
-      ]),
-    ]),
-  ],
+    selector: 'app-my-melodies',
+    imports: [NgClass, DatePipe, ScoreComponent, FormsModule],
+    templateUrl: './my-melodies.component.html',
+    styleUrl: './my-melodies.component.css',
+    animations: [
+        trigger('slideDown', [
+            transition(':enter', [
+                style({ height: 0, opacity: 0, overflow: 'hidden' }),
+                animate('200ms ease-out', style({ height: '*', opacity: 1 })),
+            ]),
+            transition(':leave', [
+                style({ overflow: 'hidden' }),
+                animate('150ms ease-in', style({ height: 0, opacity: 0 })),
+            ]),
+        ]),
+    ]
 })
 export class MyMelodiesComponent implements OnInit, OnDestroy {
   private melodiesSub!: Subscription;

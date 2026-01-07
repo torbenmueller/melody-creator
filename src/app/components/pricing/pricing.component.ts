@@ -9,11 +9,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
 
 @Component({
-  selector: 'app-pricing',
-  standalone: true,
-  imports: [],
-  templateUrl: './pricing.component.html',
-  styleUrl: './pricing.component.css',
+    selector: 'app-pricing',
+    imports: [],
+    templateUrl: './pricing.component.html',
+    styleUrl: './pricing.component.css'
 })
 export class PricingComponent implements OnInit {
   userIsNotAuthenticated: boolean = false;

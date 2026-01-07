@@ -5,11 +5,10 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 
 @Component({
-  selector: 'app-new-password',
-  standalone: true,
-  imports: [FormsModule],
-  templateUrl: './new-password.component.html',
-  styleUrl: './new-password.component.css'
+    selector: 'app-new-password',
+    imports: [FormsModule],
+    templateUrl: './new-password.component.html',
+    styleUrl: './new-password.component.css'
 })
 export class NewPasswordComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;

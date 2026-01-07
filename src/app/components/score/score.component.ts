@@ -5,11 +5,10 @@ import { Subscription } from 'rxjs';
 import { Scale } from '../../interfaces/melody-model';
 
 @Component({
-  selector: 'app-score',
-  standalone: true,
-  imports: [],
-  templateUrl: './score.component.html',
-  styleUrl: './score.component.css'
+    selector: 'app-score',
+    imports: [],
+    templateUrl: './score.component.html',
+    styleUrl: './score.component.css'
 })
 export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
   totalMeasures: number = 0;

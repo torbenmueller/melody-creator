@@ -11,21 +11,20 @@ import { MatModalComponent } from './components/mat-modal/mat-modal.component';
 import { CookieConsentPopupComponent } from "./components/cookie-consent-popup/cookie-consent-popup.component";
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    NavbarComponent,
-    HeaderComponent,
-    FooterComponent,
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    CookieConsentPopupComponent
-],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+    selector: 'app-root',
+    imports: [
+        CommonModule,
+        RouterOutlet,
+        NavbarComponent,
+        HeaderComponent,
+        FooterComponent,
+        CommonModule,
+        MatDialogModule,
+        MatButtonModule,
+        CookieConsentPopupComponent
+    ],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.css'
 })
 export class AppComponent {
   title = 'melody-creator';

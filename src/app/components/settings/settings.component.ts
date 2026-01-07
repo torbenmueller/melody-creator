@@ -13,11 +13,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
 
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [FormsModule, ScoreComponent, SettingComponent],
-  templateUrl: './settings.component.html',
-  styleUrl: './settings.component.css',
+    selector: 'app-settings',
+    imports: [FormsModule, ScoreComponent, SettingComponent],
+    templateUrl: './settings.component.html',
+    styleUrl: './settings.component.css'
 })
 export class SettingsComponent {
   allScales: string[] = [

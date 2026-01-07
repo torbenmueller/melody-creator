@@ -3,11 +3,10 @@ import { Component, ElementRef, Inject, AfterViewInit, ViewChild, PLATFORM_ID } 
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-cookie-consent-popup',
-  standalone: true,
-  imports: [RouterLink],
-  templateUrl: './cookie-consent-popup.component.html',
-  styleUrl: './cookie-consent-popup.component.css'
+    selector: 'app-cookie-consent-popup',
+    imports: [RouterLink],
+    templateUrl: './cookie-consent-popup.component.html',
+    styleUrl: './cookie-consent-popup.component.css'
 })
 export class CookieConsentPopupComponent implements AfterViewInit {
   @ViewChild('consentPopup') consentPopup!: ElementRef;

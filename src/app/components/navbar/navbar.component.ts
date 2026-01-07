@@ -10,11 +10,10 @@ import { UserService } from '../../services/user.service';
 import { StringUtilsService } from '../../services/string-utils.service';
 
 @Component({
-  selector: 'app-navbar',
-  standalone: true,
-  imports: [RouterLink, RouterLinkActive, MatDialogModule, MatButtonModule, NgClass],
-  templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css',
+    selector: 'app-navbar',
+    imports: [RouterLink, RouterLinkActive, MatDialogModule, MatButtonModule, NgClass],
+    templateUrl: './navbar.component.html',
+    styleUrl: './navbar.component.css'
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   userIsAuthenticated: boolean = false;

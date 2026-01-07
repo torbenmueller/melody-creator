@@ -8,11 +8,10 @@ import {
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-dropdown',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './dropdown.component.html',
-  styleUrls: ['./dropdown.component.css'],
+    selector: 'app-dropdown',
+    imports: [CommonModule],
+    templateUrl: './dropdown.component.html',
+    styleUrls: ['./dropdown.component.css']
 })
 export class DropdownComponent {
   @Input() options: string[] = [];
