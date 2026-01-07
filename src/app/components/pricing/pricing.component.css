@@ -26,6 +26,14 @@ ul li:not(:last-child) {
   background-image: linear-gradient(to bottom, rgb(168 85 247 / 0.2) , rgb(236 72 153 / 0.2));
 }
 
+.pricing-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--white);
+  line-height: 0.7;
+  margin-bottom: 10px;
+}
+
 .checks-svg li::before {
   content: "";
   position: absolute;
@@ -56,9 +64,4 @@ ul li:not(:last-child) {
 	<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23EF4444'>\
 	<circle cx='12' cy='12' r='10' fill='%23EF4444'/><line x1='7' y1='12' x2='17' y2='12' stroke='white' stroke-width='2' stroke-linecap='round'/>\
 	</svg>");
-}
-
-.pricing-title {
-  line-height: 0.7;
-  margin-bottom: 10px;
 }

@@ -1,50 +1,62 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import * as Tone from 'tone';
 import { Settings } from '../interfaces/settings';
+import { 
+	MelodyNote, 
+	Scale, 
+	MelodyData, 
+	GenerateMelodyResponse, 
+	FetchedMelody, 
+	MelodiesResponse 
+} from '../interfaces/melody-model';
 import { Observable, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 const BACKEND_URL = environment.apiUrl + "/melodies";
+const DURATION_PRECISION_MULTIPLIER = 10;
+const COUNTDOWN_INTERVAL_MS = 1000;
 
 @Injectable({
   providedIn: 'root'
 })
-export class CreationService {
+export class CreationService implements OnDestroy {
 	settings!: Settings;
-	scale: any;
-	melody!: any[];
+	scale!: Scale;
+	melody!: MelodyNote[];
 	intervalCheck: number[] = [];
 	sampler!: Tone.Sampler;
 	melodyCreatedWhileAuthenticated: boolean = false;
 
+	// Initialize sampler using singleton pattern - only creates if not already exists
 	initSampler() {
-		this.sampler = new Tone.Sampler({
-			urls: {
-				"C4": "piano_c4.mp3"
-			},
-			release: 1,
-			baseUrl: "../../assets/samples/",
-		}).toDestination();
+		if (!this.sampler) {
+			this.sampler = new Tone.Sampler({
+				urls: {
+					"C4": "piano_c4.mp3"
+				},
+				release: 1,
+				baseUrl: "../../assets/samples/",
+			}).toDestination();
+		}
 	}
 
-	private melodiesUpdated = new Subject<{melodies: any, melodiesCount: number}>();
-	private countdownInterval: any = null;
+	private melodiesUpdated = new Subject<{melodies: FetchedMelody[], melodiesCount: number}>();
+	private countdownInterval: NodeJS.Timeout | null = null;
 
-	fetchedMelodies: any = [];
+	fetchedMelodies: FetchedMelody[] = [];
 	maxMelodies: number = 0;
-	rootKey: string = '';
 
 	isPlaying = new Subject<boolean>();
-	scoreData = new Subject<any>();
+	scoreData = new Subject<MelodyData>();
 
 	constructor(
 		private http: HttpClient
 	) { }
 
-	addMelody(melody: object, consumeCredit: boolean = false): Observable<{message: string}> {
-		const post: object = {
+	addMelody(melody: MelodyNote[], consumeCredit: boolean = false): Observable<{message: string}> {
+		const post = {
 			melody: melody,
 			settings: this.settings,
 			consumeCredit: consumeCredit
@@ -54,15 +66,21 @@ export class CreationService {
 
 	getMelodies(melodiesPerPage: number, currentPage: number, sortByType: string, order: number ) {
 		const queryParams = `?pagesize=${melodiesPerPage}&page=${currentPage}&sort_by_type=${sortByType}&order=${order}`;
-		this.http.get<{message: string, melodies: any, maxMelodies: number}>(BACKEND_URL + queryParams)
-			.subscribe((data) => {
-				this.fetchedMelodies = data.melodies;
-				this.maxMelodies = data.maxMelodies;
-				this.melodiesUpdated.next({melodies: this.fetchedMelodies, melodiesCount: this.maxMelodies});
+		this.http.get<MelodiesResponse>(BACKEND_URL + queryParams)
+			.subscribe({
+				next: (data) => {
+					this.fetchedMelodies = data.melodies;
+					this.maxMelodies = data.maxMelodies;
+					this.melodiesUpdated.next({melodies: this.fetchedMelodies, melodiesCount: this.maxMelodies});
+				},
+				error: (error) => {
+					console.error('Error fetching melodies:', error);
+					this.melodiesUpdated.next({melodies: [], melodiesCount: 0});
+				}
 			});
 	}
 
-	getMidiFile(id: any): Observable<HttpResponse<ArrayBuffer>> {
+	getMidiFile(id: string): Observable<HttpResponse<ArrayBuffer>> {
 		const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 		return this.http.get(`${BACKEND_URL}/midi/${id}`, {
 			headers: headers,
@@ -84,21 +102,15 @@ export class CreationService {
 	}
 
 	// INITIAL CALL FROM COMPONENT - Now calls backend for generation
-	submitSettings(settings: Settings, isAuthenticated: boolean): Observable<any> {
+	submitSettings(settings: Settings, isAuthenticated: boolean): Observable<GenerateMelodyResponse> {
 		// Call backend to generate melody (backend handles authentication detection)
-		return this.http.post<{
-			melody: any[];
-			scale: any;
-			settings: Settings;
-			intervals: number[];
-		}>(BACKEND_URL + '/generate', { settings }).pipe(
-			tap((result: { melody: any[]; scale: any; settings: Settings; intervals: number[] }) => {
+		return this.http.post<GenerateMelodyResponse>(BACKEND_URL + '/generate', { settings }).pipe(
+			tap((result: GenerateMelodyResponse) => {
 				// Store the generated melody and related data
 				this.melody = result.melody;
 				this.scale = result.scale;
 				this.settings = result.settings;
 				this.intervalCheck = result.intervals;
-				this.rootKey = result.settings.rootKey;
 				this.melodyCreatedWhileAuthenticated = isAuthenticated;
 				
 				// Notify components of new melody
@@ -115,10 +127,10 @@ export class CreationService {
 		return this.settings;
 	}
 
-	setMelody(melody: any) {
-		this.melody = melody.melody;
-		this.settings = melody.settings;
-		this.scale = melody.scale;
+	setMelody(melodyData: MelodyData) {
+		this.melody = melodyData.melody;
+		this.settings = melodyData.settings;
+		this.scale = melodyData.scale;
 		this.getScoreData();
 	}
 
@@ -131,64 +143,103 @@ export class CreationService {
 	}
 
 	playMelody() {
-		this.initSampler();
-		const now = Tone.now();
-		let duration = 0;
-		let bpm = 120;
-		let tempo = (60 / bpm) * 4;
+		try {
+			this.initSampler();
+			const now = Tone.now();
+			let duration = 0;
 
-		Tone.loaded().then(() => {
-			this.melody.forEach((tone, index) => {
-				this.sampler.triggerAttackRelease(this.melody[index].note, this.melody[index].time, now + duration);
-				duration += Tone.Time(this.melody[index].time).toSeconds();
-				this.isPlaying.next(true);
-			});
+			Tone.loaded()
+				.then(() => {
+					this.melody.forEach((tone, index) => {
+						this.sampler.triggerAttackRelease(this.melody[index].note, this.melody[index].time, now + duration);
+						duration += Tone.Time(this.melody[index].time).toSeconds();
+						this.isPlaying.next(true);
+					});
 
-
-			let timeLeft = Math.round(duration * 10) / 10;
-			this.countdownInterval = setInterval(() => {
-				if (timeLeft <= 0) {
-					clearInterval(this.countdownInterval);
-					this.countdownInterval = null;
+				let timeLeft = Math.round(duration * DURATION_PRECISION_MULTIPLIER) / DURATION_PRECISION_MULTIPLIER;
+				this.countdownInterval = setInterval(() => {
+					if (timeLeft <= 0) {
+						if (this.countdownInterval) {
+							clearInterval(this.countdownInterval);
+							this.countdownInterval = null;
+						}
+						this.isPlaying.next(false);
+					}
+					timeLeft -= 1;
+				}, COUNTDOWN_INTERVAL_MS);
+				})
+				.catch((error) => {
+					console.error('Error loading audio samples:', error);
 					this.isPlaying.next(false);
-				}
-				timeLeft -= 1;
-			}, 1000);
-		});
+				});
+		} catch (error) {
+			console.error('Error in playMelody:', error);
+			this.isPlaying.next(false);
+		}
 	}
 
 	stop() {
-		if (this.countdownInterval) {
-			clearInterval(this.countdownInterval);
-			this.countdownInterval = null;
+		try {
+			if (this.countdownInterval) {
+				clearInterval(this.countdownInterval);
+				this.countdownInterval = null;
+			}
+			
+			if (this.sampler) {
+				this.sampler.releaseAll();
+			}
+			
+			this.isPlaying.next(false);
+		} catch (error) {
+			console.error('Error stopping playback:', error);
+			this.isPlaying.next(false);
 		}
-		
-		if (this.sampler) {
-			this.sampler.releaseAll();
-			this.sampler.dispose();
-			this.initSampler();
-		}
-		
-		this.isPlaying.next(false);
 	}
 
 	save(consumeCredit: boolean = false): Observable<{message: string}> {
 		return this.addMelody(this.melody, consumeCredit);
 	}
 
-	play(melody: any) {
+	play(melody: MelodyNote[]) {
 		this.melody = melody;
 		this.playMelody();
 	}
 
-	/**
-	 * Reset melody to prevent unauthorized saves
-	 */
 	resetMelody() {
 		this.melody = [];
-		this.scale = null;
+		this.scale = { notes: [] };
 		this.intervalCheck = [];
-		this.rootKey = '';
 		this.melodyCreatedWhileAuthenticated = false;
+	}
+
+	// Handle authentication state changes - should be called when user logs out to prevent stale authentication flag
+	onAuthStateChange(isAuthenticated: boolean): void {
+		if (!isAuthenticated && this.melodyCreatedWhileAuthenticated) {
+			// User logged out, reset the flag to prevent unauthorized saves
+			this.melodyCreatedWhileAuthenticated = false;
+		}
+	}
+
+	ngOnDestroy(): void {
+		try {
+			// Complete all Subjects
+			this.melodiesUpdated.complete();
+			this.isPlaying.complete();
+			this.scoreData.complete();
+
+			// Clear any running intervals
+			if (this.countdownInterval) {
+				clearInterval(this.countdownInterval);
+				this.countdownInterval = null;
+			}
+
+			// Dispose of audio resources
+			if (this.sampler) {
+				this.sampler.releaseAll();
+				this.sampler.dispose();
+			}
+		} catch (error) {
+			console.error('Error during cleanup:', error);
+		}
 	}
 }

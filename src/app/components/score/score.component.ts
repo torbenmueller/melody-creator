@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } fr
 import { CreationService } from '../../services/creation.service';
 import { RenderContext, Vex } from 'vexflow';
 import { Subscription } from 'rxjs';
+import { Scale } from '../../interfaces/melody-model';
 
 @Component({
   selector: 'app-score',
@@ -14,7 +15,7 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
   totalMeasures: number = 0;
   composedMelody!: any[];
   melodySettings: any;
-  scale!: string[];
+  scale!: Scale;
   scoreData: any;
   private viewReady = false;
   private dataReady = false;
