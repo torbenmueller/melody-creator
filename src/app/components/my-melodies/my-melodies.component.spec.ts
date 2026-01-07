@@ -15,6 +15,7 @@ describe('MyMelodiesComponent', () => {
     fixture = TestBed.createComponent(MyMelodiesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
