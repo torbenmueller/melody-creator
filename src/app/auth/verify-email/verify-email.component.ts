@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AuthService } from '../auth.service';
@@ -7,7 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-verify-email',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './verify-email.component.html',
     styleUrl: './verify-email.component.css'
 })

@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { FooterComponent } from './components/footer/footer.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
-import { CommonModule } from '@angular/common';
+
 import { HeaderComponent } from './components/header/header.component';
 import { AuthService } from './auth/auth.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -13,16 +13,14 @@ import { CookieConsentPopupComponent } from "./components/cookie-consent-popup/c
 @Component({
     selector: 'app-root',
     imports: [
-        CommonModule,
-        RouterOutlet,
-        NavbarComponent,
-        HeaderComponent,
-        FooterComponent,
-        CommonModule,
-        MatDialogModule,
-        MatButtonModule,
-        CookieConsentPopupComponent
-    ],
+    RouterOutlet,
+    NavbarComponent,
+    HeaderComponent,
+    FooterComponent,
+    MatDialogModule,
+    MatButtonModule,
+    CookieConsentPopupComponent
+],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css'
 })

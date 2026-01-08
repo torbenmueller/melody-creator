@@ -1,5 +1,5 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, ElementRef, Inject, AfterViewInit, ViewChild, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, ElementRef, Inject, AfterViewInit, ViewChild, PLATFORM_ID, DOCUMENT } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({

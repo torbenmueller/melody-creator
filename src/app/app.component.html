@@ -1,5 +1,7 @@
 <app-navbar></app-navbar>
-<app-header *ngIf="router.url === '/'"></app-header>
+@if (router.url === '/') {
+  <app-header></app-header>
+}
 <router-outlet />
 <app-footer></app-footer>
 <app-cookie-consent-popup></app-cookie-consent-popup>

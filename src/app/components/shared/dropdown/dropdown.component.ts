@@ -5,11 +5,11 @@ import {
   EventEmitter,
   HostListener,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
     selector: 'app-dropdown',
-    imports: [CommonModule],
+    imports: [],
     templateUrl: './dropdown.component.html',
     styleUrls: ['./dropdown.component.css']
 })

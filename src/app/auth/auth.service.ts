@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, DOCUMENT } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, map, Observable, Subject, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -9,7 +9,7 @@ import { AuthData } from './auth-data';
 import { ToastrService } from 'ngx-toastr';
 import { EditEmailModel } from '../interfaces/edit-email-model';
 import { EditPasswordModel } from '../interfaces/edit-password-model';
-import { DOCUMENT } from '@angular/common';
+
 
 const BACKEND_URL = environment.apiUrl + "/user";
 
