@@ -8,7 +8,11 @@ describe('authGuard', () => {
       TestBed.runInInjectionContext(() => authGuard(...guardParameters));
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
+    });
   });
 
   it('should be created', () => {

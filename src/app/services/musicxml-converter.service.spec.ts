@@ -6,7 +6,11 @@ describe('MusicxmlConverterService', () => {
   let service: MusicxmlConverterService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
+    });
     service = TestBed.inject(MusicxmlConverterService);
   });
 

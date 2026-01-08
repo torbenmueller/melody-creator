@@ -6,7 +6,11 @@ describe('AuthService', () => {
   let service: AuthService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
+    });
     service = TestBed.inject(AuthService);
   });
 

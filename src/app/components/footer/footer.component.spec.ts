@@ -8,7 +8,10 @@ describe('FooterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FooterComponent]
+      imports: [FooterComponent],
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
     })
     .compileComponents();
     

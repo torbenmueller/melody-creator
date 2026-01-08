@@ -8,7 +8,10 @@ describe('ScoreComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ScoreComponent]
+      imports: [ScoreComponent],
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
     })
     .compileComponents();
     

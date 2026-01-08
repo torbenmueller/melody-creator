@@ -8,7 +8,10 @@ describe('CookieConsentPopupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CookieConsentPopupComponent]
+      imports: [CookieConsentPopupComponent],
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
     })
     .compileComponents();
     

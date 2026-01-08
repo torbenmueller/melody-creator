@@ -8,7 +8,11 @@ describe('authInterceptor', () => {
     TestBed.runInInjectionContext(() => authInterceptor(req, next));
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
+    });
   });
 
   it('should be created', () => {

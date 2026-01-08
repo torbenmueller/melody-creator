@@ -8,7 +8,10 @@ describe('CommercialLicenseAgreementComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommercialLicenseAgreementComponent]
+      imports: [CommercialLicenseAgreementComponent],
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
     })
     .compileComponents();
     

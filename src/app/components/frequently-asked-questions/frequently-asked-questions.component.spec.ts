@@ -8,7 +8,10 @@ describe('FrequentlyAskedQuestionsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FrequentlyAskedQuestionsComponent]
+      imports: [FrequentlyAskedQuestionsComponent],
+      errorOnUnknownElements: true,
+      errorOnUnknownProperties: true,
+      rethrowApplicationErrors: false
     })
     .compileComponents();
     
