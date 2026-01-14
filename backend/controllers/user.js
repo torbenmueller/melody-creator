@@ -4,23 +4,25 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const Melody = require('../models/melody');
 const crypto = require('crypto');
-const { link } = require('fs');
+const { 
+	checkAndDowngradeExpiredPlan, 
+	refreshDailyCreditsIfNeeded,
+	errorResponses 
+} = require('../utils/helpers');
 require('dotenv').config();
 
 exports.createUser = (req, res, next) => {
 	bcrypt.hash(req.body.password, 10)
 		.then(hash => {
-			// Generate email verification token
 			const verificationToken = crypto.randomBytes(32).toString('hex');
-			const verificationExpiry = Date.now() + 24 * 60 * 60 * 1000; // 24h
+			const verificationExpiry = Date.now() + 24 * 60 * 60 * 1000;
 			const user = new User({
 				email: req.body.email,
 				password: hash,
 				plan: 'free',
-				planValidUntil: null, // Free plan doesn't expire
-				// initialize credits for free plan
-				creditsPermanent: 100, // one-time non-expiring
-				creditsDaily: 10, // daily credits
+				planValidUntil: null,
+				creditsPermanent: 100,
+				creditsDaily: 10,
 				creditsDailyExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
 				isEmailVerified: false,
 				emailVerificationToken: verificationToken,
@@ -28,11 +30,11 @@ exports.createUser = (req, res, next) => {
 			});
 			user.save()
 				.then(result => {
-						// Return minimal info to avoid serializing the full mongoose document
-						res.status(201).json({
-							message: 'Verification email sent. Please confirm your email to complete registration.',
-							userId: result._id
-						});
+					res.status(201).json({
+						message: 'User created successfully. Please check your email to verify your account.',
+						userId: result._id
+					});
+					// Send verification email
 					emailjs
 						.send(
 							process.env.EMAILJS_SERVICE_ID,
@@ -53,64 +55,32 @@ exports.createUser = (req, res, next) => {
 							}
 						)
 						.then(() => {
-							// ok
+							// Email sent successfully
 						})
 						.catch(err => {
-							console.log('EmailJS send error (verify):', err);
+							console.log('EmailJS send error (createUser):', err);
 						});
 				})
 				.catch(err => {
-					res.status(500).json({
-						message: "Invalid authentication credentials!"
-					});
+					console.error('createUser error:', err);
+					if (err.code === 11000) {
+						// Duplicate key error (email already exists)
+						return res.status(409).json({ message: 'Email already in use.' });
+					}
+					return res.status(500).json({ message: 'Failed to create user. Please try again.' });
 				});
-		});
+	});
 }
 
-// Helper to refresh daily credits for free users if expired and permanent credits are 0
-async function refreshDailyCreditsIfNeeded(user) {
-    const now = Date.now();
-    const exp = user.creditsDailyExpiresAt ? new Date(user.creditsDailyExpiresAt).getTime() : 0;
-    // Only free users get daily credits, and only when permanent credits are 0
-    if (user.plan === 'free' && (user.creditsPermanent || 0) === 0 && (!exp || now >= exp)) {
-        user.creditsDaily = 10;
-        user.creditsDailyExpiresAt = new Date(now + 24 * 60 * 60 * 1000);
-        await user.save();
-    }
-    // If user has permanent credits or is not on free plan, ensure no daily credits
-    else if (user.plan !== 'free' || (user.creditsPermanent || 0) > 0) {
-        user.creditsDaily = 0;
-        user.creditsDailyExpiresAt = null;
-        await user.save();
-    }
-}
-
-// Helper to check if plan has expired and downgrade to free if needed
-async function checkAndDowngradeExpiredPlan(user) {
-    const now = Date.now();
-    const planExpiry = user.planValidUntil ? new Date(user.planValidUntil).getTime() : 0;
-    
-    // If plan has expired and user is not already on free plan, downgrade to free
-    if (planExpiry && now >= planExpiry && user.plan !== 'free') {
-        user.plan = 'free';
-        // Keep permanent credits (they roll over)
-        // Clear daily credits for non-free plans that expired
-        user.creditsDaily = 0;
-        user.creditsDailyExpiresAt = null;
-        // Free plan doesn't have an expiration date
-        user.planValidUntil = null;
-        await user.save();
-    }
-}
-
-// Return current credit balances, refreshing daily credits for free users
+// Get user credits and plan information
 exports.getCredits = async (req, res, next) => {
-    try {
-        if (!req.userData || !req.userData.userId) return res.status(401).json({ message: 'Not authenticated' });
-        const user = await User.findOne({ _id: req.userData.userId });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+	try {
+        const user = await User.findById(req.userData.userId);
+        if (!user) return errorResponses.notFound(res, 'User');
+        
         await checkAndDowngradeExpiredPlan(user);
         await refreshDailyCreditsIfNeeded(user);
+        
         return res.status(200).json({
             plan: user.plan,
             creditsPermanent: user.creditsPermanent || 0,
@@ -119,68 +89,37 @@ exports.getCredits = async (req, res, next) => {
         });
     } catch (err) {
         console.error('getCredits error', err);
-        return res.status(500).json({ message: 'Internal server error' });
+        return errorResponses.serverError(res);
     }
 }
 
 // Check if user has enough credits available for melody creation
 exports.checkCreditsAvailable = async (req, res, next) => {
     try {
-        const amountRaw = req.body && req.body.amount;
-        const amount = parseInt(amountRaw, 10) || 1; // Default to 1 credit if not specified
-        if (amount <= 0) return res.status(400).json({ message: 'Invalid amount' });
-        if (!req.userData || !req.userData.userId) return res.status(401).json({ message: 'Not authenticated' });
+        const amount = parseInt(req.body?.amount, 10) || 1;
+        if (amount <= 0) return errorResponses.badRequest(res, 'Invalid amount');
+        if (!req.userData?.userId) return errorResponses.unauthorized(res);
         
-        const user = await User.findOne({ _id: req.userData.userId });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const user = await User.findById(req.userData.userId);
+        if (!user) return errorResponses.notFound(res, 'User');
 
         await refreshDailyCreditsIfNeeded(user);
 
-        // For pro/enterprise plans, check their permanent credits
-        if (user.plan === 'pro' || user.plan === 'enterprise') {
-            const perm = user.creditsPermanent || 0;
-            if (perm >= amount) {
-                return res.status(200).json({ 
-                    hasEnoughCredits: true, 
-                    plan: user.plan,
-                    creditsAvailable: perm,
-                    creditsRequired: amount
-                });
-            } else {
-                return res.status(200).json({ 
-                    hasEnoughCredits: false, 
-                    plan: user.plan,
-                    creditsAvailable: perm,
-                    creditsRequired: amount,
-                    message: `Insufficient credits. You have ${perm} credits but need ${amount}.`
-                });
-            }
-        }
-
-        // For free plan, check actual credit availability
-        const daily = user.creditsDaily || 0;
-        const perm = user.creditsPermanent || 0;
-        const available = daily + perm;
+        const available = user.plan === 'pro' || user.plan === 'enterprise'
+            ? user.creditsPermanent || 0
+            : (user.creditsDaily || 0) + (user.creditsPermanent || 0);
         
-        if (available >= amount) {
-            return res.status(200).json({ 
-                hasEnoughCredits: true,
-                plan: user.plan,
-                creditsAvailable: available,
-                creditsRequired: amount
-            });
-        } else {
-            return res.status(200).json({ 
-                hasEnoughCredits: false,
-                plan: user.plan,
-                creditsAvailable: available,
-                creditsRequired: amount,
-                message: `Insufficient credits. You have ${available} credits but need ${amount}.`
-            });
-        }
+        const hasEnough = available >= amount;
+        return res.status(200).json({ 
+            hasEnoughCredits: hasEnough, 
+            plan: user.plan,
+            creditsAvailable: available,
+            creditsRequired: amount,
+            ...(!hasEnough && { message: `Insufficient credits. You have ${available} credits but need ${amount}.` })
+        });
     } catch (err) {
         console.error('checkCreditsAvailable error', err);
-        return res.status(500).json({ message: 'Internal server error' });
+        return errorResponses.serverError(res);
     }
 }
 
@@ -261,13 +200,14 @@ exports.consumeCredits = async (req, res, next) => {
 exports.deleteUser = async (req, res, next) => {
 	try {
 		const userId = req.userData.userId;
-		const deletedUser = await User.findByIdAndDelete({ _id: userId });
-		if (!deletedUser) return res.status(404).json({ message: 'User not found' });
+		const deletedUser = await User.findByIdAndDelete(userId);
+		if (!deletedUser) return errorResponses.notFound(res, 'User');
+		
 		await Melody.deleteMany({ creator: userId });
 		return res.status(200).json({ message: 'User and associated melodies deleted successfully' });
 	} catch (error) {
-		console.log(error);
-		return res.status(500).json({ message: 'Internal server error' });
+		console.error('deleteUser error:', error);
+		return errorResponses.serverError(res);
 	}
 }
 
@@ -550,13 +490,16 @@ exports.postNewPassword = (req, res, next) => {
 
 exports.getUser = async (req, res, next) => {
 	try {
-		const user = await User.findOne({ _id: req.userData.userId });
-		if (!user) return res.status(404).json({ message: 'User not found' });
+		const user = await User.findById(req.userData.userId);
+		if (!user) return errorResponses.notFound(res, 'User');
+		
 		await checkAndDowngradeExpiredPlan(user);
 		await refreshDailyCreditsIfNeeded(user);
+		
 		res.send(user);
 	} catch (error) {
-		res.status(500).send(error);
+		console.error('getUser error:', error);
+		errorResponses.serverError(res);
 	}
 }
 
@@ -564,15 +507,16 @@ exports.getUser = async (req, res, next) => {
 exports.checkEmail = async (req, res, next) => {
 	try {
 		const email = req.query.email;
-		if (!email) return res.status(400).json({ message: 'Email query parameter is required.' });
-		const existing = await User.findOne({ email: email.toString().toLowerCase() });
+		if (!email) return errorResponses.badRequest(res, 'Email query parameter is required.');
+		
+		const existing = await User.findOne({ email: email.toString().toLowerCase() }).lean().exec();
 		if (existing) {
 			return res.status(409).json({ available: false, message: 'Email already in use.' });
 		}
 		return res.status(200).json({ available: true });
 	} catch (err) {
 		console.error('checkEmail error', err);
-		return res.status(500).json({ message: 'Internal server error' });
+		return errorResponses.serverError(res);
 	}
 }
 
@@ -727,37 +671,31 @@ exports.updatePassword = async (req, res, next) => {
 
 exports.checkoutUser = async (req, res, next) => {
 	try {
-		if (!req.userData || !req.userData.userId) {
-			return res.status(401).json({ message: 'Not authenticated' });
-		}
-		const user = await User.findOne({ _id: req.userData.userId });
-		if (!user) {
-			return res.status(404).json({ message: 'User not found' });
-		}
-		// return minimal user info to avoid exposing internals
-		return res.status(200).json({ userId: user._id, email: user.email, isEmailVerified: user.isEmailVerified });
+		if (!req.userData?.userId) return errorResponses.unauthorized(res);
+		
+		const user = await User.findById(req.userData.userId).select('email isEmailVerified').lean().exec();
+		if (!user) return errorResponses.notFound(res, 'User');
+		
+		return res.status(200).json({ userId: req.userData.userId, email: user.email, isEmailVerified: user.isEmailVerified });
 	} catch (error) {
-		console.error('checkoutUser error', error && error.stack ? error.stack : error);
-		return res.status(500).json({ message: 'Internal server error' });
+		console.error('checkoutUser error', error);
+		return errorResponses.serverError(res);
 	}
 }
 
 // Get user plan information for restricting features
 exports.getUserPlan = async (req, res, next) => {
 	try {
-		const user = await User.findOne({ _id: req.userData.userId });
-		if (!user) {
-			return res.status(404).json({ message: 'User not found' });
-		}
+		const user = await User.findById(req.userData.userId).select('plan').lean().exec();
+		if (!user) return errorResponses.notFound(res, 'User');
 		
-		// Return user plan info
 		return res.status(200).json({ 
 			isAuthenticated: true,
 			plan: user.plan || 'free',
 			hasRestrictions: !user.plan || user.plan === 'free'
 		});
 	} catch (error) {
-		console.error('getUserPlan error', error && error.stack ? error.stack : error);
-		return res.status(500).json({ message: 'Internal server error' });
+		console.error('getUserPlan error', error);
+		return errorResponses.serverError(res);
 	}
 }

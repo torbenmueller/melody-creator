@@ -2,105 +2,47 @@ const Melody = require('../models/melody');
 const User = require('../models/user');
 const MidiWriter = require('midi-writer-js');
 const MelodyGenerator = require('../services/melodyGenerator');
-
-// Helper to check if plan has expired and downgrade to free if needed
-async function checkAndDowngradeExpiredPlan(user) {
-    const now = Date.now();
-    const planExpiry = user.planValidUntil ? new Date(user.planValidUntil).getTime() : 0;
-    
-    // If plan has expired and user is not already on free plan, downgrade to free
-    if (planExpiry && now >= planExpiry && user.plan !== 'free') {
-        user.plan = 'free';
-        // Keep permanent credits (they roll over)
-        // Clear daily credits for non-free plans that expired
-        user.creditsDaily = 0;
-        user.creditsDailyExpiresAt = null;
-        // Extend planValidUntil by 30 days for the new free plan period
-        user.planValidUntil = new Date(now + 30 * 24 * 60 * 60 * 1000);
-        await user.save();
-    }
-}
-
-// Validate settings based on user plan (unauthenticated or free users have restrictions)
-function validateSettingsForPlan(settings, plan) {
-	const errors = [];
-	
-	// Restrictions for unauthenticated and free users
-	if (!plan || plan === 'free') {
-		// Only Major and Minor scales allowed
-		if (settings.scale !== 'Major' && settings.scale !== 'Minor') {
-			errors.push('Only Major and Minor scales are available for free users');
-		}
-		
-		// Only 2 or 4 bars allowed
-		if (settings.bar !== 2 && settings.bar !== 4) {
-			errors.push('Only 2 or 4 bars are available for free users');
-		}
-		
-		// Only Low complexity allowed
-		if (settings.complex !== 'Low') {
-			errors.push('Only Low complexity is available for free users');
-		}
-		
-		// Only 4/4 beat allowed
-		if (settings.beat !== '4/4') {
-			errors.push('Only 4/4 beat is available for free users');
-		}
-	}
-	
-	return errors;
-}
+const { 
+    checkAndDowngradeExpiredPlan, 
+    validateSettingsForPlan, 
+    consumeCredit,
+    errorResponses 
+} = require('../utils/helpers');
 
 // Generate melody on backend (works for both authenticated and anonymous users)
 exports.generateMelody = async (req, res, next) => {
 	try {
 		const { settings } = req.body;
 		if (!settings) {
-			return res.status(400).json({ message: 'Settings are required' });
+			return errorResponses.badRequest(res, 'Settings are required');
 		}
 
 		let userPlan = null;
 		
-		// Check if user is authenticated (req.userData set by optional-auth middleware)
-		if (req.userData && req.userData.userId) {
+		// Check if user is authenticated
+		if (req.userData?.userId) {
 			const user = await User.findById(req.userData.userId);
 			if (user) {
-				// Check and downgrade expired plan
 				await checkAndDowngradeExpiredPlan(user);
 				userPlan = user.plan;
 			}
 		}
-		// If not authenticated, userPlan remains null (free plan restrictions applied)
 		
-		// Validate settings based on user plan
+		// Validate settings
 		const validationErrors = validateSettingsForPlan(settings, userPlan);
 		if (validationErrors.length > 0) {
-			return res.status(403).json({ 
-				message: 'Invalid settings for your plan',
-				errors: validationErrors
-			});
+			return errorResponses.forbidden(res, `Invalid settings: ${validationErrors.join(', ')}`);
 		}
 
-		// Generate melody using backend algorithm
+		// Generate melody
 		const generator = new MelodyGenerator();
 		const result = generator.generateMelody(settings);
 		
-		// If user is authenticated, consume credit after successful generation
-		if (req.userData && req.userData.userId) {
+		// Consume credit if authenticated
+		if (req.userData?.userId) {
 			const user = await User.findById(req.userData.userId);
 			if (user) {
-				// Consume 1 credit
-				if (user.plan === 'pro' || user.plan === 'enterprise') {
-					user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
-				} else {
-					// For free plan, consume daily credits first, then permanent
-					if (user.creditsDaily > 0) {
-						user.creditsDaily = Math.max(0, user.creditsDaily - 1);
-					} else {
-						user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
-					}
-				}
-				await user.save();
+				await consumeCredit(user);
 			}
 		}
 		
@@ -121,68 +63,42 @@ exports.generateMelody = async (req, res, next) => {
 
 exports.saveMelody = async (req, res, next) => {
 	try {
-		// Fetch user from database to get current plan
 		const user = await User.findById(req.userData.userId);
-		if (!user) {
-			return res.status(404).json({ message: 'User not found' });
-		}
+		if (!user) return errorResponses.notFound(res, 'User');
 		
-		// Check and downgrade expired plan
 		await checkAndDowngradeExpiredPlan(user);
 		
-		// Only check credits if we need to consume a credit (melody created before login)
+		// Check credits if consuming
 		if (req.body.consumeCredit === true) {
-			const requiredCredits = 1;
-			let availableCredits = 0;
+			const availableCredits = user.plan === 'pro' || user.plan === 'enterprise'
+				? user.creditsPermanent || 0
+				: (user.creditsDaily || 0) + (user.creditsPermanent || 0);
 			
-			if (user.plan === 'pro' || user.plan === 'enterprise') {
-				availableCredits = user.creditsPermanent || 0;
-			} else {
-				// For free plan, check both daily and permanent credits
-				availableCredits = (user.creditsDaily || 0) + (user.creditsPermanent || 0);
-			}
-			
-			if (availableCredits < requiredCredits) {
-				return res.status(403).json({ 
-					message: `Insufficient credits to save melody. You have ${availableCredits} credits but need ${requiredCredits}.`,
-					hasEnoughCredits: false
-				});
+			if (availableCredits < 1) {
+				return errorResponses.insufficientCredits(res, availableCredits, 1);
 			}
 		}
 		
-		// Validate settings based on user plan
+		// Validate settings
 		const validationErrors = validateSettingsForPlan(req.body.settings, user.plan);
 		if (validationErrors.length > 0) {
-			return res.status(403).json({ 
-				message: 'Invalid settings for your plan',
-				errors: validationErrors
-			});
+			return errorResponses.forbidden(res, `Invalid settings: ${validationErrors.join(', ')}`);
 		}
 		
 		const melody = new Melody({
 			melody: req.body.melody,
 			creator: req.userData.userId,
 			settings: req.body.settings,
-			plan: user.plan // Use plan from database
+			plan: user.plan
 		});
 		
-		if (melody.settings.name === '') melody.settings.name = 'Melody';
+		if (!melody.settings.name) melody.settings.name = 'Melody';
 
 		await melody.save();
 		
-		// Only consume credit if explicitly requested (for melodies created before authentication)
+		// Consume credit if requested
 		if (req.body.consumeCredit === true) {
-			if (user.plan === 'pro' || user.plan === 'enterprise') {
-				user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
-			} else {
-				// For free plan, consume daily credits first, then permanent
-				if (user.creditsDaily > 0) {
-					user.creditsDaily = Math.max(0, user.creditsDaily - 1);
-				} else {
-					user.creditsPermanent = Math.max(0, (user.creditsPermanent || 0) - 1);
-				}
-			}
-			await user.save();
+			await consumeCredit(user);
 		}
 		
 		res.status(201).json({
@@ -196,74 +112,73 @@ exports.saveMelody = async (req, res, next) => {
 	}
 }
 
-exports.loadMelodies = (req, res, next) => {
-	const pageSize = +req.query.pagesize;
-	const currentPage = +req.query.page;
-	const sortByType = req.query.sort_by_type;
-	const order = parseInt(req.query.order);
-	// let melodyQuery = Melody.find({ creator: req.userData.userId }).sort({ time: -1 });
-	let melodyQuery = Melody.find({ creator: req.userData.userId });
-	let fetchedMelodies;
+exports.loadMelodies = async (req, res, next) => {
+	try {
+		const pageSize = +req.query.pagesize;
+		const currentPage = +req.query.page;
+		const sortByType = req.query.sort_by_type;
+		const order = parseInt(req.query.order) || -1;
+		
+		const sortOptions = {
+			time: { time: order },
+			license: { plan: order },
+			name: { 'settings.name': order },
+			key: { 'settings.key': order },
+			bar: { 'settings.bar': order },
+			complex: { 'settings.complex': order },
+			beat: { 'settings.beat': order }
+		};
+		
+		const query = { creator: req.userData.userId };
+		let melodyQuery = Melody.find(query).lean().sort(sortOptions[sortByType] || { time: -1 });
 
-	if (sortByType === "time") melodyQuery.sort({ time: order });
-	if (sortByType === "license") melodyQuery.sort({ plan: order });
-	if (sortByType === "name") melodyQuery.sort({ 'settings.name': order });
-	if (sortByType === "key") melodyQuery.sort({ 'settings.key': order });
-	if (sortByType === "bar") melodyQuery.sort({ 'settings.bar': order });
-	if (sortByType === "complex") melodyQuery.sort({ 'settings.complex': order });
-	if (sortByType === "beat") melodyQuery.sort({ 'settings.beat': order });
-
-	if (pageSize && currentPage) {
-		melodyQuery
-			.skip(pageSize * (currentPage - 1))
-			.limit(pageSize);
-	}
-	melodyQuery
-		.then(documents => {
-			fetchedMelodies = documents;
-			return Melody.countDocuments({ creator: req.userData.userId });
-		}).then(count => {
-			res.status(200).json({
-				message: 'Melodies fetched successfully!',
-				melodies: fetchedMelodies,
-				maxMelodies: count
-			});
-		}).catch(error => {
-			res.status(500).json({
-				message: 'Fetching melodies failed!'
-			});
+		if (pageSize && currentPage) {
+			melodyQuery.skip(pageSize * (currentPage - 1)).limit(pageSize);
+		}
+		
+		const [melodies, count] = await Promise.all([
+			melodyQuery.exec(),
+			Melody.countDocuments(query)
+		]);
+		
+		res.status(200).json({
+			message: 'Melodies fetched successfully!',
+			melodies,
+			maxMelodies: count
 		});
+	} catch (error) {
+		console.error('Load melodies error:', error);
+		errorResponses.serverError(res, 'Fetching melodies failed!');
+	}
 }
 
-exports.deleteMelody = (req, res, next) => {
-	Melody.deleteOne({ _id: req.params.id })
-		.then(result => {
-			res.status(200).json({ message: 'Melody deleted!' });
-		}).catch(error => {
-			res.status(500).json({
-				message: 'Deleting melody failed!'
-			});
-		});
+exports.deleteMelody = async (req, res, next) => {
+	try {
+		const result = await Melody.deleteOne({ _id: req.params.id, creator: req.userData.userId });
+		if (result.deletedCount === 0) {
+			return errorResponses.notFound(res, 'Melody');
+		}
+		res.status(200).json({ message: 'Melody deleted!' });
+	} catch (error) {
+		console.error('Delete melody error:', error);
+		errorResponses.serverError(res, 'Deleting melody failed!');
+	}
 }
 
 exports.updateMelodyName = async (req, res, next) => {
 	try {
 		const { name } = req.body;
 		
-		if (!name || !name.trim()) {
-			return res.status(400).json({ message: 'Melody name is required' });
+		if (!name?.trim()) {
+			return errorResponses.badRequest(res, 'Melody name is required');
 		}
 
-		const melody = await Melody.findById(req.params.id);
+		const melody = await Melody.findOne({ 
+			_id: req.params.id,
+			creator: req.userData.userId 
+		});
 		
-		if (!melody) {
-			return res.status(404).json({ message: 'Melody not found' });
-		}
-
-		// Check if user owns this melody
-		if (melody.creator.toString() !== req.userData.userId) {
-			return res.status(403).json({ message: 'Not authorized to update this melody' });
-		}
+		if (!melody) return errorResponses.notFound(res, 'Melody');
 
 		melody.settings.name = name.trim();
 		await melody.save();
@@ -271,40 +186,50 @@ exports.updateMelodyName = async (req, res, next) => {
 		res.status(200).json({ message: 'Melody name updated successfully' });
 	} catch (error) {
 		console.error('Update melody name error:', error);
-		res.status(500).json({ message: 'Updating melody name failed' });
+		errorResponses.serverError(res, 'Updating melody name failed');
 	}
 }
 
-exports.getModes = (req, res, next) => {
-	let allMelodies = Melody.find({ creator: req.userData.userId }).sort({ time: -1 });
-	allMelodies
-		.then(documents => {
-			const modes = getAllDifferentModes(documents);
-			res.status(200).json({
-				message: 'Modes fetched successfully!',
-				modes: modes
-			}); 
-		}).catch(error => {
-			res.status(500).json({
-				message: 'Fetching modes failed!'
-			});
+exports.getModes = async (req, res, next) => {
+	try {
+		const melodies = await Melody.find({ creator: req.userData.userId })
+			.select('settings.scale')
+			.lean()
+			.exec();
+		
+		const modes = getAllDifferentModes(melodies);
+		res.status(200).json({
+			message: 'Modes fetched successfully!',
+			modes
 		});
+	} catch (error) {
+		console.error('Get modes error:', error);
+		errorResponses.serverError(res, 'Fetching modes failed!');
+	}
 }
 
 exports.getMidiFile = async (req, res, next) => {
 	try {
-		const melody = await Melody.findOne({ _id: req.params.id });
-		const writer = await createNewMidiFile(melody);
-		const name = melody.settings.name;
+		const melody = await Melody.findOne({ 
+			_id: req.params.id,
+			creator: req.userData.userId 
+		}).lean().exec();
+		
+		if (!melody) return errorResponses.notFound(res, 'Melody');
+		
+		const writer = createNewMidiFile(melody);
+		const name = melody.settings.name || 'melody';
+		
 		res.set('Content-Type', 'audio/midi');
 		res.set('Content-Disposition', `attachment; filename="${name}.mid"`);
 		res.send(Buffer.from(writer.buildFile()));
 	} catch (error) {
-		res.send(error);
+		console.error('Get MIDI file error:', error);
+		errorResponses.serverError(res, 'Generating MIDI file failed!');
 	}
 }
 
-const getAllDifferentModes = (documents => {
+const getAllDifferentModes = (documents) => {
 	const modeValues = {};
 	let maxValue = 0;
 
@@ -326,9 +251,9 @@ const getAllDifferentModes = (documents => {
 	};
 
 	return modeData;
-});
+};
 
-const createNewMidiFile = (result => {
+const createNewMidiFile = (result) => {
 	const beat = result.settings.beat;
 	const firstChar = +beat.charAt(0);
 	const lastChar = +beat.charAt(beat.length -1);
@@ -349,4 +274,4 @@ const createNewMidiFile = (result => {
 	const writer = new MidiWriter.Writer([track]);
 
 	return writer;
-});
+};
