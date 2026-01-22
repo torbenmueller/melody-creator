@@ -32,6 +32,19 @@
         </div>
       </div>
     </div>
+  } @else if (data.message === 'register-prompt') {
+    <div class="register-prompt-modal">
+      <p class="mb-3">You've created 3 melodies or more!<i class="fas fa-music ms-2"></i></p>
+      <p class="mb-4">Create a <strong>free account</strong> to unlock amazing benefits:</p>
+      <ul class="text-start mb-4">
+        <li><strong>100 permanent credits</strong> as a welcome bonus</li>
+        <li><strong>10 daily credits</strong> that refresh every 24 hours</li>
+        <li><strong>Save your melodies</strong> and access them anytime</li>
+        <li><strong>Create 2 or 4 bar melodies</strong> (vs. only 2 bars)</li>
+        <li><strong>Download as MIDI</strong> and use in your projects</li>
+      </ul>
+      <p>Registration is quick and completely free!</p>
+    </div>
   } @else if (data.isPurchaseCreditsModal) {
     <div class="purchase-credits-modal">
       <p class="mb-4">Purchase additional credits whenever you need them</p>
@@ -97,6 +110,12 @@
   @case ('Purchase Additional Credits') {
     <mat-dialog-actions>
       <button type="button" class="btn btn-secondary" mat-dialog-close>Close</button>
+    </mat-dialog-actions>
+  }
+  @case ('Unlock More Features!') {
+    <mat-dialog-actions>
+      <button type="button" class="btn btn-secondary me-2" mat-dialog-close>Maybe Later</button>
+      <button type="button" class="btn primary-button" mat-dialog-close routerLink="/auth/signup">Sign Up Free</button>
     </mat-dialog-actions>
   }
 }

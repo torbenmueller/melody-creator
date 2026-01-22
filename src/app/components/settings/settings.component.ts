@@ -82,6 +82,7 @@ export class SettingsComponent {
   
   allBars: number[] = [2, 4, 8];
   restrictedBars: number[] = [2, 4];
+  unauthorizedBars: number[] = [2];
   bars: number[] = this.allBars;
   
   allComplexity: string[] = ['Low', 'Medium', 'High'];
@@ -105,6 +106,7 @@ export class SettingsComponent {
   isPlaying: boolean = false;
 
   private authListenerSubs!: Subscription;
+  private readonly UNAUTHORIZED_MELODY_COUNT_KEY = 'unauthorizedMelodyCount';
 
   constructor(
     public creationService: CreationService,
@@ -167,7 +169,8 @@ export class SettingsComponent {
     if (this.hasRestrictions) {
       // Apply restrictions for unauthenticated and free users
       this.scales = this.restrictedScales;
-      this.bars = this.restrictedBars;
+      // Unauthorized users: only 2 bars; Free users: 2 or 4 bars
+      this.bars = this.userIsAuthenticated ? this.restrictedBars : this.unauthorizedBars;
       this.complexity = this.restrictedComplexity;
       this.beats = this.restrictedBeats;
       
@@ -175,8 +178,9 @@ export class SettingsComponent {
       if (!this.restrictedScales.includes(this.settings.scale)) {
         this.settings.scale = this.restrictedScales[0];
       }
-      if (!this.restrictedBars.includes(this.settings.bar)) {
-        this.settings.bar = this.restrictedBars[0];
+      const allowedBars = this.userIsAuthenticated ? this.restrictedBars : this.unauthorizedBars;
+      if (!allowedBars.includes(this.settings.bar)) {
+        this.settings.bar = allowedBars[0];
       }
       if (!this.restrictedComplexity.includes(this.settings.complex)) {
         this.settings.complex = this.restrictedComplexity[0];
@@ -235,11 +239,15 @@ export class SettingsComponent {
         this.intervals = result.intervals;
         this.isLoading = false;
         this.melodyDescription = this.setDescription(result.settings);
+        
         // Refresh user data to update credits display and plan (if authenticated)
         // This ensures we have the latest plan info in case it was downgraded during generation
         if (this.userIsAuthenticated) {
           this.userService.refreshUser();
           this.loadUserPlanAndApplyRestrictions();
+        } else {
+          // Track unauthorized melody creation and show registration prompt after 3
+          this.trackUnauthorizedMelodyCreation();
         }
       },
       error: (error: any) => {
@@ -401,5 +409,29 @@ export class SettingsComponent {
   resetSettings(): void {
     this.settings = this.initialSettings();
     this.melodyDescription = this.setDescription(this.settings);
+  }
+
+  private trackUnauthorizedMelodyCreation(): void {
+    try {
+      const currentCount = parseInt(localStorage.getItem(this.UNAUTHORIZED_MELODY_COUNT_KEY) || '0');
+      const newCount = currentCount + 1;
+      localStorage.setItem(this.UNAUTHORIZED_MELODY_COUNT_KEY, newCount.toString());
+      
+      // Show registration prompt after 3 melodies
+      if (newCount >= 3) {
+        this.showRegistrationPrompt();
+      }
+    } catch (error) {
+      console.error('Failed to track unauthorized melody creation', error);
+    }
+  }
+
+  private showRegistrationPrompt(): void {
+    const dialogRef = this.dialog.open(MatModalComponent, {
+      data: {
+        title: 'Unlock More Features!',
+        message: 'register-prompt'
+      }
+    });
   }
 }

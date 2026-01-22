@@ -47,9 +47,15 @@ function validateSettingsForPlan(settings, plan) {
             errors.push('Only Major and Minor scales are available for free users');
         }
         
-        // Only 2 or 4 bars allowed
-        if (settings.bar !== 2 && settings.bar !== 4) {
-            errors.push('Only 2 or 4 bars are available for free users');
+        // Bars restriction: unauthorized (no plan) = only 2 bars; free plan = 2 or 4 bars
+        if (!plan) {
+            if (settings.bar !== 2) {
+                errors.push('Only 2 bars are available for unauthorized users');
+            }
+        } else if (plan === 'free') {
+            if (settings.bar !== 2 && settings.bar !== 4) {
+                errors.push('Only 2 or 4 bars are available for free users');
+            }
         }
         
         // Only Low complexity allowed
