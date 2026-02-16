@@ -1,4 +1,4 @@
 export interface EditPasswordModel {
-	password: string,
-	newpassword: string
+	password: string;
+	newpassword: string;
 }

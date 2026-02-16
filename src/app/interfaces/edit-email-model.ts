@@ -1,3 +1,3 @@
 export interface EditEmailModel {
-	email: string
+	email: string;
 }

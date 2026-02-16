@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
+import { FloatingNotesComponent } from '../floating-notes/floating-notes.component';
 
 @Component({
     selector: 'app-features',
-    imports: [RouterLink],
+    imports: [RouterLink, FloatingNotesComponent],
     templateUrl: './features.component.html',
     styleUrl: './features.component.css'
 })

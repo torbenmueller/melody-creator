@@ -40,11 +40,11 @@ export interface MelodiesResponse {
 
 // Legacy interface - consider removing if not used elsewhere
 export interface MelodyModel {
-	// id: string,
+	// id: string;
 	melody: [
 		{
-			note: string,
-			time: string
+			note: string;
+			time: string;
 		}
-	]
+	];
 }
