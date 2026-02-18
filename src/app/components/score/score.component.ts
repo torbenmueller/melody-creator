@@ -1,4 +1,5 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
 import { CreationService } from '../../services/creation.service';
 import { RenderContext, Vex } from 'vexflow';
 import { Subscription } from 'rxjs';
@@ -11,6 +12,7 @@ import { Scale } from '../../interfaces/melody-model';
     styleUrl: './score.component.css'
 })
 export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
   totalMeasures: number = 0;
   composedMelody!: any[];
   melodySettings: any;
@@ -53,11 +55,19 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   
   ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.viewReady = true;
     if (this.dataReady) this.createScore();
   }
   
   createScore() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.totalMeasures = 0;
     const VF = Vex.Flow;  
     const div = this.scoreEl?.nativeElement as HTMLDivElement;

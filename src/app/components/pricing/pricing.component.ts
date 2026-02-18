@@ -1,5 +1,6 @@
 
-import { Component, DestroyRef, Inject, OnInit, DOCUMENT } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, DestroyRef, Inject, OnInit, DOCUMENT, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -19,6 +20,7 @@ export class PricingComponent implements OnInit {
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
+    @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
     private authService: AuthService,
     private toastr: ToastrService,
@@ -31,6 +33,10 @@ export class PricingComponent implements OnInit {
   }
 
   scrollToTop() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.document.body.scrollTop = 0;
     this.document.documentElement.scrollTop = 0;
   }

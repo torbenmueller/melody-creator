@@ -1,15 +1,21 @@
-import { Component } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, PLATFORM_ID, inject } from '@angular/core';
+import { FloatingNotesComponent } from '../floating-notes/floating-notes.component';
 
 @Component({
     selector: 'app-header',
-    imports: [],
+    imports: [FloatingNotesComponent],
     templateUrl: './header.component.html',
     styleUrl: './header.component.css'
 })
 export class HeaderComponent {
-  title: string = "Unleash Your Musical Creativity";
+  private readonly platformId = inject(PLATFORM_ID);
 
   scrollToPosition(y: number): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     window.scrollTo({ top: y, behavior: 'smooth' });
   }
 }

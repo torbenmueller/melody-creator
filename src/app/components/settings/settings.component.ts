@@ -1,4 +1,5 @@
-import { Component, ElementRef, HostListener } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, ElementRef, HostListener, PLATFORM_ID, inject } from '@angular/core';
 import { Settings } from '../../interfaces/settings';
 import { Subscription } from 'rxjs';
 import { CreationService } from '../../services/creation.service';
@@ -19,6 +20,7 @@ import { MatModalComponent } from '../mat-modal/mat-modal.component';
     styleUrl: './settings.component.css'
 })
 export class SettingsComponent {
+  private readonly platformId = inject(PLATFORM_ID);
   allScales: string[] = [
     'Major',
     'Minor',
@@ -412,6 +414,10 @@ export class SettingsComponent {
   }
 
   private trackUnauthorizedMelodyCreation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     try {
       const currentCount = parseInt(localStorage.getItem(this.UNAUTHORIZED_MELODY_COUNT_KEY) || '0');
       const newCount = currentCount + 1;

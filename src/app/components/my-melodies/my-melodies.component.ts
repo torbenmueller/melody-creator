@@ -4,11 +4,12 @@ import { CreationService } from '../../services/creation.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe, isPlatformBrowser, NgClass } from '@angular/common';
 import { ScoreComponent } from '../score/score.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { MusicxmlConverterService } from '../../services/musicxml-converter.service';
 import { FormsModule } from '@angular/forms';
+import { PLATFORM_ID, inject } from '@angular/core';
 
 @Component({
     selector: 'app-my-melodies',
@@ -29,6 +30,7 @@ import { FormsModule } from '@angular/forms';
     ]
 })
 export class MyMelodiesComponent implements OnInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
   private melodiesSub!: Subscription;
   melodies: any[] = [];
   totalMelodies: number = 0;
@@ -122,6 +124,10 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
   }
 
   downloadMidiFile(melodyId: any, melodyName: any) {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.creationService.getMidiFile(melodyId).subscribe((response) => {
       const blob = new Blob([response.body as BlobPart], {
         type: 'audio/midi',

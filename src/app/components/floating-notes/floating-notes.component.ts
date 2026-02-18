@@ -1,4 +1,5 @@
-import { Component, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, ViewChild, ElementRef, AfterViewInit, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
 import { Particle } from '../../interfaces/particle';
 
 @Component({
@@ -9,10 +10,14 @@ import { Particle } from '../../interfaces/particle';
 })
 export class FloatingNotesComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasRef', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+  private readonly platformId = inject(PLATFORM_ID);
   
   private particles: Particle[] = [];
   private animFrameId: number = 0;
   private resizeListener?: () => void;
+  private visibilityChangeListener?: () => void;
+  private canvasWidth: number = 0;
+  private canvasHeight: number = 0;
   static readonly COLORS = [
   "hsl(300 70% 55%)",
   "hsl(330 80% 60%)",
@@ -367,11 +372,6 @@ drawNatural(ctx: CanvasRenderingContext2D, s: number) {
 // --- Main drawing dispatch ---
 
 drawParticle(ctx: CanvasRenderingContext2D, p: Particle) {
-  ctx.fillStyle = p.color;
-  ctx.strokeStyle = p.color;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-
   switch (p.type) {
     case "whole-note":
       this.drawWholeNote(ctx, p.size);
@@ -419,15 +419,23 @@ drawParticle(ctx: CanvasRenderingContext2D, p: Particle) {
 }
 
 ngAfterViewInit(): void {
+  if (!isPlatformBrowser(this.platformId)) {
+    return;
+  }
+
   const canvas = this.canvasRef.nativeElement;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
   const resize = () => {
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    const { width, height } = canvas.getBoundingClientRect();
+    this.canvasWidth = width;
+    this.canvasHeight = height;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
   
@@ -435,11 +443,10 @@ ngAfterViewInit(): void {
   resize();
   window.addEventListener('resize', resize);
 
-  const rect = canvas.getBoundingClientRect();
   const count = 32;
   this.particles = Array.from({ length: count }, () => ({
-    x: Math.random() * rect.width,
-    y: Math.random() * rect.height,
+    x: Math.random() * this.canvasWidth,
+    y: Math.random() * this.canvasHeight,
     size: 7 + Math.random() * 12,
     speedX: (Math.random() - 0.5) * 0.25,
     speedY: -(0.1 + Math.random() * 0.3),
@@ -451,23 +458,47 @@ ngAfterViewInit(): void {
     phase: Math.random() * Math.PI * 2,
   }));
 
+  const frameIntervalMs = 1000 / 30;
+  let lastFrameTime = 0;
   let time = 0;
-  const animate = () => {
-    const rect = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, rect.width, rect.height);
-    time += 0.016;
+  let lastColor = '';
+  const animate = (timestamp: number) => {
+    if (document.hidden) {
+      this.animFrameId = 0;
+      return;
+    }
+
+    if (lastFrameTime && timestamp - lastFrameTime < frameIntervalMs) {
+      this.animFrameId = requestAnimationFrame(animate);
+      return;
+    }
+
+    const deltaMs = lastFrameTime ? timestamp - lastFrameTime : frameIntervalMs;
+    lastFrameTime = timestamp;
+    const deltaSeconds = Math.min(deltaMs / 1000, 0.05);
+
+    const canvasWidth = this.canvasWidth;
+    const canvasHeight = this.canvasHeight;
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    time += deltaSeconds;
 
     for (const p of this.particles) {
-      p.x += p.speedX + Math.sin(time * 0.4 + p.phase) * 0.12;
-      p.y += p.speedY;
-      p.rotation += p.rotationSpeed;
+      if (p.color !== lastColor) {
+        ctx.fillStyle = p.color;
+        ctx.strokeStyle = p.color;
+        lastColor = p.color;
+      }
+
+      p.x += (p.speedX + Math.sin(time * 0.4 + p.phase) * 0.12) * (deltaSeconds / 0.016);
+      p.y += p.speedY * (deltaSeconds / 0.016);
+      p.rotation += p.rotationSpeed * (deltaSeconds / 0.016);
 
       if (p.y < -50) {
-        p.y = rect.height + 50;
-        p.x = Math.random() * rect.width;
+        p.y = canvasHeight + 50;
+        p.x = Math.random() * canvasWidth;
       }
-      if (p.x < -50) p.x = rect.width + 50;
-      if (p.x > rect.width + 50) p.x = -50;
+      if (p.x < -50) p.x = canvasWidth + 50;
+      if (p.x > canvasWidth + 50) p.x = -50;
 
       ctx.save();
       ctx.translate(p.x, p.y);
@@ -480,15 +511,35 @@ ngAfterViewInit(): void {
     this.animFrameId = requestAnimationFrame(animate);
   };
 
-  animate();
+  this.visibilityChangeListener = () => {
+    if (document.hidden) {
+      if (this.animFrameId) {
+        cancelAnimationFrame(this.animFrameId);
+        this.animFrameId = 0;
+      }
+      return;
+    }
+
+    if (!this.animFrameId) {
+      lastFrameTime = 0;
+      this.animFrameId = requestAnimationFrame(animate);
+    }
+  };
+
+  document.addEventListener('visibilitychange', this.visibilityChangeListener);
+  this.animFrameId = requestAnimationFrame(animate);
 }
 
 ngOnDestroy(): void {
   if (this.resizeListener) {
     window.removeEventListener('resize', this.resizeListener);
   }
+  if (this.visibilityChangeListener) {
+    document.removeEventListener('visibilitychange', this.visibilityChangeListener);
+  }
   if (this.animFrameId) {
     cancelAnimationFrame(this.animFrameId);
+    this.animFrameId = 0;
   }
 }
 }

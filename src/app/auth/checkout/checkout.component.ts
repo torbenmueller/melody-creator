@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { Location } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -10,6 +11,7 @@ import { Subscription } from 'rxjs';
     styleUrl: './checkout.component.css'
 })
 export class CheckoutComponent implements OnInit, OnDestroy {
+  private readonly platformId = inject(PLATFORM_ID);
   userIsAuthenticated: boolean = false;
   private authListenerSubs!: Subscription;
   plan: string | null = null;
@@ -34,6 +36,10 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   }
 
   openCheckout(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     window.open('https://buy.stripe.com/8x27sN64g76Y0uy2yrfMA00', '_blank');
   }
 
