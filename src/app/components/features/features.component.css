@@ -8,11 +8,6 @@ h1 {
   background-color: var(--background-color-3);
 }
 
-.header-title { 
-  max-width: 40rem;
-  width: 100%;
-}
-
 .container {
   min-height: 0;
 }
@@ -47,10 +42,4 @@ ul li:not(:last-child) {
 .table > :not(caption) > * > th {
   background-color: var(--background-color);
   font-size: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .header-title {
-    font-size: clamp(2rem, 10vw, 4rem);
-  }
 }

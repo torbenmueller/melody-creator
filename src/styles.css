@@ -872,6 +872,23 @@ a:focus-visible,
   /* opacity: 0.6; */
 }
 
+.image-top {
+  height: 20rem;
+}
+
+.header-title { 
+	max-width: 40rem;
+	width: 100%;
+	text-wrap: balance;
+}
+
+.hero-description {
+	font-size: 1.25rem;
+	max-width: 44rem;
+	width: 100%;
+	text-wrap: pretty;
+}
+
 @media (max-width: 992px) {
   .settings-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -881,6 +898,24 @@ a:focus-visible,
 @media (max-width: 768px) {
   .settings-grid {
     grid-template-columns: 1fr;
+  }
+
+  .header-title {
+		font-size: clamp(2rem, 10vw, 4rem);
+		max-width: 100%;
+	}
+
+  .hero-description {
+		max-width: 100%;
+	}
+
+  .content {
+    padding: 1rem 0;
+    flex-direction: column;
+  }
+
+  .image-top {
+    margin-top: 1rem;
   }
 }
 

@@ -18,6 +18,27 @@ export class FloatingNotesComponent implements AfterViewInit, OnDestroy {
   private visibilityChangeListener?: () => void;
   private canvasWidth: number = 0;
   private canvasHeight: number = 0;
+
+  private getParticleCount(): number {
+    if (!isPlatformBrowser(this.platformId)) {
+      return 32;
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return 16;
+    }
+
+    if (this.canvasWidth < 768) {
+      return 28;
+    }
+
+    if (this.canvasWidth < 1200) {
+      return 40;
+    }
+
+    return 64;
+  }
+
   static readonly COLORS = [
   "hsl(300 70% 55%)",
   "hsl(330 80% 60%)",
@@ -443,11 +464,11 @@ ngAfterViewInit(): void {
   resize();
   window.addEventListener('resize', resize);
 
-  const count = 32;
+  const count = this.getParticleCount();
   this.particles = Array.from({ length: count }, () => ({
     x: Math.random() * this.canvasWidth,
     y: Math.random() * this.canvasHeight,
-    size: 7 + Math.random() * 12,
+    size: 10 + Math.random() * 12,
     speedX: (Math.random() - 0.5) * 0.25,
     speedY: -(0.1 + Math.random() * 0.3),
     opacity: 0.1 + Math.random() * 0.28,
