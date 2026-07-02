@@ -1,10 +1,12 @@
 {
-	"env": {
-		"MONGO_ATLAS_PW": "test123",
-		"JWT_KEY": "secret_this_should_be_longer",
-		"EMAILJS_SERVICE_ID": "service_zpdjybk",
-		"EMAILJS_TEMPLATE_RESET_ID": "template_w9kw7b9",
-		"EMAILJS_PUBLIC_KEY": "sQs2BMQfNl23A3NwY",
-		"EMAILJS_PRIVATE_KEY": "93TUEuM0KMdAI5DWSjga0"
-	}
+	"watch": [
+		"controllers",
+		"middleware",
+		"models",
+		"routes",
+		"services",
+		"utils",
+		"server.js"
+	],
+	"ext": "js,json"
 }
