@@ -9,3 +9,16 @@ progress { background-color: var(--border-color); }
 progress::-moz-progress-bar { background: var(--purple); }
 progress::-webkit-progress-value { background: var(--purple); }
 progress { color: var(--purple); }
+
+.profile-image {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+@media (max-width: 768px) {
+	.profile-image {
+		position: static;
+		text-align: center;
+	}
+}

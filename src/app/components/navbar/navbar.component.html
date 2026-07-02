@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-custom">
 	<div class="container-fluid">
 		<a class="navbar-brand app-title bold" routerLink="/">Melody Creator</a>
-		<button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse"
+		<button id="navbar-toggler-btn" class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse"
 			data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
 			aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
@@ -9,21 +9,21 @@
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 				<li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
-					<a class="nav-link" routerLink="/">Home</a>
+					<a class="nav-link" routerLink="/" (click)="closeMobileMenu()">Home</a>
 				</li>
 				@if (userIsAuthenticated) {
 					<li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
-						<a class="nav-link" routerLink="/my-melodies">My Melodies</a>
+						<a class="nav-link" routerLink="/my-melodies" (click)="closeMobileMenu()">My Melodies</a>
 					</li>
 				}
 				<li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
-					<a class="nav-link" routerLink="/features">Features</a>
+					<a class="nav-link" routerLink="/features" (click)="closeMobileMenu()">Features</a>
 				</li>
 				<li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
-					<a class="nav-link" routerLink="/pricing">Pricing</a>
+					<a class="nav-link" routerLink="/pricing" (click)="closeMobileMenu()">Pricing</a>
 				</li>
 				<li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
-					<a class="nav-link" routerLink="/frequently-asked-questions">FAQ</a>
+					<a class="nav-link" routerLink="/frequently-asked-questions" (click)="closeMobileMenu()">FAQ</a>
 				</li>
 			</ul>
 			@if (minutes < 1 && seconds < 31 && seconds> 0) {
@@ -35,7 +35,7 @@
 			<div class="center-v column-gap-20">
 				@if (userIsAuthenticated) {
 					<div class="custom-badge badge-light center-v column-gap-20">
-						<div class="custom-tooltip hand" routerLink="/pricing">
+						<div class="custom-tooltip hand" routerLink="/pricing" (click)="closeMobileMenu()">
 							<i class="fas fa-coins fa-lg me-2" [ngClass]="isUsingDailyCredits ? 'grey-color' : 'purple-color'"></i>
 							<span class="bold white-color">{{userCredits}}</span>
 							<span class="tooltiptext">
@@ -46,20 +46,20 @@
 								}
 							</span>
 						</div>
-						<div class="custom-tooltip white-color hand" routerLink="/pricing">
+						<div class="custom-tooltip white-color hand" routerLink="/pricing" (click)="closeMobileMenu()">
 							<span>{{userPlan}} Plan</span>
 							<span class="tooltiptext">Update plan</span>
 						</div>
 					</div>
-					<a class="white-color custom-tooltip" routerLink="/user-profile">
+					<a class="white-color custom-tooltip" routerLink="/user-profile" (click)="closeMobileMenu()">
 						<i class="fas fa-user fa-lg"></i>
 						<span class="tooltiptext">User profile</span>
 					</a>
 					<button class="btn primary-button my-2 my-sm-0" (click)="onLogout()">Logout</button>
 				}
 				@else {
-					<button class="btn primary-button my-2 my-sm-0" routerLink="/auth/login">Login</button>
-					<button class="btn btn-light my-2 my-sm-0" routerLink="/auth/signup">Signup</button>
+					<button class="btn primary-button my-2 my-sm-0" routerLink="/auth/login" (click)="closeMobileMenu()">Login</button>
+					<button class="btn btn-light my-2 my-sm-0" routerLink="/auth/signup" (click)="closeMobileMenu()">Signup</button>
 				}
 			</div>
 		</div>

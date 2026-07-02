@@ -2,6 +2,8 @@
 	background-color: var(--background-color);
 	border-bottom: 1px solid var(--border-color);
 	height: 70px;
+	position: relative;
+	z-index: 1000;
 }
 
 /* change the brand and text color */
@@ -42,4 +44,29 @@
 .modal {
 	--bs-modal-header-border-width: 0;
 	--bs-modal-footer-border-width: 0;
+}
+
+@media (max-width: 991.98px) {
+	.navbar-custom .navbar-collapse {
+		position: absolute;
+		top: 70px;
+		left: 0;
+		right: 0;
+		width: 100%;
+		background-color: var(--background-color);
+		margin-top: 0;
+		padding: 0.75rem 0;
+		border-radius: var(--border-radius);
+		border: 1px solid var(--border-color);
+		z-index: 1001;
+	}
+
+	.navbar-custom .navbar-nav .nav-item {
+		margin-right: 0;
+		padding: 0.25rem 1rem;
+	}
+
+	.navbar-custom .center-v.column-gap-20 {
+		padding: 0.5rem 1rem 0.75rem;
+	}
 }
