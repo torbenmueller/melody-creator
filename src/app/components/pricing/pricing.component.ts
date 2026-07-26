@@ -48,10 +48,11 @@ export class PricingComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(
         (response) => {
-          // Navigate to checkout with plan and response data in state
-          this.router.navigate(['/auth/checkout'], {
+          // Navigate to checkout with plan and response data in state not working right now
+          /* this.router.navigate(['/auth/checkout'], {
             state: { plan, response },
-          });
+          }); */
+          this.toastr.success('Payment under construction, enjoy your free credits 😊');
         },
         (error: HttpErrorResponse) => {
           // if backend signals 401, mark user as not authenticated so UI can react

@@ -1,8 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, effect, inject } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { Location } from '@angular/common';
-import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-checkout',
@@ -10,26 +9,24 @@ import { Subscription } from 'rxjs';
     templateUrl: './checkout.component.html',
     styleUrl: './checkout.component.css'
 })
-export class CheckoutComponent implements OnInit, OnDestroy {
+export class CheckoutComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   userIsAuthenticated: boolean = false;
-  private authListenerSubs!: Subscription;
   plan: string | null = null;
   response: any = null;
 
-  constructor(private authService: AuthService, private location: Location) {}
+  constructor(private authService: AuthService, private location: Location) {
+    effect(() => {
+      this.userIsAuthenticated = this.authService.isAuthenticated();
+    });
+  }
 
   ngOnInit(): void {
-    this.userIsAuthenticated = this.authService.getIsAuth();
-    this.authListenerSubs = this.authService
-      .getAuthStatusListener()
-      .subscribe((isAuthenticated) => {
-        this.userIsAuthenticated = isAuthenticated;
-      });
-
     // Get plan and response from navigation state via Location
     const state = (this.location as any).getState();
-    this.plan = state?.plan;
+    this.plan = state?.plan
+      ? state.plan.charAt(0).toUpperCase() + state.plan.slice(1)
+      : null;
     this.response = state?.response;
   }
 
@@ -41,7 +38,4 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     window.open('https://buy.stripe.com/8x27sN64g76Y0uy2yrfMA00', '_blank');
   }
 
-  ngOnDestroy(): void {
-    this.authListenerSubs?.unsubscribe();
-  }
 }

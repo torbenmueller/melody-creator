@@ -1,7 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, PLATFORM_ID, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, PLATFORM_ID, effect, inject } from '@angular/core';
 import { Settings } from '../../interfaces/settings';
-import { Subscription } from 'rxjs';
 import { CreationService } from '../../services/creation.service';
 import { AuthService } from '../../auth/auth.service';
 import { UserService } from '../../services/user.service';
@@ -107,9 +106,6 @@ export class SettingsComponent {
   isLoading: boolean = false;
   userIsAuthenticated: boolean = false;
   isPlaying: boolean = false;
-
-  private authListenerSubs!: Subscription;
-  private isPlayingSub?: Subscription;
   private readonly UNAUTHORIZED_MELODY_COUNT_KEY = 'unauthorizedMelodyCount';
 
   constructor(
@@ -119,27 +115,29 @@ export class SettingsComponent {
     private toastr: ToastrService,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    effect(() => {
+      const isAuthenticated = this.authService.isAuthenticated();
+      this.userIsAuthenticated = isAuthenticated;
+      this.isLoading = false;
 
-  ngOnInit(): void {
-    this.userIsAuthenticated = this.authService.getIsAuth();
-    this.authListenerSubs = this.authService
-      .getAuthStatusListener()
-      .subscribe((isAuthenticated) => {
-        this.userIsAuthenticated = isAuthenticated;
-        this.isLoading = false;
-        if (!isAuthenticated) {
-          this.melody = [];
-          this.intervals = [];
-          this.creationService.melodyCreatedWhileAuthenticated = false;
-        }
-        this.loadUserPlanAndApplyRestrictions();
-        this.cdr.markForCheck();
-      });
-    this.isPlayingSub = this.creationService.isPlaying.subscribe((e) => {
-      this.isPlaying = e;
+      if (!isAuthenticated) {
+        this.melody = [];
+        this.intervals = [];
+        this.creationService.melodyCreatedWhileAuthenticated = false;
+      }
+
+      this.loadUserPlanAndApplyRestrictions();
       this.cdr.markForCheck();
     });
+
+    effect(() => {
+      this.isPlaying = this.creationService.isPlayingState();
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngOnInit(): void {
     this.settings = this.creationService.getSettings();
     this.melody = this.creationService.getMelody();
     if (this.settings === undefined) this.settings = this.initialSettings();
@@ -204,11 +202,6 @@ export class SettingsComponent {
       this.complexity = this.allComplexity;
       this.beats = this.allBeats;
     }
-  }
-
-  ngOnDestroy(): void {
-    this.authListenerSubs?.unsubscribe();
-    this.isPlayingSub?.unsubscribe();
   }
 
   onSubmit() {

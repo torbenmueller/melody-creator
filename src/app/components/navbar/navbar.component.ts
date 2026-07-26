@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, DOCUMENT } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, DOCUMENT, effect } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,7 +18,6 @@ import { StringUtilsService } from '../../services/string-utils.service';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   userIsAuthenticated: boolean = false;
-  private authListenerSubs!: Subscription;
   private creditUpdateSub?: Subscription;
 
   countdown: any;
@@ -36,35 +35,30 @@ export class NavbarComponent implements OnInit, OnDestroy {
     @Inject(DOCUMENT) private document: Document,
     private stringUtils: StringUtilsService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    effect(() => {
+      const isAuthenticated = this.authService.isAuthenticated();
+      this.userIsAuthenticated = isAuthenticated;
+
+      if (isAuthenticated) {
+        this.getUser();
+        setTimeout(() => this.initCountdown(), 50);
+      } else {
+        clearInterval(this.countdown);
+        this.minutes = 0;
+        this.seconds = 0;
+        this.expirationTimeMs = 0;
+        this.userPlan = '';
+        this.userCredits = 0;
+        this.isUsingDailyCredits = false;
+      }
+
+      this.cdr.markForCheck();
+    });
+  }
 
   ngOnInit(): void {
-    this.userIsAuthenticated = this.authService.getIsAuth();
     this.initCountdown();
-    // If we're already authenticated on init, fetch the user once
-    if (this.userIsAuthenticated) {
-      this.getUser();
-    }
-
-    this.authListenerSubs = this.authService.getAuthStatusListener()
-      .subscribe((isAuthenticated) => {
-        this.userIsAuthenticated = isAuthenticated;
-        // Only fetch user info when authenticated
-        if (isAuthenticated) {
-          this.getUser();
-          setTimeout(() => this.initCountdown(), 50);
-        } else {
-          // Clear state on logout
-          clearInterval(this.countdown);
-          this.minutes = 0;
-          this.seconds = 0;
-          this.expirationTimeMs = 0;
-          this.userPlan = '';
-          this.userCredits = 0;
-          this.isUsingDailyCredits = false;
-        }
-        this.cdr.markForCheck();
-      });
     
     // Listen for credit updates and refresh credits when they change
     this.creditUpdateSub = this.userService.creditUpdate$.subscribe(() => {
@@ -128,7 +122,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authListenerSubs?.unsubscribe();
     this.creditUpdateSub?.unsubscribe();
     clearInterval(this.countdown);
   }

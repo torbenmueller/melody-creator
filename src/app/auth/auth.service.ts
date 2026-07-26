@@ -1,4 +1,4 @@
-import { Inject, Injectable, DOCUMENT } from '@angular/core';
+import { Inject, Injectable, DOCUMENT, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, map, Observable, Subject, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -17,8 +17,8 @@ const BACKEND_URL = environment.apiUrl + "/user";
   providedIn: 'root',
 })
 export class AuthService {
-  private isAuthenticated: boolean = false;
-  private token!: string;
+  private readonly _isAuthenticated = signal(false);
+  private readonly _token = signal<string>('');
   private tokenTimer: any;
   private authStatusListener = new Subject<boolean>();
 
@@ -32,11 +32,11 @@ export class AuthService {
   ) {}
 
   getToken() {
-    return this.token;
+    return this._token();
   }
 
-  getIsAuth() {
-    return this.isAuthenticated;
+  isAuthenticated() {
+    return this._isAuthenticated();
   }
 
   getAuthStatusListener() {
@@ -45,17 +45,19 @@ export class AuthService {
 
   createUser(email: string, password: string) {
     const authData: AuthData = { email: email, password: password };
-    this.http.post(`${BACKEND_URL}/signup`, authData).subscribe(
-      (response) => {
+    return this.http.post(`${BACKEND_URL}/signup`, authData).pipe(
+      tap(() => {
         try {
           this.toastr.success('Account created. A verification email has been sent, please check your inbox and click Verify Email to confirm your address.');
         } catch (e) {
         }
         this.router.navigate(['/auth/login']);
-      },
-      (error) => {
+      }),
+      catchError((error) => {
         this.authStatusListener.next(false);
-      }
+        return throwError(() => error);
+      }),
+      map(() => void 0)
     );
   }
 
@@ -116,11 +118,11 @@ export class AuthService {
       .pipe(
         tap((response) => {
           const token = response.token;
-          this.token = token;
+          this._token.set(token);
           if (token) {
             const expiresInDuration = response.expiresIn;
             this.setAuthTimer(expiresInDuration);
-            this.isAuthenticated = true;
+            this._isAuthenticated.set(true);
             this.authStatusListener.next(true);
             const expirationDate = new Date(
               new Date().getTime() + expiresInDuration * 1000
@@ -145,16 +147,16 @@ export class AuthService {
     const now = new Date();
     const expiresIn = authInformation.expirationDate.getTime() - now.getTime();
     if (expiresIn > 0) {
-      this.token = authInformation.token;
-      this.isAuthenticated = true;
+      this._token.set(authInformation.token);
+      this._isAuthenticated.set(true);
       this.setAuthTimer(expiresIn / 1000);
       this.authStatusListener.next(true);
     }
   }
 
   logout() {
-    this.token = '';
-    this.isAuthenticated = false;
+    this._token.set('');
+    this._isAuthenticated.set(false);
     this.authStatusListener.next(false);
     clearTimeout(this.tokenTimer);
     this.clearAuthData();
@@ -195,26 +197,26 @@ export class AuthService {
     newPassword: string,
     passwordToken: string,
     userId: string
-  ) {
+  ): Observable<void> {
     const newPasswordParams = {
       newPassword: newPassword,
       passwordToken: passwordToken,
       userId: userId,
     };
-    // The backend returns { message: string, result: any } on success.
-    this.http.post<{ message: string; result?: any }>(`${BACKEND_URL}/new-password`, newPasswordParams)
-      .subscribe(
-        (response) => {
-          // Access the message directly from the response body
+    return this.http.post<{ message: string; result?: any }>(`${BACKEND_URL}/new-password`, newPasswordParams)
+      .pipe(
+        tap((response) => {
           const msg = response?.message || 'Your password has been reset successfully. You can now log in with your new password.';
           this.toastr.success(msg);
           this.router.navigate(['/auth/login']);
-        },
-        (error: HttpErrorResponse) => {
+        }),
+        catchError((error: HttpErrorResponse) => {
           this.authStatusListener.next(false);
           const errMsg = error?.error?.message || 'Failed to set new password. Please try again.';
           this.toastr.error(errMsg);
-        }
+          return throwError(() => error);
+        }),
+        map(() => void 0)
       );
   }
 

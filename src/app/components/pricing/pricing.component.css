@@ -37,19 +37,11 @@ ul li:not(:last-child) {
 .pricing-image {
 	position: absolute;
 	top: calc(70px + 1rem);
-  /* right: calc(var(--bs-gutter-x, 1.5rem) * .5); */
   right: calc(50% - 694px);
 }
 
 @media (max-width: 768px) {
 	.pricing-image {
-		position: static;
-		text-align: center;
-	}
-}
-
-@media (max-width: 768px) {
-	.profile-image {
 		position: static;
 		text-align: center;
 	}

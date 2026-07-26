@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, signal } from '@angular/core';
 import * as Tone from 'tone';
 import { Settings } from '../interfaces/settings';
 import { 
@@ -42,14 +42,20 @@ export class CreationService implements OnDestroy {
 		}
 	}
 
-	private melodiesUpdated = new Subject<{melodies: FetchedMelody[], melodiesCount: number}>();
 	private countdownInterval: NodeJS.Timeout | null = null;
+	private readonly melodiesStateSignal = signal<{ melodies: FetchedMelody[]; melodiesCount: number }>({ melodies: [], melodiesCount: 0 });
+	private readonly isPlayingSignalState = signal(false);
+	private readonly scoreDataSignalState = signal<MelodyData | null>(null);
 
 	fetchedMelodies: FetchedMelody[] = [];
 	maxMelodies: number = 0;
 
 	isPlaying = new Subject<boolean>();
 	scoreData = new Subject<MelodyData>();
+
+	readonly melodiesState = this.melodiesStateSignal.asReadonly();
+	readonly isPlayingState = this.isPlayingSignalState.asReadonly();
+	readonly scoreState = this.scoreDataSignalState.asReadonly();
 
 	constructor(
 		private http: HttpClient
@@ -70,11 +76,13 @@ export class CreationService implements OnDestroy {
 			tap((data) => {
 				this.fetchedMelodies = data.melodies;
 				this.maxMelodies = data.maxMelodies;
-				this.melodiesUpdated.next({ melodies: this.fetchedMelodies, melodiesCount: this.maxMelodies });
+				this.melodiesStateSignal.set({ melodies: this.fetchedMelodies, melodiesCount: this.maxMelodies });
 			}),
 			catchError((error) => {
 				console.error('Error fetching melodies:', error);
-				this.melodiesUpdated.next({ melodies: [], melodiesCount: 0 });
+				this.fetchedMelodies = [];
+				this.maxMelodies = 0;
+				this.melodiesStateSignal.set({ melodies: [], melodiesCount: 0 });
 				return throwError(() => error);
 			})
 		);
@@ -95,10 +103,6 @@ export class CreationService implements OnDestroy {
 
 	updateMelodyName(id: string, name: string): Observable<{message: string}> {
 		return this.http.patch<{message: string}>(`${BACKEND_URL}/${id}`, { name });
-	}
-
-	getMelodiesUpdateListener() {
-		return this.melodiesUpdated.asObservable();
 	}
 
 	// INITIAL CALL FROM COMPONENT - Now calls backend for generation
@@ -135,11 +139,18 @@ export class CreationService implements OnDestroy {
 	}
 
 	getScoreData() {
-		this.scoreData.next({
+		const currentScoreData = {
 			melody: this.melody,
 			settings: this.settings,
 			scale: this.scale
-		});
+		};
+		this.scoreDataSignalState.set(currentScoreData);
+		this.scoreData.next(currentScoreData);
+	}
+
+	private setPlayingState(isPlaying: boolean) {
+		this.isPlayingSignalState.set(isPlaying);
+		this.isPlaying.next(isPlaying);
 	}
 
 	playMelody() {
@@ -150,10 +161,10 @@ export class CreationService implements OnDestroy {
 
 			Tone.loaded()
 				.then(() => {
+					this.setPlayingState(true);
 					this.melody.forEach((tone, index) => {
 						this.sampler.triggerAttackRelease(this.melody[index].note, this.melody[index].time, now + duration);
 						duration += Tone.Time(this.melody[index].time).toSeconds();
-						this.isPlaying.next(true);
 					});
 
 				let timeLeft = Math.round(duration * DURATION_PRECISION_MULTIPLIER) / DURATION_PRECISION_MULTIPLIER;
@@ -163,18 +174,18 @@ export class CreationService implements OnDestroy {
 							clearInterval(this.countdownInterval);
 							this.countdownInterval = null;
 						}
-						this.isPlaying.next(false);
+						this.setPlayingState(false);
 					}
 					timeLeft -= 1;
 				}, COUNTDOWN_INTERVAL_MS);
 				})
 				.catch((error) => {
 					console.error('Error loading audio samples:', error);
-					this.isPlaying.next(false);
+					this.setPlayingState(false);
 				});
 		} catch (error) {
 			console.error('Error in playMelody:', error);
-			this.isPlaying.next(false);
+			this.setPlayingState(false);
 		}
 	}
 
@@ -189,10 +200,10 @@ export class CreationService implements OnDestroy {
 				this.sampler.releaseAll();
 			}
 			
-			this.isPlaying.next(false);
+			this.setPlayingState(false);
 		} catch (error) {
 			console.error('Error stopping playback:', error);
-			this.isPlaying.next(false);
+			this.setPlayingState(false);
 		}
 	}
 
@@ -210,6 +221,7 @@ export class CreationService implements OnDestroy {
 		this.scale = { notes: [] };
 		this.intervalCheck = [];
 		this.melodyCreatedWhileAuthenticated = false;
+		this.scoreDataSignalState.set(null);
 	}
 
 	// Handle authentication state changes - should be called when user logs out to prevent stale authentication flag
@@ -223,7 +235,6 @@ export class CreationService implements OnDestroy {
 	ngOnDestroy(): void {
 		try {
 			// Complete all Subjects
-			this.melodiesUpdated.complete();
 			this.isPlaying.complete();
 			this.scoreData.complete();
 

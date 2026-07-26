@@ -1,0 +1,12 @@
+.signin-image {
+	position: absolute;
+	top: 270px;
+	right: calc(50% - 465px);
+}
+
+@media (max-width: 768px) {
+	.signin-image {
+		position: static;
+		text-align: center;
+	}
+}

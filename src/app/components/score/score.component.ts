@@ -1,8 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, PLATFORM_ID, effect, inject } from '@angular/core';
 import { CreationService } from '../../services/creation.service';
 import { RenderContext, Vex } from 'vexflow';
-import { Subscription } from 'rxjs';
 import { Scale } from '../../interfaces/melody-model';
 
 @Component({
@@ -11,7 +10,7 @@ import { Scale } from '../../interfaces/melody-model';
     templateUrl: './score.component.html',
     styleUrl: './score.component.css'
 })
-export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ScoreComponent implements OnInit, AfterViewInit {
   private readonly platformId = inject(PLATFORM_ID);
   totalMeasures: number = 0;
   composedMelody!: any[];
@@ -20,7 +19,6 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
   scoreData: any;
   private viewReady = false;
   private dataReady = false;
-  private sub?: Subscription;
 
   @ViewChild('scoreEl', { static: false }) scoreEl!: ElementRef<HTMLDivElement>;
   @ViewChild('score2El', { static: false }) score2El!: ElementRef<HTMLDivElement>;
@@ -28,30 +26,31 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     public creationService: CreationService
-  ) { }
-
-  ngOnInit(): void {
-    this.sub = this.creationService.scoreData.subscribe(data => {
-      // Skip if we receive the same data twice (defensive programming)
-      if (data?.melody === this.composedMelody && 
-          data?.settings === this.melodySettings && 
-          data?.scale === this.scale) {
+  ) {
+    effect(() => {
+      const data = this.creationService.scoreState();
+      if (!data) {
         return;
       }
-      
+
+      // Skip if we receive the same data twice (defensive programming)
+      if (data.melody === this.composedMelody &&
+          data.settings === this.melodySettings &&
+          data.scale === this.scale) {
+        return;
+      }
+
       this.composedMelody = data.melody;
       this.melodySettings = data.settings;
       this.scale = data.scale;
       this.dataReady = !!(this.composedMelody && this.melodySettings && this.melodySettings.bar != null);
       if (this.viewReady && this.dataReady) this.createScore();
     });
-    
-    // Request current score data after subscribing
-    this.creationService.getScoreData();
   }
-  
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+
+  ngOnInit(): void {
+    // Request current score data in case state changed without rendering score yet.
+    this.creationService.getScoreData();
   }
   
   ngAfterViewInit(): void {

@@ -16,7 +16,6 @@ export class NewPasswordComponent implements OnInit, OnDestroy {
 	userId: string ='';
   newPassword: string ='';
   showPassword: boolean = false;
-  private authStatusSubscription!: Subscription;
   private routeSub!: Subscription;
 
   constructor(
@@ -25,9 +24,6 @@ export class NewPasswordComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.authStatusSubscription = this.authService.getAuthStatusListener().subscribe(authStatus => {
-      this.isLoading = false;
-    });
     this.routeSub = this.route.params.subscribe(params => {
       this.passwordToken = params['token'];
       this.userId = params['id'];
@@ -35,7 +31,6 @@ export class NewPasswordComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.authStatusSubscription?.unsubscribe();
     this.routeSub?.unsubscribe();
   }
 
@@ -49,7 +44,14 @@ export class NewPasswordComponent implements OnInit, OnDestroy {
       form.value.password,
       this.passwordToken,
 	    this.userId
-    );
+    ).subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   togglePasswordVisibility() {

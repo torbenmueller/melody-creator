@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, effect } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Subscription, Subject, of } from 'rxjs';
@@ -24,7 +24,6 @@ import { RouterLink } from '@angular/router';
 export class UserProfileComponent implements OnInit, OnDestroy {
   private userSub!: Subscription;
   private modesSub?: Subscription;
-  private melodiesSub!: Subscription;
   private emailCheckSub?: Subscription;
   private emailInput$ = new Subject<string>();
 
@@ -79,7 +78,16 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private stringUtils: StringUtilsService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    effect(() => {
+      const data = this.creationService.melodiesState();
+      this.melodies = data.melodies;
+      this.totalMelodies = data.melodiesCount;
+      this.latestMelodies = this.melodies.slice(0, 3);
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    });
+  }
 
   ngOnInit(): void {
     this.userSub = this.userService.user$.subscribe((u: User | null) => {
@@ -91,16 +99,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
-
-    this.melodiesSub = this.creationService
-      .getMelodiesUpdateListener()
-      .subscribe((data: { melodies: any; melodiesCount: number }) => {
-        this.melodies = data.melodies;
-        this.totalMelodies = data.melodiesCount;
-        this.latestMelodies = this.melodies.slice(0, 3);
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      });
 
     this.loadUserData();
 
@@ -134,7 +132,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.userSub?.unsubscribe();
     this.modesSub?.unsubscribe();
-    this.melodiesSub?.unsubscribe();
     this.emailCheckSub?.unsubscribe();
   }
 

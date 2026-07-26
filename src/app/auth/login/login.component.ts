@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Subscription } from 'rxjs';
 import { AuthService } from '../auth.service';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
@@ -11,32 +10,18 @@ import { ToastrService } from 'ngx-toastr';
     templateUrl: './login.component.html',
     styleUrl: './login.component.css'
 })
-export class LoginComponent implements OnInit, OnDestroy {
+export class LoginComponent {
   user: any;
   isLoading: boolean = false;
   showPassword: boolean = false;
   isAuthenticated: boolean = true;
   emailIsConfirmed: boolean = true;
-  private authStatusSubscription!: Subscription;
   resendLoading: boolean = false;
 
   constructor(
     public authService: AuthService,
     private toastr: ToastrService,
   ) {}
-
-  ngOnInit(): void {
-    this.authStatusSubscription = this.authService
-      .getAuthStatusListener()
-      .subscribe((authStatus) => {
-        this.isLoading = false;
-        this.isAuthenticated = authStatus;
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.authStatusSubscription?.unsubscribe();
-  }
 
   onLogin(form: NgForm) {
     if (form.invalid) {
@@ -47,6 +32,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.authService.loginUser(form.value.email, form.value.password).subscribe({
       next: () => {},
       error: (err) => {
+        this.isLoading = false;
+        this.isAuthenticated = false;
         this.toastr.error('Login failed: ' + err.error.message);
         if (err?.status === 403 && err.error?.message && err.error.message.toLowerCase().includes('verify')) {
           this.emailIsConfirmed = false;

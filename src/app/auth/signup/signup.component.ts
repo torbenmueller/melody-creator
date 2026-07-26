@@ -1,5 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -10,11 +9,10 @@ import { RouterLink } from '@angular/router';
     templateUrl: './signup.component.html',
     styleUrl: './signup.component.css'
 })
-export class SignupComponent implements OnInit, OnDestroy {
+export class SignupComponent {
   isLoading: boolean = false;
   showPassword: boolean = false;
   isAuthenticated: boolean = true;
-  private authStatusSubscription!: Subscription;
   private currentPassword: string = '';
   public passwordStrengthPercent: number = 0;
 
@@ -67,26 +65,21 @@ export class SignupComponent implements OnInit, OnDestroy {
     this.passwordStrengthPercent = passwordStrength;
   }
 
-  ngOnInit(): void {
-    this.authStatusSubscription = this.authService
-      .getAuthStatusListener()
-      .subscribe((authStatus) => {
-        this.isLoading = false;
-        this.isAuthenticated = authStatus;
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.authStatusSubscription?.unsubscribe();
-  }
-
   onSignup(form: NgForm) {
     if (form.invalid) {
       form.form.markAllAsTouched();
       return;
     }
     this.isLoading = true;
-    this.authService.createUser(form.value.email, form.value.password);
+    this.authService.createUser(form.value.email, form.value.password).subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.isAuthenticated = false;
+      }
+    });
   }
 
   togglePasswordVisibility() {

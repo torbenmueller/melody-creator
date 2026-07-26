@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, effect } from '@angular/core';
 import { CreationService } from '../../services/creation.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
@@ -30,10 +29,8 @@ import { PLATFORM_ID, inject } from '@angular/core';
         ]),
     ]
 })
-export class MyMelodiesComponent implements OnInit, OnDestroy {
+export class MyMelodiesComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
-  private melodiesSub?: Subscription;
-  private isPlayingSub?: Subscription;
   melodies: any[] = [];
   totalMelodies: number = 0;
   melodiesPerPage: number = 10;
@@ -75,31 +72,27 @@ export class MyMelodiesComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    effect(() => {
+      const data = this.creationService.melodiesState();
+      this.melodies = data.melodies;
+      this.totalMelodies = data.melodiesCount;
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    });
 
-  ngOnInit(): void {
-    this.melodiesSub = this.creationService
-      .getMelodiesUpdateListener()
-      .subscribe((data: { melodies: any; melodiesCount: number }) => {
-        this.melodies = data.melodies;
-        this.totalMelodies = data.melodiesCount;
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      });
-
-    this.load();
-    this.isPlayingSub = this.creationService.isPlaying.subscribe((e) => {
-      this.isPlaying = e;
-      if (!e) {
+    effect(() => {
+      const playing = this.creationService.isPlayingState();
+      this.isPlaying = playing;
+      if (!playing) {
         this.playingMelodyId = null;
       }
       this.cdr.markForCheck();
     });
   }
 
-  ngOnDestroy(): void {
-    this.melodiesSub?.unsubscribe();
-    this.isPlayingSub?.unsubscribe();
+  ngOnInit(): void {
+    this.load();
   }
 
   load() {
