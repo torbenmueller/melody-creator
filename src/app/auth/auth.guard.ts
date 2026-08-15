@@ -12,3 +12,6 @@ export const canActivate: CanActivateFn = (route, state) => {
   }
   return isAuth;
 };
+
+// Backward-compatible alias used by existing unit tests.
+export const authGuard = canActivate;
