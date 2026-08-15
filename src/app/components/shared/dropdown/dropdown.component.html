@@ -1,8 +1,7 @@
-<div class="custom-dropdown" [class.open]="isOpen" (click)="$event.stopPropagation()" [attr.aria-label]="ariaLabel">
+<div class="custom-dropdown" [class.open]="isOpen" [attr.aria-label]="ariaLabel">
   <div class="selected-value"
-       (click)="toggleDropdown()"
-       (keydown.enter)="toggleDropdown()"
-       (keydown.space)="toggleDropdown(); $event.preventDefault()"
+  (click)="onToggleClick($event)"
+  (keydown)="onToggleKeydown($event)"
        tabindex="0"
        role="button"
        aria-haspopup="listbox"
@@ -14,13 +13,12 @@
     <ul class="dropdown-list" role="listbox">
       @for (option of options; track trackByFn($index, option)) {
         <li 
-          (click)="selectOption(option)"
+          (click)="onOptionClick($event, option)"
           [class.selected]="option === selectedOption"
           role="option"
           [attr.aria-selected]="option === selectedOption"
           [attr.data-value]="option"
-          (keydown.enter)="selectOption(option)"
-          (keydown.space)="selectOption(option); $event.preventDefault()"
+          (keydown)="onOptionKeydown($event, option)"
           tabindex="0">
           {{ option }}
         </li>

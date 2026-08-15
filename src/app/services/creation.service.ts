@@ -42,7 +42,7 @@ export class CreationService implements OnDestroy {
 		}
 	}
 
-	private countdownInterval: NodeJS.Timeout | null = null;
+	private countdownInterval: ReturnType<typeof setInterval> | null = null;
 	private readonly melodiesStateSignal = signal<{ melodies: FetchedMelody[]; melodiesCount: number }>({ melodies: [], melodiesCount: 0 });
 	private readonly isPlayingSignalState = signal(false);
 	private readonly scoreDataSignalState = signal<MelodyData | null>(null);

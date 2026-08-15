@@ -4,6 +4,8 @@ import {
   Output,
   EventEmitter,
   HostListener,
+  ElementRef,
+  inject,
 } from '@angular/core';
 
 
@@ -14,6 +16,8 @@ import {
     styleUrls: ['./dropdown.component.css']
 })
 export class DropdownComponent {
+  private readonly hostElement = inject(ElementRef<HTMLElement>);
+
   @Input() options: string[] = [];
   @Input() selectedOption: string | null = null;
   @Input() placeholder: string = '';
@@ -33,10 +37,52 @@ export class DropdownComponent {
     this.isOpen = !this.isOpen;
   }
 
-  @HostListener('document:click', ['$event'])
-  onClickOutside(event: Event): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.custom-dropdown')) {
+  onToggleClick(event: MouseEvent): void {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.stopPropagation();
+    this.toggleDropdown();
+  }
+
+  onToggleKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.toggleDropdown();
+  }
+
+  onOptionClick(event: MouseEvent, option: string): void {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.stopPropagation();
+    this.selectOption(option);
+  }
+
+  onOptionKeydown(event: KeyboardEvent, option: string): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.selectOption(option);
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  onPointerDownOutside(event: PointerEvent): void {
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      return;
+    }
+
+    if (!this.hostElement.nativeElement.contains(target)) {
       this.isOpen = false;
     }
   }
