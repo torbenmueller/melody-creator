@@ -10,7 +10,8 @@
 	<div class="row">
 		<div class="col-12 mb-2 flex-end">
 			<div class="custom-tooltip">
-				<button id="resetSettings" [disabled]="isPlaying || isLoading" type="button" (click)="resetSettings()" class="btn btn-secondary">
+				<button id="resetSettings" [disabled]="isPlaying || isLoading" type="button" (click)="resetSettings()"
+					class="btn btn-secondary">
 					<i class="fas fa-undo white-color"></i>
 				</button>
 				<span class="tooltiptext">Reset to default settings</span>
@@ -42,17 +43,18 @@
 							<i class="fas fa-pen ms-2 purple-color"></i>
 						</div>
 						<p class="settings-box-header">{{ settings.name }}</p>
-						<input [(ngModel)]="settings.name" name="melodyName" type="text" class="form-control"
-							id="inputMelodyName" aria-label="Melody Name" [disabled]="isLoading" />
+						<input [(ngModel)]="settings.name" (ngModelChange)="onNameChange($event)" name="melodyName"
+							type="text" class="form-control" id="inputMelodyName" aria-label="Melody Name"
+							[disabled]="isLoading" />
 					</div>
 				</div>
-                <div class="text-center mt-4">
+				<div class="text-center mt-4">
 					<button id="create" [disabled]="isPlaying || isLoading" type="submit" class="btn primary-button">
 						@if (isLoading) {
-							<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-							Creating...
+						<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+						Creating...
 						} @else {
-							Create
+						Create
 						}
 					</button>
 					<button id="playMelody" [disabled]="
@@ -62,9 +64,9 @@
 					</button>
 					@if (userIsAuthenticated) {
 					<button [disabled]="
-              isPlaying || isLoading || !melody || melody.length === 0
+              isPlaying || isLoading || isSaving || melodySaved || !melody || melody.length === 0
             " type="button" (click)="save()" class="btn btn-success ms-3">
-						Save
+						{{ melodySaved ? 'Saved' : 'Save' }}
 					</button>
 					}
 				</div>

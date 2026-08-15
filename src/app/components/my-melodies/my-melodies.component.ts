@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, effect } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  effect,
+} from '@angular/core';
 import { CreationService } from '../../services/creation.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
@@ -11,23 +17,23 @@ import { FormsModule } from '@angular/forms';
 import { PLATFORM_ID, inject } from '@angular/core';
 
 @Component({
-    selector: 'app-my-melodies',
-    imports: [NgClass, DatePipe, ScoreComponent, FormsModule],
-    templateUrl: './my-melodies.component.html',
-    styleUrl: './my-melodies.component.css',
+  selector: 'app-my-melodies',
+  imports: [NgClass, DatePipe, ScoreComponent, FormsModule],
+  templateUrl: './my-melodies.component.html',
+  styleUrl: './my-melodies.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-    animations: [
-        trigger('slideDown', [
-            transition(':enter', [
-                style({ height: 0, opacity: 0, overflow: 'hidden' }),
-                animate('200ms ease-out', style({ height: '*', opacity: 1 })),
-            ]),
-            transition(':leave', [
-                style({ overflow: 'hidden' }),
-                animate('150ms ease-in', style({ height: 0, opacity: 0 })),
-            ]),
-        ]),
-    ]
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ height: 0, opacity: 0, overflow: 'hidden' }),
+        animate('200ms ease-out', style({ height: '*', opacity: 1 })),
+      ]),
+      transition(':leave', [
+        style({ overflow: 'hidden' }),
+        animate('150ms ease-in', style({ height: 0, opacity: 0 })),
+      ]),
+    ]),
+  ],
 })
 export class MyMelodiesComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
@@ -42,6 +48,7 @@ export class MyMelodiesComponent implements OnInit {
   melodyName: string = '';
   // track which melody (by id) is expanded to show the score
   expandedMelodyId: string | null = null;
+  selectedMelody: any = null;
   // track which melody name is being edited
   editingMelodyId: string | null = null;
   editingMelodyName: string = '';
@@ -55,7 +62,15 @@ export class MyMelodiesComponent implements OnInit {
   complexityAscending: boolean = false;
   beatAscending: boolean = false;
 
-  filterBooleans: Array<boolean> = [false, false, false, false, false, false, false];
+  filterBooleans: Array<boolean> = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ];
   filterTypes: Array<string> = [
     'name',
     'key',
@@ -71,7 +86,7 @@ export class MyMelodiesComponent implements OnInit {
     public musicxmlConverterService: MusicxmlConverterService,
     private toastr: ToastrService,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {
     effect(() => {
       const data = this.creationService.melodiesState();
@@ -97,25 +112,28 @@ export class MyMelodiesComponent implements OnInit {
 
   load() {
     this.isLoading = true;
-    this.creationService.getMelodies(
-      this.melodiesPerPage,
-      this.currentPage,
-      this.sortByType,
-      this.order
-    ).subscribe({
-      error: () => {
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.creationService
+      .getMelodies(
+        this.melodiesPerPage,
+        this.currentPage,
+        this.sortByType,
+        this.order,
+      )
+      .subscribe({
+        error: () => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   showMelody(melody: any): void {
     if (this.expandedMelodyId === melody._id) {
       this.expandedMelodyId = null;
+      this.selectedMelody = null;
     } else {
       this.expandedMelodyId = melody._id;
-      this.creationService.setMelody(melody);
+      this.selectedMelody = melody;
     }
   }
 
@@ -123,7 +141,7 @@ export class MyMelodiesComponent implements OnInit {
     this.musicxmlConverterService.downloadMusicXml(
       melody.melody,
       melody.settings.name,
-      { timeSignature: melody.settings.beat, key: melody.settings.rootKey }
+      { timeSignature: melody.settings.beat, key: melody.settings.rootKey },
     );
   }
 
@@ -179,24 +197,26 @@ export class MyMelodiesComponent implements OnInit {
         if (this.melodiesPerPage * this.currentPage >= this.totalMelodies) {
           this.goToPage(1);
         }
-        this.creationService.getMelodies(
-          this.melodiesPerPage,
-          this.currentPage,
-          this.sortByType,
-          this.order
-        ).subscribe({
-          error: () => {
-            this.isLoading = false;
-            this.cdr.markForCheck();
-          }
-        });
+        this.creationService
+          .getMelodies(
+            this.melodiesPerPage,
+            this.currentPage,
+            this.sortByType,
+            this.order,
+          )
+          .subscribe({
+            error: () => {
+              this.isLoading = false;
+              this.cdr.markForCheck();
+            },
+          });
         this.showSuccess();
         this.cdr.markForCheck();
       },
       () => {
         this.isLoading = false;
         this.cdr.markForCheck();
-      }
+      },
     );
   }
 
@@ -225,7 +245,7 @@ export class MyMelodiesComponent implements OnInit {
       this.melodiesPerPage,
       this.currentPage,
       this.sortByType,
-      this.order
+      this.order,
     );
   }
 
@@ -250,17 +270,19 @@ export class MyMelodiesComponent implements OnInit {
     if (page < 1 || page > this.totalPages || page === this.currentPage) return;
     this.isLoading = true;
     this.currentPage = page;
-    this.creationService.getMelodies(
-      this.melodiesPerPage,
-      this.currentPage,
-      this.sortByType,
-      this.order
-    ).subscribe({
-      error: () => {
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.creationService
+      .getMelodies(
+        this.melodiesPerPage,
+        this.currentPage,
+        this.sortByType,
+        this.order,
+      )
+      .subscribe({
+        error: () => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   prevPage() {
@@ -291,30 +313,34 @@ export class MyMelodiesComponent implements OnInit {
       return;
     }
 
-    this.creationService.updateMelodyName(melodyId, this.editingMelodyName).subscribe({
-      next: () => {
-        this.toastr.success('Melody name updated successfully');
-        this.editingMelodyId = null;
-        this.editingMelodyName = '';
-        // Reload melodies to show updated name
-        this.creationService.getMelodies(
-          this.melodiesPerPage,
-          this.currentPage,
-          this.sortByType,
-          this.order
-        ).subscribe({
-          error: () => {
-            this.isLoading = false;
-            this.cdr.markForCheck();
-          }
-        });
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.toastr.error('Failed to update melody name');
-        console.error('Update error:', error);
-        this.cdr.markForCheck();
-      }
-    });
+    this.creationService
+      .updateMelodyName(melodyId, this.editingMelodyName)
+      .subscribe({
+        next: () => {
+          this.toastr.success('Melody name updated successfully');
+          this.editingMelodyId = null;
+          this.editingMelodyName = '';
+          // Reload melodies to show updated name
+          this.creationService
+            .getMelodies(
+              this.melodiesPerPage,
+              this.currentPage,
+              this.sortByType,
+              this.order,
+            )
+            .subscribe({
+              error: () => {
+                this.isLoading = false;
+                this.cdr.markForCheck();
+              },
+            });
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.toastr.error('Failed to update melody name');
+          console.error('Update error:', error);
+          this.cdr.markForCheck();
+        },
+      });
   }
 }

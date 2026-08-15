@@ -10,14 +10,14 @@ import { ToastrService } from 'ngx-toastr';
 import { EditEmailModel } from '../interfaces/edit-email-model';
 import { EditPasswordModel } from '../interfaces/edit-password-model';
 
-
-const BACKEND_URL = environment.apiUrl + "/user";
+const BACKEND_URL = environment.apiUrl + '/user';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly _isAuthenticated = signal(false);
+  private readonly _authInitialized = signal(false);
   private readonly _token = signal<string>('');
   private tokenTimer: any;
   private authStatusListener = new Subject<boolean>();
@@ -28,7 +28,7 @@ export class AuthService {
     private toastr: ToastrService,
     private userService: UserService,
     private creationService: CreationService,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
   ) {}
 
   getToken() {
@@ -37,6 +37,10 @@ export class AuthService {
 
   isAuthenticated() {
     return this._isAuthenticated();
+  }
+
+  isAuthInitialized() {
+    return this._authInitialized();
   }
 
   getAuthStatusListener() {
@@ -48,16 +52,17 @@ export class AuthService {
     return this.http.post(`${BACKEND_URL}/signup`, authData).pipe(
       tap(() => {
         try {
-          this.toastr.success('Account created. A verification email has been sent, please check your inbox and click Verify Email to confirm your address.');
-        } catch (e) {
-        }
+          this.toastr.success(
+            'Account created. A verification email has been sent, please check your inbox and click Verify Email to confirm your address.',
+          );
+        } catch (e) {}
         this.router.navigate(['/auth/login']);
       }),
       catchError((error) => {
         this.authStatusListener.next(false);
         return throwError(() => error);
       }),
-      map(() => void 0)
+      map(() => void 0),
     );
   }
 
@@ -80,7 +85,7 @@ export class AuthService {
       },
       (error) => {
         this.authStatusListener.next(false);
-      }
+      },
     );
   }
 
@@ -94,12 +99,17 @@ export class AuthService {
       .pipe(
         catchError((error: HttpErrorResponse) => {
           this.authStatusListener.next(false);
-          let message = 'Something went wrong while requesting a password change.';
+          let message =
+            'Something went wrong while requesting a password change.';
           if (error.status === 0) {
             message = 'Network error: please check your internet connection.';
           } else if (error.status >= 500) {
             message = 'Server error: please try again later.';
-          } else if (error.error && typeof error.error === 'object' && 'message' in error.error) {
+          } else if (
+            error.error &&
+            typeof error.error === 'object' &&
+            'message' in error.error
+          ) {
             message = String((error.error as any).message);
           }
           if (error.status !== 429) {
@@ -107,14 +117,17 @@ export class AuthService {
           }
           return throwError(() => ({ ...error, userMessage: message }));
         }),
-        map(() => void 0)
+        map(() => void 0),
       );
   }
 
   loginUser(email: string, password: string): Observable<void> {
     const authData: AuthData = { email, password };
     return this.http
-      .post<{ token: string; expiresIn: number }>(`${BACKEND_URL}/login`, authData)
+      .post<{
+        token: string;
+        expiresIn: number;
+      }>(`${BACKEND_URL}/login`, authData)
       .pipe(
         tap((response) => {
           const token = response.token;
@@ -125,7 +138,7 @@ export class AuthService {
             this._isAuthenticated.set(true);
             this.authStatusListener.next(true);
             const expirationDate = new Date(
-              new Date().getTime() + expiresInDuration * 1000
+              new Date().getTime() + expiresInDuration * 1000,
             );
             this.saveAuthData(token, expirationDate);
             this.router.navigate(['/']);
@@ -135,13 +148,14 @@ export class AuthService {
           this.authStatusListener.next(false);
           return throwError(() => error);
         }),
-        map(() => void 0)
+        map(() => void 0),
       );
   }
 
   autoAuthUser() {
     const authInformation = this.getAuthData();
     if (!authInformation) {
+      this._authInitialized.set(true);
       return;
     }
     const now = new Date();
@@ -152,6 +166,7 @@ export class AuthService {
       this.setAuthTimer(expiresIn / 1000);
       this.authStatusListener.next(true);
     }
+    this._authInitialized.set(true);
   }
 
   logout() {
@@ -162,6 +177,7 @@ export class AuthService {
     this.clearAuthData();
     this.userService.clearUser();
     this.creationService.resetMelody();
+    this.creationService.resetSettings();
     this.router.navigate(['/']);
   }
 
@@ -172,7 +188,8 @@ export class AuthService {
       .pipe(
         catchError((error: HttpErrorResponse) => {
           this.authStatusListener.next(false);
-          let message = 'Something went wrong while requesting a password reset.';
+          let message =
+            'Something went wrong while requesting a password reset.';
           if (error.status === 0) {
             message = 'Network error: please check your internet connection.';
           } else if (error.status === 404) {
@@ -181,7 +198,11 @@ export class AuthService {
             message = 'Invalid email address. Please check and try again.';
           } else if (error.status >= 500) {
             message = 'Server error: please try again later.';
-          } else if (error.error && typeof error.error === 'object' && 'message' in error.error) {
+          } else if (
+            error.error &&
+            typeof error.error === 'object' &&
+            'message' in error.error
+          ) {
             message = String((error.error as any).message);
           }
           if (error.status !== 429) {
@@ -189,34 +210,42 @@ export class AuthService {
           }
           return throwError(() => ({ ...error, userMessage: message }));
         }),
-        map(() => void 0)
+        map(() => void 0),
       );
   }
 
   submitNewPassword(
     newPassword: string,
     passwordToken: string,
-    userId: string
+    userId: string,
   ): Observable<void> {
     const newPasswordParams = {
       newPassword: newPassword,
       passwordToken: passwordToken,
       userId: userId,
     };
-    return this.http.post<{ message: string; result?: any }>(`${BACKEND_URL}/new-password`, newPasswordParams)
+    return this.http
+      .post<{
+        message: string;
+        result?: any;
+      }>(`${BACKEND_URL}/new-password`, newPasswordParams)
       .pipe(
         tap((response) => {
-          const msg = response?.message || 'Your password has been reset successfully. You can now log in with your new password.';
+          const msg =
+            response?.message ||
+            'Your password has been reset successfully. You can now log in with your new password.';
           this.toastr.success(msg);
           this.router.navigate(['/auth/login']);
         }),
         catchError((error: HttpErrorResponse) => {
           this.authStatusListener.next(false);
-          const errMsg = error?.error?.message || 'Failed to set new password. Please try again.';
+          const errMsg =
+            error?.error?.message ||
+            'Failed to set new password. Please try again.';
           this.toastr.error(errMsg);
           return throwError(() => error);
         }),
-        map(() => void 0)
+        map(() => void 0),
       );
   }
 
@@ -236,7 +265,7 @@ export class AuthService {
         catchError((error: HttpErrorResponse) => {
           return throwError(() => error);
         }),
-        map(() => void 0)
+        map(() => void 0),
       );
   }
 
@@ -247,12 +276,15 @@ export class AuthService {
         catchError((error: HttpErrorResponse) => {
           return throwError(() => error);
         }),
-        map(() => void 0)
+        map(() => void 0),
       );
   }
 
   resendActivation(email: string) {
-    return this.http.post<{message: string}>(`${BACKEND_URL}/resend-activation`, { email });
+    return this.http.post<{ message: string }>(
+      `${BACKEND_URL}/resend-activation`,
+      { email },
+    );
   }
 
   private saveAuthData(token: string, expirationDate: Date) {
