@@ -42,13 +42,15 @@
 
 						<div class="email-availability mt-1">
 							@if (checkingEmail) {
-								<span class="text-muted"><i class="fas fa-spinner fa-spin"></i> Checking...</span>
+							<div class="spinner-border spinner-border-sm" role="status" aria-hidden="true">
+								<span class="sr-only">Checking...</span>
+							</div>
 							}
 							@if (emailAvailable === true) {
-								<span class="success-color"><i class="fas fa-check"></i> {{ emailAvailabilityMessage }}</span>
+							<span class="success-color"><i class="fas fa-check"></i> {{ emailAvailabilityMessage }}</span>
 							}
 							@if (emailAvailable === false) {
-								<span class="danger-color"><i class="fas fa-times"></i> {{ emailAvailabilityMessage }}</span>
+							<span class="danger-color"><i class="fas fa-times"></i> {{ emailAvailabilityMessage }}</span>
 							}
 						</div>
 					</div>

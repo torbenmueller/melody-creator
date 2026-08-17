@@ -285,96 +285,80 @@ exports.loginUser = async (req, res, next) => {
 	}
 }
 
-exports.resetPassword = (req, res, next) => {
-    if (!req.body || !req.body.email) {
-        return res.status(400).json({ message: 'Email is required.' });
-    }
-	crypto.randomBytes(32, (err, buffer) => {
-		if (err) {
-			console.log(err);
-			return res.status(500).json({ message: 'Could not generate reset token. Please try again later.' });
+exports.resetPassword = async (req, res, next) => {
+	if (!req.body || !req.body.email) {
+		return res.status(400).json({ message: 'Email is required.' });
+	}
+
+	try {
+		const user = await User.findOne({ email: req.body.email });
+		if (!user) {
+			return res.status(404).json({ message: 'No account found for this email address.' });
 		}
-		const token = buffer.toString('hex');
-		let userId;
 
-		User.findOne({ email: req.body.email })
-			.then(user => {
-				if (!user) {
-					res.status(404).json({ message: 'No account found for this email address.' });
-					throw new Error('UserNotFound');
-				}
+		const now = new Date();
+		const currentMonth = now.getFullYear() * 100 + (now.getMonth() + 1);
+		const previousResetState = {
+			resetToken: user.resetToken,
+			resetTokenExpiration: user.resetTokenExpiration,
+			resetRequestsCount: user.resetRequestsCount,
+			resetRequestsMonth: user.resetRequestsMonth
+		};
 
-				// Determine current calendar month in yyyymm format
-				const now = new Date();
-				const currentMonth = now.getFullYear() * 100 + (now.getMonth() + 1);
+		if (!user.resetRequestsMonth || user.resetRequestsMonth !== currentMonth) {
+			user.resetRequestsMonth = currentMonth;
+			user.resetRequestsCount = 0;
+		}
 
-				// Reset monthly counter if month changed or not initialized
-				if (!user.resetRequestsMonth || user.resetRequestsMonth !== currentMonth) {
-					user.resetRequestsMonth = currentMonth;
-					user.resetRequestsCount = 0;
-				}
-
-				// Enforce a maximum of 3 requests per month
-				if (user.resetRequestsCount >= 3) {
-					res.status(429).json({
-						message: 'You have reached your monthly limit for password requests.'
-					});
-					throw new Error('ResetRequestsLimitReached');
-				}
-
-				user.resetToken = token;
-				user.resetTokenExpiration = Date.now() + 3600000;
-				user.resetRequestsCount = (user.resetRequestsCount || 0) + 1;
-				userId = user._id;
-				return user.save();
-			})
-			.then(result => {
-				// Avoid sending the full saved document to the client (can include complex internals)
-				res.status(201).json({
-					message: 'Password reset email sent',
-					userId: result._id
-				});
-				emailjs
-					.send(
-						process.env.EMAILJS_SERVICE_ID,
-						process.env.EMAILJS_TEMPLATE_RESET_ID,
-						{
-							to_email: req.body.email,
-							app_name: 'Melody Creator',
-							subject: 'Password Reset Request',
-							email_text: 'you requested a password reset. Click this link to set a new password. If you did not request this, please ignore this email.',
-							email_href: `http://localhost:4200/auth/new-password/${token}/${userId}`,
-							link_text: 'Reset Password',
-							support: 'Technical Support',
-							support_initials: 'TS'
-						},
-						{
-							publicKey: process.env.EMAILJS_PUBLIC_KEY,
-							privateKey: process.env.EMAILJS_PRIVATE_KEY
-						}
-					)
-					.then(() => {
-						// ok
-					})
-					.catch(err => {
-						console.log('EmailJS send error (reset):', err);
-					});
-			})
-			.catch(err => {
-				// If this is an expected sentinel error we threw to short-circuit the flow,
-				// the response has already been sent above. Avoid noisy stack traces for
-				// those controlled cases.
-				if (err && (err.message === 'UserNotFound' || err.message === 'ResetRequestsLimitReached')) {
-					// nothing to do; response already sent to client
-					return;
-				}
-				// Unexpected errors: log and respond if headers not yet sent
-				console.error('Reset password error:', err && err.stack ? err.stack : err);
-				if (!res.headersSent) {
-					return res.status(500).json({ message: 'Internal server error while processing password reset.' });
-				}
+		if (user.resetRequestsCount >= 3) {
+			return res.status(429).json({
+				message: 'You have reached your monthly limit for password requests.'
 			});
-	});
+		}
+
+		const token = crypto.randomBytes(32).toString('hex');
+		user.resetToken = token;
+		user.resetTokenExpiration = Date.now() + 3600000;
+		user.resetRequestsCount = (user.resetRequestsCount || 0) + 1;
+		await user.save();
+
+		try {
+			await emailjs.send(
+				process.env.EMAILJS_SERVICE_ID,
+				process.env.EMAILJS_TEMPLATE_RESET_ID,
+				{
+					to_email: req.body.email,
+					app_name: 'Melody Creator',
+					subject: 'Password Reset Request',
+					email_text: 'you requested a password reset. Click this link to set a new password. If you did not request this, please ignore this email.',
+					email_href: `http://localhost:4200/auth/new-password/${token}/${user._id}`,
+					link_text: 'Reset Password',
+					support: 'Technical Support',
+					support_initials: 'TS'
+				},
+				{
+					publicKey: process.env.EMAILJS_PUBLIC_KEY,
+					privateKey: process.env.EMAILJS_PRIVATE_KEY
+				}
+			);
+		} catch (emailError) {
+			user.resetToken = previousResetState.resetToken;
+			user.resetTokenExpiration = previousResetState.resetTokenExpiration;
+			user.resetRequestsCount = previousResetState.resetRequestsCount;
+			user.resetRequestsMonth = previousResetState.resetRequestsMonth;
+			await user.save();
+			console.error('EmailJS send error (reset):', emailError);
+			return res.status(502).json({ message: 'Unable to send password reset email. Please try again later.' });
+		}
+
+		return res.status(201).json({
+			message: 'Password reset email sent',
+			userId: user._id
+		});
+	} catch (error) {
+		console.error('Reset password error:', error && error.stack ? error.stack : error);
+		return res.status(500).json({ message: 'Internal server error while processing password reset.' });
+	}
 }
 
 // Resend activation (verification) email to a user if not yet verified.

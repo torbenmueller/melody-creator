@@ -6,10 +6,9 @@
 		<div class="col-12">
 			<p class="white-color">Filter your melodies, preview them, download as MIDI/XML, or delete with ease</p>
 		</div>
-		<!-- ToDo: Spinner Position -->
 		@if (isLoading) {
 		<div class="col-12 center">
-			<div class="spinner-border" role="status">
+			<div class="spinner-border" role="status" aria-hidden="true">
 				<span class="sr-only">Loading...</span>
 			</div>
 		</div>
@@ -17,7 +16,6 @@
 	</div>
 
 	@if (melodies.length > 0 && !isLoading) {
-	<!-- <div class="row border-grey" style="margin: 0; padding: 0;"> -->
 	<div class="row" style="margin: 0; padding: 0;">
 		<div class="col-12" style="margin: 0; padding: 0;">
 			<div class="card card-header">

@@ -35,14 +35,14 @@
               <a class="link" routerLink="/auth/forgot-password">Forgot password?</a>
             </div>
           </div>
-          <button class="w-100 btn btn-lg primary-button" type="submit" [disabled]="isLoading">Sign In</button>
-          @if (isLoading) {
-            <div class="text-center">
-              <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
-              </div>
-            </div>
-          }
+          <button class="w-100 btn btn-lg primary-button" type="submit" [disabled]="isLoading">
+            @if (isLoading) {
+						<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+						Signing In...
+						} @else {
+						Sign In
+						}
+          </button>
           @if (!isAuthenticated) {
             <p class="text-center danger-color">Wrong email address or password</p>
           }
@@ -50,11 +50,11 @@
             <div class="text-center">
               <p class="mb-0 white-color">Didn't receive a verification email?</p>
               <button class="btn btn-link link p-0" type="button" (click)="onResendActivation(loginForm.value.email)" [disabled]="resendLoading || !loginForm.value.email">
-                @if (!resendLoading) {
-                  <span>Resend activation link</span>
-                }
                 @if (resendLoading) {
-                  <span><i class="fas fa-spinner fa-spin"></i> Sending...</span>
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Sending...
+                } @else {
+                  Resend activation link
                 }
               </button>
             </div>

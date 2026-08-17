@@ -49,17 +49,17 @@
 					</div>
 				}
 			</div>
-			<button class="w-100 btn btn-lg primary-button" type="submit" [disabled]="isLoading">Create Account</button>
+			<button class="w-100 btn btn-lg primary-button" type="submit" [disabled]="isLoading">
+				@if (isLoading) {
+				<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+				Creating...
+				} @else {
+				Create Account
+				}
+			</button>
 			<div>
 				<p class="no-margin">By signing up you agree to our <a routerLink="/terms-and-conditions" class="hyperlink">Terms and Conditions</a> and <a routerLink="/privacy-policy" class="hyperlink">Privacy Policy</a>.</p>
 			</div>
-			@if (isLoading) {
-				<div class="text-center">
-					<div class="spinner-border" role="status">
-						<span class="sr-only">Loading...</span>
-					</div>
-				</div>
-			}
 			@if (!isAuthenticated) {
 				<div class="text-center">
 					<span class="danger-color">Invalid authentication credentials!</span>
