@@ -528,6 +528,27 @@ exports.updateEmail = async (req, res, next) => {
 			return res.status(400).json({ message: 'New email is the same as the current email.' });
 		}
 
+		const now = new Date();
+		const currentMonth = now.getFullYear() * 100 + (now.getMonth() + 1);
+		const previousEmailChangeState = {
+			pendingEmail: user.pendingEmail,
+			pendingEmailToken: user.pendingEmailToken,
+			pendingEmailTokenExpiration: user.pendingEmailTokenExpiration,
+			emailChangeRequestsCount: user.emailChangeRequestsCount,
+			emailChangeRequestsMonth: user.emailChangeRequestsMonth
+		};
+
+		if (user.emailChangeRequestsMonth !== currentMonth) {
+			user.emailChangeRequestsMonth = currentMonth;
+			user.emailChangeRequestsCount = 0;
+		}
+
+		if ((user.emailChangeRequestsCount || 0) >= 3) {
+			return res.status(429).json({
+				message: 'You have reached your monthly limit for email change requests.'
+			});
+		}
+
 		// Prevent changing to an email already in use by another account
 		const existing = await User.findOne({ email: newEmail });
 		if (existing && existing._id.toString() !== user._id.toString()) {
@@ -541,11 +562,13 @@ exports.updateEmail = async (req, res, next) => {
 		user.pendingEmail = newEmail;
 		user.pendingEmailToken = verificationToken;
 		user.pendingEmailTokenExpiration = verificationExpiry;
+		user.emailChangeRequestsCount = (user.emailChangeRequestsCount || 0) + 1;
 		await user.save();
 
-		// Send a verification email to the new address
-		emailjs
-			.send(
+		try {
+			// Send one verification email for this request. This also invalidates any
+			// previous pending link because the token was replaced above.
+			await emailjs.send(
 				process.env.EMAILJS_SERVICE_ID,
 				process.env.EMAILJS_TEMPLATE_RESET_ID,
 				{
@@ -562,16 +585,19 @@ exports.updateEmail = async (req, res, next) => {
 					publicKey: process.env.EMAILJS_PUBLIC_KEY,
 					privateKey: process.env.EMAILJS_PRIVATE_KEY
 				}
-			)
-			.then(() => {
-				// Respond to client that verification email was sent
-				res.status(200).json({ message: 'Verification email sent to the new address. Please confirm to complete the change.' });
-			})
-			.catch(err => {
-				console.log('EmailJS send error (update-email):', err);
-				// Keep pending fields in place, inform client
-				res.status(500).json({ message: 'Failed to send verification email. Please try again later.' });
-			});
+			);
+		} catch (emailError) {
+			user.pendingEmail = previousEmailChangeState.pendingEmail;
+			user.pendingEmailToken = previousEmailChangeState.pendingEmailToken;
+			user.pendingEmailTokenExpiration = previousEmailChangeState.pendingEmailTokenExpiration;
+			user.emailChangeRequestsCount = previousEmailChangeState.emailChangeRequestsCount;
+			user.emailChangeRequestsMonth = previousEmailChangeState.emailChangeRequestsMonth;
+			await user.save();
+			console.log('EmailJS send error (update-email):', emailError);
+			return res.status(502).json({ message: 'Failed to send verification email. Please try again later.' });
+		}
+
+		return res.status(200).json({ message: 'Verification email sent to the new address. Any previous email-change link is no longer valid.' });
 
 	} catch (error) {
 		console.log(error);

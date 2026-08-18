@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, effect } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormControl, FormsModule, NgForm, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Subscription, Subject, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, catchError, filter, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { MatModalComponent } from '../mat-modal/mat-modal.component';
 import { UserService } from '../../services/user.service';
 import { CreationService } from '../../services/creation.service';
@@ -34,6 +34,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   melodies: any = [];
   totalMelodies: number = 0;
   isLoading: boolean = false;
+  isUpdatingEmail: boolean = false;
   currentEmail: string = '';
   newEmail: string = '';
   currentPassword: string = '';
@@ -107,23 +108,34 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(500),
         distinctUntilChanged(),
-        filter((email) => !!email && email.trim().length > 3),
-        tap(() => {
+        switchMap((email) => {
+          if (!this.isValidEmail(email)) {
+            return of(null);
+          }
+
           this.checkingEmail = true;
           this.emailAvailable = null;
           this.emailAvailabilityMessage = '';
-        }),
-        switchMap((email) => this.userService.checkEmail(email).pipe(
-          catchError(err => {
-            // Map errors to a consistent response object
-            const msg = (err?.status === 429) ? 'Rate limit reached, try again later.' : 'Could not verify availability.';
-            return of({ available: false, message: msg });
-          })
-        ))
+          this.cdr.markForCheck();
+
+          return this.userService.checkEmail(email).pipe(
+            catchError(err => {
+              const message = err?.status === 429
+                ? 'Rate limit reached, try again later.'
+                : 'Could not verify availability.';
+
+              return of({ available: false, message });
+            })
+          );
+        })
       )
-      .subscribe((res: { available: boolean; message?: string }) => {
+      .subscribe((res: { available: boolean; message?: string } | null) => {
+        if (!res) {
+          return;
+        }
+
         this.checkingEmail = false;
-        this.emailAvailable = !!res.available;
+        this.emailAvailable = res.available;
         this.emailAvailabilityMessage = res.message || (this.emailAvailable ? 'Email available' : 'Email already in use');
         this.cdr.markForCheck();
       });
@@ -143,7 +155,14 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   getUser() {
     this.userService.getUser(true).subscribe({
-      error: () => this.cdr.markForCheck()
+      error: () => {
+        this.cdr.markForCheck();
+        // A login can finish while an earlier unauthenticated request is still in flight.
+        // Retry once after that request has settled so the profile is populated immediately.
+        setTimeout(() => this.userService.getUser(true).subscribe({
+          error: () => this.cdr.markForCheck()
+        }), 0);
+      }
     });
   }
 
@@ -198,43 +217,95 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     return str.trim().length === 0;
   }
 
-  onSubmitNewEmail(form: NgForm) {
-    if (form.invalid) {
-      form.form.markAllAsTouched();
+  private isValidEmail(value: string): boolean {
+    const email = value.trim().toLowerCase();
+    const publicEmailPattern = /^[^\s@]+@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i;
+
+    return email.length > 0 &&
+      Validators.email(new FormControl(email)) === null &&
+      publicEmailPattern.test(email);
+  }
+
+  onSubmitNewEmail(form: NgForm): void {
+    if (this.isUpdatingEmail) {
       return;
     }
-    if (this.newEmail === this.currentEmail) {
+
+    const email = String(form.value.email ?? '').trim().toLowerCase();
+    const currentEmail = this.currentEmail.trim().toLowerCase();
+
+    if (form.invalid || !this.isValidEmail(email)) {
+      form.form.markAllAsTouched();
+      this.emailAvailable = false;
+      this.emailAvailabilityMessage = 'Enter a valid email address.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (email === currentEmail) {
       this.toastr.info('Email is the same as the current one.');
       return;
     }
+
+    this.isUpdatingEmail = true;
+    this.cdr.markForCheck();
+
     // First check whether the email is already used by another account
-    this.userService.checkEmail(form.value.email).subscribe({
+    this.userService.checkEmail(email).subscribe({
       next: (res: {available: boolean, message?: string}) => {
         if (res.available) {
-          this.authService.updateEmail(form.value.email);
+          this.authService.updateEmail(email).subscribe({
+            next: () => {
+              this.isUpdatingEmail = false;
+              this.cdr.markForCheck();
+            },
+            error: () => {
+              this.isUpdatingEmail = false;
+              this.cdr.markForCheck();
+            }
+          });
         } else {
+          this.isUpdatingEmail = false;
           this.toastr.error(res.message || 'Email is already in use.');
+          this.cdr.markForCheck();
         }
       },
       error: (err) => {
+        this.isUpdatingEmail = false;
         if (err?.status === 409) {
           this.toastr.error('Email is already in use.');
         } else {
           this.toastr.error('Could not verify email availability. Please try again later.');
         }
+        this.cdr.markForCheck();
       }
     });
   }
 
-  onEmailInput(value: string) {
-    // Reset availability if same as current
-    if (!value || value.trim() === '' || value === this.currentEmail) {
+  onEmailInput(value: string): void {
+    const email = value.trim().toLowerCase();
+    const currentEmail = this.currentEmail.trim().toLowerCase();
+
+    // Reset availability if empty or unchanged, and cancel pending checks.
+    if (!email || email === currentEmail) {
       this.checkingEmail = false;
       this.emailAvailable = null;
       this.emailAvailabilityMessage = '';
+      this.emailInput$.next('');
+      this.cdr.markForCheck();
       return;
     }
-    this.emailInput$.next(value);
+
+    if (!this.isValidEmail(email)) {
+      this.checkingEmail = false;
+      this.emailAvailable = false;
+      this.emailAvailabilityMessage = 'Enter a valid email address.';
+      this.emailInput$.next(email);
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.emailInput$.next(email);
   }
 
   onSubmitNewPassword(form: NgForm) {

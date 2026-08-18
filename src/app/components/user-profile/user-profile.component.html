@@ -35,6 +35,8 @@
 							(ngModelChange)="onEmailInput($event)"
 							#emailInput="ngModel"
 							required
+							email
+							pattern="[^@\s]+@(?:[^@\s.]+\.)+[A-Za-z]{2,}"
 						>
 						@if (!emailInput.valid && emailInput.touched) {
 							<span class="password-hints">Please enter a valid email!</span>
@@ -54,7 +56,14 @@
 							}
 						</div>
 					</div>
-					<button type="submit" class="btn btn-success">Change email</button>
+					<button type="submit" class="btn btn-success" [disabled]="isUpdatingEmail">
+						@if (isUpdatingEmail) {
+						<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+						Changing email...
+						} @else {
+						Change email
+						}
+					</button>
 				</form>
 				<div>
 					<p class="mb-0">Member since</p>

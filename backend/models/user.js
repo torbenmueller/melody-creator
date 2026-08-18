@@ -25,6 +25,9 @@ const userSchema = mongoose.Schema({
 	// Password reset request limiting (per calendar month)
 	resetRequestsCount: { type: Number, default: 0 },
 	resetRequestsMonth: { type: Number },
+	// Email change request limiting (per calendar month)
+	emailChangeRequestsCount: { type: Number, default: 0 },
+	emailChangeRequestsMonth: { type: Number },
 	// Password change request limiting
 	passwordChangeRequestsCount: { type: Number, default: 0 }
 });

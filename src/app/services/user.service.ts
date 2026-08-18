@@ -34,19 +34,25 @@ export class UserService {
       return of(cached);
     }
 
-    if (this.inFlightRequest) {
+    if (this.inFlightRequest && !forceReload) {
       return this.inFlightRequest;
     }
 
-    this.inFlightRequest = this.http.get<User>(BACKEND_URL + "/user/get-user")
+    let request: Observable<User>;
+    request = this.http.get<User>(BACKEND_URL + "/user/get-user")
       .pipe(
         tap((data) => this.user.next(data)),
-        finalize(() => { this.inFlightRequest = null; }),
+        finalize(() => {
+          if (this.inFlightRequest === request) {
+            this.inFlightRequest = null;
+          }
+        }),
         // ensure late subscribers get the same result without re-running
         shareReplay({ bufferSize: 1, refCount: false })
       );
 
-    return this.inFlightRequest;
+    this.inFlightRequest = request;
+    return request;
   }
 
   // Return the current cached user value (or null if none).

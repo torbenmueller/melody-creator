@@ -1,6 +1,6 @@
 import { Inject, Injectable, DOCUMENT, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, map, Observable, Subject, tap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, Subject, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { UserService } from '../services/user.service';
@@ -75,17 +75,23 @@ export class AuthService {
       });
   }
 
-  updateEmail(email: string) {
+  updateEmail(email: string): Observable<void> {
     const editEmailModel: EditEmailModel = { email: email };
-    this.http.put(`${BACKEND_URL}/update-email`, editEmailModel).subscribe(
-      (response) => {
-        this.toastr.success(Object.values(response)[0]);
-        this.userService.getUser();
+    return this.http.put<{ message: string }>(`${BACKEND_URL}/update-email`, editEmailModel).pipe(
+      tap((response) => {
+        this.toastr.success(response.message);
+        this.userService.getUser(true).subscribe();
         // this.router.navigate(['/']);
-      },
-      (error) => {
-        this.authStatusListener.next(false);
-      },
+      }),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 429 || error.status === 409) {
+          this.toastr.error(error.error?.message || 'Email change request cannot be sent.');
+        } else {
+          this.authStatusListener.next(false);
+        }
+        return throwError(() => error);
+      }),
+      map(() => void 0),
     );
   }
 
@@ -276,6 +282,10 @@ export class AuthService {
         catchError((error: HttpErrorResponse) => {
           return throwError(() => error);
         }),
+        switchMap(() => this.isAuthenticated()
+          ? this.userService.getUser(true)
+          : of(null)
+        ),
         map(() => void 0),
       );
   }
