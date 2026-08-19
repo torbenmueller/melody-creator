@@ -262,8 +262,33 @@ export class MyMelodiesComponent implements OnInit {
     return Math.ceil(this.totalMelodies / this.melodiesPerPage) || 0;
   }
 
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  // Windowed page list: first, last, current +/- 1 neighbor, with '...' gaps.
+  get pages(): (number | '...')[] {
+    const total = this.totalPages;
+    const current = this.currentPage;
+    if (total <= 0) return [];
+
+    const delta = 1;
+    const keep = new Set<number>([1, total]);
+    for (let i = current - delta; i <= current + delta; i++) {
+      if (i > 1 && i < total) keep.add(i);
+    }
+
+    const sorted = Array.from(keep).sort((a, b) => a - b);
+    const result: (number | '...')[] = [];
+    let prev = 0;
+    for (const p of sorted) {
+      if (prev) {
+        if (p - prev === 2) {
+          result.push(prev + 1);
+        } else if (p - prev > 2) {
+          result.push('...');
+        }
+      }
+      result.push(p);
+      prev = p;
+    }
+    return result;
   }
 
   goToPage(page: number) {

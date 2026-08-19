@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Component, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { FooterComponent } from './components/footer/footer.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 
@@ -27,11 +28,20 @@ import { CookieConsentPopupComponent } from "./components/cookie-consent-popup/c
 export class AppComponent {
   title = 'melody-creator';
 
+  // Defaults to false to avoid flashing the header before the first navigation resolves (router.url starts as '/' pre-navigation).
+  isHomeRoute = signal(false);
+
   constructor(
     public authService: AuthService,
     private dialog: MatDialog,
     public router: Router
-  ) {}
+  ) {
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.isHomeRoute.set(event.urlAfterRedirects === '/');
+      });
+  }
 
   ngOnInit(): void {
     this.authService.autoAuthUser();

@@ -11,11 +11,10 @@
   @if (token && userId) {
     <div class="mt-3">
       <button class="btn btn-success" (click)="confirmVerification()" [disabled]="isVerifying">
-        @if (!isVerifying) {
-          <span>Confirm</span>
-        }
         @if (isVerifying) {
-          <span>Verifying...</span>
+          Verifying...
+        } @else {
+          Confirm
         }
       </button>
     </div>

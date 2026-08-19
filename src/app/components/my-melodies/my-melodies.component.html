@@ -222,10 +222,16 @@
 						<button class="page-link" type="button" (click)="prevPage()"
 							[disabled]="currentPage === 1">Previous</button>
 					</li>
-					@for (p of pages; track p) {
+					@for (p of pages; track $index) {
+					@if (p === '...') {
+					<li class="page-item disabled">
+						<span class="page-link">&hellip;</span>
+					</li>
+					} @else {
 					<li class="page-item" [class.active]="p === currentPage">
 						<button class="page-link" type="button" (click)="goToPage(p)">{{ p }}</button>
 					</li>
+					}
 					}
 					<li class="page-item" [class.disabled]="currentPage === totalPages">
 						<button class="page-link" type="button" (click)="nextPage()"
