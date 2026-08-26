@@ -917,6 +917,10 @@ a:focus-visible,
   .image-top {
     margin-top: 1rem;
   }
+
+  .settings-box-header {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

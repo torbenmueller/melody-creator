@@ -22,7 +22,7 @@
 				<ul class="list-group list-group-flush">
 					<li class="list-style-none">
 						<div class="space-between">
-							<div style="width: 20%">
+							<div class="col-name">
 								<div class="inline-block pointer" (click)="filterMelodies(0)" tabindex="0" role="button"
 									[attr.aria-pressed]="filterBooleans[0]" (keydown.enter)="filterMelodies(0)"
 									(keydown.space)="filterMelodies(0); $event.preventDefault()">
@@ -31,7 +31,7 @@
 										[ngClass]="{'fa-chevron-down': !filterBooleans[0], 'fa-chevron-up': filterBooleans[0]}"></i>
 								</div>
 							</div>
-							<div class="text-center" style="width: 20%">
+							<div class="text-center col-keys">
 								<div class="inline-block pointer" (click)="filterMelodies(1)" tabindex="0" role="button"
 									[attr.aria-pressed]="filterBooleans[1]" (keydown.enter)="filterMelodies(1)"
 									(keydown.space)="filterMelodies(1); $event.preventDefault()">
@@ -40,7 +40,7 @@
 										[ngClass]="{'fa-chevron-down': !filterBooleans[1], 'fa-chevron-up': filterBooleans[1]}"></i>
 								</div>
 							</div>
-							<div class="text-center" style="width: 5%">
+							<div class="text-center col-bars">
 								<div class="inline-block pointer" (click)="filterMelodies(2)" tabindex="0" role="button"
 									[attr.aria-pressed]="filterBooleans[2]" (keydown.enter)="filterMelodies(2)"
 									(keydown.space)="filterMelodies(2); $event.preventDefault()">
@@ -49,7 +49,7 @@
 										[ngClass]="{'fa-chevron-down': !filterBooleans[2], 'fa-chevron-up': filterBooleans[2]}"></i>
 								</div>
 							</div>
-							<div class="text-center" style="width: 15%">
+							<div class="text-center col-complex">
 								<div class="inline-block pointer" (click)="filterMelodies(3)" tabindex="0" role="button"
 									[attr.aria-pressed]="filterBooleans[3]" (keydown.enter)="filterMelodies(3)"
 									(keydown.space)="filterMelodies(3); $event.preventDefault()">
@@ -58,7 +58,7 @@
 										[ngClass]="{'fa-chevron-down': !filterBooleans[3], 'fa-chevron-up': filterBooleans[3]}"></i>
 								</div>
 							</div>
-							<div class="text-center" style="width: 5%">
+							<div class="text-center col-beat">
 								<div class="inline-block pointer" (click)="filterMelodies(4)" tabindex="0" role="button"
 									[attr.aria-pressed]="filterBooleans[4]" (keydown.enter)="filterMelodies(4)"
 									(keydown.space)="filterMelodies(4); $event.preventDefault()">
@@ -67,16 +67,16 @@
 										[ngClass]="{'fa-chevron-down': !filterBooleans[4], 'fa-chevron-up': filterBooleans[4]}"></i>
 								</div>
 							</div>
-							<div class="text-center" style="width: 10%">
+							<div class="text-center col-plan">
 								<div class="inline-block pointer" (click)="filterMelodies(5)" tabindex="0" role="button"
 									[attr.aria-pressed]="filterBooleans[5]" (keydown.enter)="filterMelodies(5)"
 									(keydown.space)="filterMelodies(5); $event.preventDefault()">
-									<span>License</span>
+									<span>{{license}}</span>
 									<i class="fas ms-2"
 										[ngClass]="{'fa-chevron-down': !filterBooleans[5], 'fa-chevron-up': filterBooleans[5]}"></i>
 								</div>
 							</div>
-							<div class="text-center" style="width: 10%">
+							<div class="text-center col-date">
 								<div class="inline-block pointer" (click)="filterMelodies(6)" tabindex="0" role="button"
 									[attr.aria-pressed]="filterBooleans[6]" (keydown.enter)="filterMelodies(6)"
 									(keydown.space)="filterMelodies(6); $event.preventDefault()">
@@ -85,7 +85,7 @@
 										[ngClass]="{'fa-chevron-down': !filterBooleans[6], 'fa-chevron-up': filterBooleans[6]}"></i>
 								</div>
 							</div>
-							<div class="text-center inline-block" style="width: 15%">
+							<div class="text-center col-actions">
 								<span>Actions</span>
 							</div>
 						</div>
@@ -96,8 +96,8 @@
 				<ul class="list-group list-group-flush">
 					@for (melody of melodies; track melody) {
 					<li class="list-group-item">
-						<div class="space-between center-v">
-							<div class="center-v" style="width: 20%">
+						<div class="space-between center-v" [class.editing-row]="editingMelodyId === melody._id">
+							<div class="center-v col-name" [class.editing-name]="editingMelodyId === melody._id">
 								<span class="white-color">{{(melodiesPerPage * (currentPage - 1) + $index + 1)}}.</span>
 								@if (editingMelodyId === melody._id) {
 								<input type="text" class="form-control form-control-sm d-inline-block my-2 ms-2"
@@ -117,20 +117,23 @@
 								@if (isLessThanThreeDaysAgo(melody.time)) {
 								<span class="badge rounded-pill text-bg-success ms-2">New</span>
 								}
-								<button class="btn btn-sm btn-link text-white p-0 ms-2 edit-melody"
-									(click)="startEditingName(melody)" title="Edit name">
-									<i class="fas fa-pencil-alt"></i>
-								</button>
+								<div class="custom-tooltip">
+									<button class="btn btn-sm btn-link text-white p-0 ms-2 edit-melody"
+										(click)="startEditingName(melody)">
+										<i class="fas fa-pencil-alt"></i>
+									</button>
+									<span class="tooltiptext">Edit name</span>
+								</div>
 								}
 							</div>
-							<div class="text-center" style="width: 20%">
+							<div class="text-center col-keys">
 								<span class="custom-badge badge-purple-light">{{melody.settings?.key}}
 									{{melody.settings?.scale}}</span>
 							</div>
-							<div class="text-center" style="width: 5%">
+							<div class="text-center col-bars">
 								<span>{{melody.settings?.bar}}</span>
 							</div>
-							<div class="text-center" style="width: 15%">
+							<div class="text-center col-complex">
 								<span class="custom-badge" [ngClass]="{
 									  'badge-low': melody.settings?.complex === 'Low',
 									  'badge-medium': melody.settings?.complex === 'Medium',
@@ -139,16 +142,16 @@
 									{{melody.settings?.complex}}
 								</span>
 							</div>
-							<div class="text-center" style="width: 5%">
+							<div class="text-center col-beat">
 								<span>{{melody.settings?.beat}}</span>
 							</div>
-							<div class="text-center" style="width: 10%">
+							<div class="text-center col-plan">
 								<span [class]="melody.plan?.toLowerCase() === 'free' ? 'red-dot' : 'green-dot'"></span>
 							</div>
-							<div class="text-center" style="width: 10%">
-								<span>{{melody.time | date: 'dd.MM.yyyy'}}</span>
+							<div class="text-center col-date">
+								<span>{{melody.time | date: dateFormat}}</span>
 							</div>
-							<div style="width: 15%" class="text-right">
+							<div class="text-right col-actions">
 								<div class="custom-tooltip inline-block me-3">
 									@if (playingMelodyId !== melody._id) {
 									<button class="btn btn-success btn-sm" (click)="play(melody.melody, melody._id)"
@@ -163,7 +166,7 @@
 									<span class="tooltiptext">Stop melody</span>
 									}
 								</div>
-								<div class="custom-tooltip inline-block me-3">
+								<div class="custom-tooltip inline-block me-3 show-melody-button">
 									<button class="btn btn-light btn-sm" (click)="showMelody(melody)">
 										<i class="fas fa-eye black-color"></i>
 									</button>
@@ -176,6 +179,11 @@
 											<i class="fas fa-ellipsis-v fa-lg"></i>
 										</button>
 										<ul class="dropdown-menu dropdown-menu-end">
+											<li class="show-melody-dropdown">
+												<button class="dropdown-item text-white" type="button"
+													(click)="showMelody(melody)">Show Melody
+												</button>
+											</li>
 											<li>
 												<button class="dropdown-item text-white" type="button"
 													(click)="downloadMidiFile(melody._id, melody.settings?.name)">Download
@@ -225,7 +233,7 @@
 					@for (p of pages; track $index) {
 					@if (p === '...') {
 					<li class="page-item disabled">
-						<span class="page-link">&hellip;</span>
+						<span>&hellip;</span>
 					</li>
 					} @else {
 					<li class="page-item" [class.active]="p === currentPage">

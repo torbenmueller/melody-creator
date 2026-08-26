@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  HostListener,
   OnInit,
   effect,
 } from '@angular/core';
@@ -37,6 +38,11 @@ import { PLATFORM_ID, inject } from '@angular/core';
 })
 export class MyMelodiesComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly mobileBreakpoint = 992;
+  private resizeTimeout?: ReturnType<typeof setTimeout>;
+
+  dateFormat: string = 'dd.MM.yyyy';
+  license: string = 'License';
   melodies: any[] = [];
   totalMelodies: number = 0;
   melodiesPerPage: number = 10;
@@ -71,6 +77,7 @@ export class MyMelodiesComponent implements OnInit {
     false,
     false,
   ];
+  
   filterTypes: Array<string> = [
     'name',
     'key',
@@ -107,7 +114,31 @@ export class MyMelodiesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.updateScreen();
     this.load();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (this.resizeTimeout) return;
+    this.resizeTimeout = setTimeout(() => {
+      this.updateScreen();
+      this.resizeTimeout = undefined;
+    }, 100);
+  }
+
+  private updateScreen(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const format = window.innerWidth <= this.mobileBreakpoint ? 'dd.MM.' : 'dd.MM.yyyy';
+    const licenseFormat = window.innerWidth <= this.mobileBreakpoint ? 'Lic.' : 'License';
+    if (format !== this.dateFormat) {
+      this.dateFormat = format;
+      this.cdr.markForCheck();
+    }
+    if (licenseFormat !== this.license) {
+      this.license = licenseFormat;
+      this.cdr.markForCheck();
+    }
   }
 
   load() {

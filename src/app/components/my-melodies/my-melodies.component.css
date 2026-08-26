@@ -11,6 +11,11 @@
 	align-content: space-between;
 }
 
+/* Flex items default to min-width: auto, which blocks shrinking below content size (e.g. the fixed-width .melody-name) and causes overflow at narrow widths. */
+.space-between > div {
+	min-width: 0;
+}
+
 .right {
 	text-align: right;
 }
@@ -55,11 +60,23 @@
 }
 
 .list-group-item:hover .edit-melody {
+	opacity: 0.5;
+}
+
+.list-group-item:hover .edit-melody:hover {
 	opacity: 1;
+}
+
+/* Touch devices (tablets, phones) have no reliable hover, so keep the button always visible there */
+@media (hover: none), (pointer: coarse) {
+	.edit-melody {
+		opacity: 0.5;
+	}
 }
 
 .melody-name {
 	display: inline-block;
+	min-width: 0;
 	max-width: 150px;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -112,7 +129,7 @@ nav ul {
 	border-color: var(--purple);
 }
 .pagination .page-link[disabled], .pagination .page-item.disabled .page-link {
-	opacity: 0.45;
+	opacity: 0.5;
 	cursor: not-allowed;
 	background: transparent;
 }
@@ -159,4 +176,104 @@ nav ul {
 	background-color: var(--success-color);
 	border-radius: 50%;
 	display: inline-block;
+}
+
+.col-name {
+	width: 18%;
+}
+.col-keys {
+	width: 20%;
+}
+
+.col-actions, .col-complex {
+	width: 15%;
+}
+
+.col-plan, .col-date {
+	width: 9%;
+}
+
+.col-bars, .col-beat {
+	width: 7%;
+}
+
+.space-between {
+	flex-wrap: wrap;
+}
+
+.col-name.editing-name {
+	flex: 1 1 100%;
+	max-width: 100%;
+	display: flex;
+	align-items: center;
+}
+
+.col-name.editing-name input {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto;
+}
+
+/* Reserve the space col-name normally occupies so wrapped columns keep their position */
+.editing-row::before {
+	content: '';
+	order: 1;
+	flex: 0 0 18%;
+	max-width: 18%;
+}
+
+.editing-row > div:not(.col-name) {
+	order: 2;
+}
+
+@media (min-width: 768px) {
+	.show-melody-dropdown {
+		display: none;
+	}
+}
+
+@media (max-width: 992px) {
+	.col-name {
+		width: 22%;
+	}
+	.col-actions, .col-complex {
+		width: 25%;
+	}
+	.col-bars {
+		width: 10%;
+	}
+	.col-keys, .col-beat  {
+		display: none;
+	}
+
+	.editing-row::before {
+		flex: 0 0 22%;
+		max-width: 22%;
+	}
+}
+
+@media (max-width: 768px) {
+	.col-name {
+		width: 40%;
+	}
+	.col-plan {
+		width: 15%;
+	}
+	.col-date {
+		width: 20%;
+	}
+	.col-actions {
+		width: 25%;
+	}
+	.col-bars, .col-complex, .show-melody-button {
+		display: none;
+	}
+	.show-melody-dropdown {
+		display: inline-block;
+	}
+
+	.editing-row::before {
+		flex-basis: 40%;
+		max-width: 40%;
+	}
 }
