@@ -272,20 +272,26 @@ export class MyMelodiesComponent implements OnInit {
     this.toggleFilter(index);
     this.sortByType = this.filterTypes[index];
     this.order = this.filterBooleans[index] ? 1 : -1;
-    this.creationService.getMelodies(
-      this.melodiesPerPage,
-      this.currentPage,
-      this.sortByType,
-      this.order,
-    );
+    this.isLoading = true;
+    this.creationService
+      .getMelodies(
+        this.melodiesPerPage,
+        this.currentPage,
+        this.sortByType,
+        this.order,
+      )
+      .subscribe({
+        error: () => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   toggleFilter(index: number) {
-    this.filterBooleans[index] = !this.filterBooleans[index];
-    /* for (let i = 0; i < 6; i++) {
-      if (i !== index) this.filterBooleans[i] = false;
-      else this.filterBooleans[i] = !this.filterBooleans[i];
-    } */
+    for (let i = 0; i < this.filterBooleans.length; i++) {
+      this.filterBooleans[i] = i === index ? !this.filterBooleans[i] : false;
+    }
   }
 
   // Paging helpers for nav paginator
