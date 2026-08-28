@@ -1,16 +1,23 @@
-<div #consentPopup class="consent-popup hidden">
+<div #consentPopup class="consent-popup hidden slide-top">
 	<div class="center">
 		<i class="fas fa-cookie-bite cookie-icon"></i>
 		<div>
-			<p class="bold">
+			<h4 class="bold white-color">
 				Cookie consent
-			</p>
+			</h4>
 			<p>
 				By clicking “Accept all cookies”, you agree Melody Creator can store cookies on your device and disclose information in accordance with our <a class="link" routerLink="/terms-and-conditions">Terms and Conditions</a>.
 			</p>
 		</div>
 	</div>
-	<div class="center mt-3">
+	<div class="center mt-3 column-gap-20">
+		<button class="btn btn-light" (click)="declineFn()">Decline all cookies</button>
 		<button class="btn primary-button" (click)="acceptFn()">Accept all cookies</button>
 	</div>
 </div>
+@if (minutes < 1 && seconds < 31 && seconds> 0) {
+	<div class="logout-warning">
+		<span>For security reasons you will be logged out in <span class="white-color">{{seconds}}</span> seconds. 
+		<a class="link" (click)="stayLoggedIn()">Stay logged in</a></span>
+	</div>
+}

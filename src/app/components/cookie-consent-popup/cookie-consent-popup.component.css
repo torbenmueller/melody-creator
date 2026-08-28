@@ -5,8 +5,7 @@
 	right: 0;
 	padding: 2rem;
 	background-color: #000;
-	color: #fff;
-	z-index: 1;
+	z-index: 4;
 }
 
 .hidden {
@@ -34,4 +33,48 @@ a {
 	font-size: 3rem;
 	margin-right: 1rem;
 	color: #fff;
+	opacity: 0.5;
+}
+
+.logout-warning {
+	position: fixed;
+	top: 70px;
+	left: 0;
+	right: 0;
+	z-index: 1001;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	column-gap: 0.5rem;
+	padding: 0.75rem 1rem;
+	background-color: #000;
+	text-align: center;
+}
+
+/* translateY(100%) is relative to the element's own (variable) height, so it always starts fully off-screen below regardless of content/viewport size */
+@-webkit-keyframes consent-popup {
+  0% {
+    -webkit-transform: translateY(100%);
+            transform: translateY(100%);
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+@keyframes consent-popup {
+  0% {
+    -webkit-transform: translateY(100%);
+            transform: translateY(100%);
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+
+.slide-top {
+	-webkit-animation: consent-popup 0.5s ease-out;
+	        animation: consent-popup 0.5s ease-out;
 }

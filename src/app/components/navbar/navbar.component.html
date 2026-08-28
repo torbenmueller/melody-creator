@@ -26,12 +26,6 @@
 					<a class="nav-link" routerLink="/frequently-asked-questions" (click)="closeMobileMenu()">FAQ</a>
 				</li>
 			</ul>
-			@if (minutes < 1 && seconds < 31 && seconds> 0) {
-				<div class="me-3">
-					<span>For security reasons you will be logged out in <span class="white-color">{{seconds}}</span> seconds. </span>
-					<a class="link" (click)="stayLoggedIn()">Stay logged in</a>
-				</div>
-			}
 			<div class="center-v column-gap-20">
 				@if (userIsAuthenticated) {
 					<div class="custom-badge badge-light center-v column-gap-20">
