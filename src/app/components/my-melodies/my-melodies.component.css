@@ -2,6 +2,12 @@
 	pointer-events: none;
 }
 
+/* Scroll containers don't honor their own trailing padding once content overflows, so give the
+   fixed-width score its own right padding here to keep spacing symmetric with .white-bg's left padding. */
+.score-scroll-content {
+	display: inline-block;
+}
+
 .enabled {
 	pointer-events: auto;
 }

@@ -51,6 +51,10 @@ body .modal-open {
   color: var(--body-color);
 }
 
+/* h1, h2, h3, h4, h5, h6, p, span, button {
+  text-box: trim-both cap alphabetic;
+} */
+
 h1.h3 {
   color: var(--purple);
 }
@@ -431,10 +435,16 @@ progress::-moz-progress-bar {
   margin: 0 5px 5px 0;
 }
 
+/* Rounds and clips - overflow:hidden here masks the scrollbar drawn by .white-bg-scroll into rounded corners, while that inner element keeps the browser's native scrollbar (with arrows). */
 .white-bg {
   border-radius: 10px;
-  padding: 0 10px;
   background-color: var(--white);
+  overflow: hidden;
+}
+
+.white-bg-scroll {
+  padding: 0 10px;
+  overflow: auto;
 }
 
 .grey-bg {
@@ -848,6 +858,7 @@ a:focus-visible,
   font-weight: bold;
   border-radius: 9999px;
   width: auto;
+  white-space: nowrap;
 }
 
 .best-value-badge {

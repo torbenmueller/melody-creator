@@ -28,11 +28,6 @@ ul li:not(:last-child) {
   margin-bottom: 10px;
 }
 
-.table {
-  border: 1px solid var(--border-color);
-  margin-bottom: 0;
-}
-
 .table > :not(caption) > * > * {
   color: #fff;
   background-color: var(--background-color-2);
@@ -42,4 +37,66 @@ ul li:not(:last-child) {
 .table > :not(caption) > * > th {
   background-color: var(--background-color);
   font-size: 1.5rem;
+}
+
+table { 
+  border-collapse: separate;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  border-spacing: 0px;
+  background-color: var(--background-color-2);
+  margin-bottom: 0;
+}
+
+thead, th, td {
+  border: 0;
+}
+
+.table > :not(caption) > * > * {
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table > :not(caption) > * > *:last-child {
+  border-right: 0;
+}
+
+.table > thead > tr > * {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table > tbody > tr:last-child > * {
+  border-bottom: 0;
+}
+
+.table > thead > tr:first-child > *:first-child {
+  border-top-left-radius: 9px;
+}
+
+.table > thead > tr:first-child > *:last-child {
+  border-top-right-radius: 9px;
+}
+
+.table > tbody > tr:last-child > *:first-child {
+  border-bottom-left-radius: 9px;
+}
+
+.table > tbody > tr:last-child > *:last-child {
+  border-bottom-right-radius: 9px;
+}
+
+@media (max-width: 768px) {
+  .table > :not(caption) > * > * {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .table > :not(caption) > * > th {
+    font-size: 1rem;
+  }
+
+  .most-popular-badge {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+  }
 }
