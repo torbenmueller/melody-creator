@@ -34,6 +34,10 @@ ul li:not(:last-child) {
   padding: 20px;
 }
 
+/* .table > tbody > tr:nth-child(even) > * {
+  background-color: var(--background-color-3);
+} */
+
 .table > :not(caption) > * > th {
   background-color: var(--background-color);
   font-size: 1.5rem;
@@ -53,7 +57,7 @@ thead, th, td {
 }
 
 .table > :not(caption) > * > * {
-  border-right: 1px solid var(--border-color);
+  /* border-right: 1px solid var(--border-color); */
   border-bottom: 1px solid var(--border-color);
 }
 

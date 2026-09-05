@@ -35,10 +35,7 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() melodyData: MelodyData | null = null;
 
   @ViewChild('scoreEl', { static: false }) scoreEl!: ElementRef<HTMLDivElement>;
-  @ViewChild('score2El', { static: false })
-  score2El!: ElementRef<HTMLDivElement>;
-  @ViewChild('score3El', { static: false })
-  score3El!: ElementRef<HTMLDivElement>;
+  @ViewChild('score2El', { static: false }) score2El!: ElementRef<HTMLDivElement>;
 
   constructor(public creationService: CreationService) {
     effect(() => {
@@ -109,12 +106,10 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
     const VF = Vex.Flow;
     const div = this.scoreEl?.nativeElement as HTMLDivElement;
     const div2 = this.score2El?.nativeElement as HTMLDivElement;
-    const div3 = this.score3El?.nativeElement as HTMLDivElement;
 
     // Clear existing content
     if (div) div.innerHTML = '';
     if (div2) div2.innerHTML = '';
-    if (div3) div3.innerHTML = '';
 
     // Create first renderer (always needed)
     const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
@@ -122,34 +117,32 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
     const context = renderer.getContext();
 
     let context2: any = null;
-    let context3: any = null;
-
-    // Only create second renderer if we have more than 2 bars
-    if (this.melodySettings && this.melodySettings.bar > 2) {
+    // Only create second renderer if we have more than 4 bars
+    if (this.melodySettings && this.melodySettings.bar > 4) {
       const renderer2 = new VF.Renderer(div2, VF.Renderer.Backends.SVG);
       renderer2.resize(1202, 120);
       context2 = renderer2.getContext();
-
-      // Only create third renderer if we have more than 4 bars
-      if (this.melodySettings && this.melodySettings.bar > 4) {
-        const renderer3 = new VF.Renderer(div3, VF.Renderer.Backends.SVG);
-        renderer3.resize(1202, 120);
-        context3 = renderer3.getContext();
-      }
     }
 
-    this.createMeasures(this.melodySettings, context, context2, context3);
+    this.createMeasures(this.melodySettings, context, context2);
   }
 
   createMeasures(
     settings: { bar: any; rootKey: string; scale: string },
     context: any,
     context2: any,
-    context3: any,
   ) {
     const measures = settings.bar;
-    const { Stave, StaveNote, Beam, Formatter, Accidental, KeySignature, Dot } =
-      Vex.Flow;
+    const {
+      Stave,
+      StaveNote,
+      Beam,
+      Formatter,
+      Accidental,
+      KeySignature,
+      Dot,
+      BarlineType,
+    } = Vex.Flow;
 
     const staveMeasure1 = new Stave(0, 0, 300);
     const staveMeasure2 = new Stave(
@@ -183,7 +176,6 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
       0,
       300,
     );
-    const staveMeasure9 = new Stave(0, 0, 300);
 
     let notesMeasure1: any[] = [];
     let notesMeasure2: any[] = [];
@@ -193,7 +185,6 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
     let notesMeasure6: any[] = [];
     let notesMeasure7: any[] = [];
     let notesMeasure8: any[] = [];
-    let notesMeasure9: any[] = [];
 
     let staveMeasures = [
       staveMeasure1,
@@ -397,6 +388,10 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
           keySignature.addToStave(staveMeasure5);
       }
 
+      if (this.totalMeasures === measures - 1) {
+        staveMeasures[this.totalMeasures].setEndBarType(BarlineType.END);
+      }
+
       const beams = Beam.generateBeams(notesMeasures[this.totalMeasures]);
       staveMeasures[this.totalMeasures].setContext(ct).draw();
       Formatter.FormatAndDraw(
@@ -411,146 +406,6 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
       this.totalMeasures++;
     }
 
-    // Add last note
-    const timeTokenLast =
-      this.composedMelody[this.composedMelody.length - 1].time;
-    let duration = timeTokenLast.charAt(0);
-    const isDottedLast =
-      timeTokenLast.length > 2 || timeTokenLast.includes('.');
-    let note = this.composedMelody[this.composedMelody.length - 1].note;
-    let noteLowerCase = this.firstCharToLowerCase(note);
-    let keys = this.addSlash(noteLowerCase);
-    let sign = '';
-
-    if (!this.checkForScalesWithoutSign(settings.scale)) {
-      sign = this.checkForSign(note);
-    } else {
-      // With key signature: prefer explicit note accidental; otherwise apply minor exception if needed
-      const spelledSign = this.checkForSign(note);
-      if (spelledSign.length > 0) {
-        const letter = note[0].toUpperCase();
-        const impliedAlter =
-          this.keySignatureAlterMap(this.keyNameToFifths(settings.rootKey))[
-            letter
-          ] ?? 0;
-        const spelledAlter = this.accidentalCharToAlter(spelledSign);
-        if (spelledAlter !== impliedAlter) sign = spelledSign;
-      } else {
-        const extraAcc = this.getAccidentalForMinorExceptions(
-          note,
-          settings.rootKey,
-          settings.scale,
-        );
-        if (extraAcc) sign = extraAcc;
-      }
-    }
-
-    if (measures == 2) {
-      const shownAccidentalsLast: { [k: string]: string } = {};
-      const letter = note[0].toUpperCase();
-      const octave = note.slice(-1);
-      const noteId = `${letter}${octave}`;
-      if (sign.length > 0) {
-        const n = new StaveNote({
-          clef: 'treble',
-          keys: [keys],
-          duration: duration,
-          auto_stem: true,
-        });
-        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        if (shownAccidentalsLast[noteId] !== sign) {
-          notesMeasure3.push(n.addModifier(new Accidental(sign), 0));
-          shownAccidentalsLast[noteId] = sign;
-        } else {
-          notesMeasure3.push(n);
-        }
-      } else {
-        const n = new StaveNote({
-          clef: 'treble',
-          keys: [keys],
-          duration: duration,
-          auto_stem: true,
-        });
-        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        notesMeasure3.push(n);
-      }
-      staveMeasure3.setContext(context).draw();
-      Formatter.FormatAndDraw(context, staveMeasure3, notesMeasure3);
-    }
-
-    if (measures == 4) {
-      const shownAccidentalsLast: { [k: string]: string } = {};
-      const letter = note[0].toUpperCase();
-      const octave = note.slice(-1);
-      const noteId = `${letter}${octave}`;
-      staveMeasure5.addClef('treble');
-      if (this.checkForScalesWithoutSign(settings.scale))
-        keySignature.addToStave(staveMeasure5);
-      staveMeasure5.setContext(context2).draw();
-      if (sign.length > 0) {
-        const n = new StaveNote({
-          clef: 'treble',
-          keys: [keys],
-          duration: duration,
-          auto_stem: true,
-        });
-        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        if (shownAccidentalsLast[noteId] !== sign) {
-          notesMeasure5.push(n.addModifier(new Accidental(sign), 0));
-          shownAccidentalsLast[noteId] = sign;
-        } else {
-          notesMeasure5.push(n);
-        }
-      } else {
-        const n = new StaveNote({
-          clef: 'treble',
-          keys: [keys],
-          duration: duration,
-          auto_stem: true,
-        });
-        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        notesMeasure5.push(n);
-      }
-      staveMeasure5.setContext(context2).draw();
-      Formatter.FormatAndDraw(context2, staveMeasure5, notesMeasure5);
-    }
-
-    if (measures == 8) {
-      const shownAccidentalsLast: { [k: string]: string } = {};
-      const letter = note[0].toUpperCase();
-      const octave = note.slice(-1);
-      const noteId = `${letter}${octave}`;
-      staveMeasure9.addClef('treble');
-      if (this.checkForScalesWithoutSign(settings.scale))
-        keySignature.addToStave(staveMeasure9);
-      staveMeasure9.setContext(context3).draw();
-      if (sign.length > 0) {
-        const n = new StaveNote({
-          clef: 'treble',
-          keys: [keys],
-          duration: duration,
-          auto_stem: true,
-        });
-        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        if (shownAccidentalsLast[noteId] !== sign) {
-          notesMeasure9.push(n.addModifier(new Accidental(sign), 0));
-          shownAccidentalsLast[noteId] = sign;
-        } else {
-          notesMeasure9.push(n);
-        }
-      } else {
-        const n = new StaveNote({
-          clef: 'treble',
-          keys: [keys],
-          duration: duration,
-          auto_stem: true,
-        });
-        if (isDottedLast) Dot.buildAndAttach([n], { all: true });
-        notesMeasure9.push(n);
-      }
-      staveMeasure9.setContext(context3).draw();
-      Formatter.FormatAndDraw(context3, staveMeasure9, notesMeasure9);
-    }
   }
 
   firstCharToLowerCase(str: string) {

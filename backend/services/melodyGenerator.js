@@ -43,6 +43,18 @@ class MelodyGenerator {
 
 	/* static NOTE_LENGTH = ["2n", "4n", "8n", "8n.", "16n", "16n.", "32n", "8t"]; */
 	static NOTE_LENGTH = ["2n", "4n", "8n", "16n", "8n.", "8t"];
+	static ENDING_DURATIONS = {
+		'4/4': { remaining: 0.5, notation: '2n' },
+		'3/4': { remaining: 0.25, notation: '4n' }
+	};
+	static NOTE_DURATIONS = {
+		'2n': 0.5,
+		'4n': 0.25,
+		'8n': 0.125,
+		'16n': 0.0625,
+		'8n.': 0.1875,
+		'8t': 1 / 6
+	};
 	static NAMES_OF_SCALES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 	constructor() {
@@ -130,16 +142,24 @@ class MelodyGenerator {
 
 	createNotes() {
 		let bar = 0;
+		let timeLeft = 0;
+		const endingDuration = MelodyGenerator.ENDING_DURATIONS[this.settings.beat];
 		while (this.bars > 0) {
 			if (this.settings.beat === "4/4") {
 				bar = 1;
+				if (this.bars === 1) {
+					timeLeft = endingDuration.remaining;
+				}
 			}
 			if (this.settings.beat === "3/4") {
 				bar = 0.75;
+				if (this.bars === 1) {
+					timeLeft = endingDuration.remaining;
+				}
 			}
-			while (bar > 0) {
+			while (bar > timeLeft) {
 				let time = this.setTime();
-				let barCheck = this.calculateLeftTimeAndPushToMelody(bar, time);
+				let barCheck = this.calculateLeftTimeAndPushToMelody(bar, time, timeLeft);
 				bar = barCheck.bar;
 				if (barCheck.moveOn === true) {
 					let note = this.setNote();
@@ -156,39 +176,13 @@ class MelodyGenerator {
 		return MelodyGenerator.NOTE_LENGTH[timeIndex];
 	}
 
-	calculateLeftTimeAndPushToMelody(bar, time) {
-		let timeLength = 0;
+	calculateLeftTimeAndPushToMelody(bar, time, minimumRemaining = 0) {
+		const timeLength = MelodyGenerator.NOTE_DURATIONS[time];
+		if (timeLength === undefined) return { bar, moveOn: false };
 
-		// 1/2, 1/4 and 1/8 notes
-		if (time.length === 2 && !time.endsWith('t')) {
-			timeLength = 1 / parseInt(time.charAt(0));
-			bar -= timeLength;
-		}
-		
-		// 1/16 and 1/32 notes
-		if (time.length === 3 && !time.endsWith('.')) {
-			timeLength = 1 / parseInt(time.substring(0, time.length - 1));
-			bar -= timeLength;
-		}
-
-		// Dotted 1/8 notes
-		if (time.length === 3 && time.endsWith('.')) {
-			timeLength = (1 / (parseInt(time.charAt(0)) * 2)) * 3;
-			bar -= timeLength;
-			console.log("bar dotted", timeLength);
-		}
-
-		// Triplet 1/8 notes
-		/* if (time.length === 2 && time.endsWith('t')) {
-			timeLength = (1 / (parseInt(time.charAt(0)) * 3)) * 2;
-			bar -= timeLength;
-		} */
-
-		let moveOn = bar >= 0;
-		if (bar < 0) {
-			bar += timeLength;
-		}
-		return { bar, moveOn };
+		const nextBar = bar - timeLength;
+		const moveOn = nextBar >= minimumRemaining - Number.EPSILON;
+		return { bar: moveOn ? nextBar : bar, moveOn };
 	}
 
 	pushToMelody(time, note) {
@@ -270,9 +264,8 @@ class MelodyGenerator {
 	}
 
 	checkEnding() {
-		let lastNote = '1m';
-		if (this.settings.beat === '3/4') lastNote = '2n.';
-		this.melody.push({ note: this.melody[0].note, time: lastNote });
+		const endingDuration = MelodyGenerator.ENDING_DURATIONS[this.settings.beat];
+		this.melody.push({ note: this.melody[0].note, time: endingDuration.notation });
 	}
 
 	getDifference(index1, index2) {
