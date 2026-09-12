@@ -41,7 +41,6 @@ class MelodyGenerator {
 		wholetone: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 	};
 
-	/* static NOTE_LENGTH = ["2n", "4n", "8n", "8n.", "16n", "16n.", "32n", "8t"]; */
 	static NOTE_LENGTH = ["2n", "4n", "8n", "16n", "8n.", "8t"];
 	static ENDING_DURATIONS = {
 		'4/4': { remaining: 0.5, notation: '2n' },
@@ -53,7 +52,7 @@ class MelodyGenerator {
 		'8n': 0.125,
 		'16n': 0.0625,
 		'8n.': 0.1875,
-		'8t': 1 / 6
+		'8t': 1 / 12
 	};
 	static NAMES_OF_SCALES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
@@ -69,6 +68,9 @@ class MelodyGenerator {
 		this.difference = 0;
 		this.bars = 0;
 		this.complexity = 0;
+		this.pendingSixteenthPair = false;
+		this.pendingEighthTriplet = 0;
+		this.currentBarLength = 0;
 	}
 
 	// Main entry point
@@ -136,7 +138,9 @@ class MelodyGenerator {
 		this.noteIndex = 0;
 		this.difference = 0;
 		this.bars = this.settings.bar;
-		this.complexity = this.settings.complex === 'Low' ? 2 : this.settings.complex === 'Medium' ? 3 : 4;
+		this.complexity = this.settings.complex === 'Low' ? 2 : this.settings.complex === 'Medium' ? 3 : 5;
+		this.pendingSixteenthPair = false;
+		this.pendingEighthTriplet = 0;
 		this.createNotes();
 	}
 
@@ -147,18 +151,20 @@ class MelodyGenerator {
 		while (this.bars > 0) {
 			if (this.settings.beat === "4/4") {
 				bar = 1;
+				this.currentBarLength = 1;
 				if (this.bars === 1) {
 					timeLeft = endingDuration.remaining;
 				}
 			}
 			if (this.settings.beat === "3/4") {
 				bar = 0.75;
+				this.currentBarLength = 0.75;
 				if (this.bars === 1) {
 					timeLeft = endingDuration.remaining;
 				}
 			}
-			while (bar > timeLeft) {
-				let time = this.setTime();
+			while (bar > timeLeft + Number.EPSILON) {
+				let time = this.setTime(bar, timeLeft);
 				let barCheck = this.calculateLeftTimeAndPushToMelody(bar, time, timeLeft);
 				bar = barCheck.bar;
 				if (barCheck.moveOn === true) {
@@ -171,9 +177,77 @@ class MelodyGenerator {
 		this.checkEnding();
 	}
 
-	setTime() {
-		let timeIndex = this.randomNote(0, this.complexity);
-		return MelodyGenerator.NOTE_LENGTH[timeIndex];
+	setTime(remaining, minimumRemaining = 0) {
+		const targetUnits = Math.round((remaining - minimumRemaining) * 96);
+		const elapsedUnits = Math.round((this.currentBarLength - remaining) * 96);
+		const sixteenthUnits = Math.round(MelodyGenerator.NOTE_DURATIONS['16n'] * 96);
+		const eighthTripletUnits = Math.round(MelodyGenerator.NOTE_DURATIONS['8t'] * 96) * 3;
+		if (this.pendingSixteenthPair && targetUnits >= sixteenthUnits) {
+			return '16n';
+		}
+		if (this.pendingEighthTriplet > 0 && targetUnits >= Math.round(MelodyGenerator.NOTE_DURATIONS['8t'] * 96)) {
+			return '8t';
+		}
+
+		const validTimes = MelodyGenerator.NOTE_LENGTH
+			.slice(0, this.complexity + 1)
+			.filter(time => {
+				const durationUnits = Math.round(MelodyGenerator.NOTE_DURATIONS[time] * 96);
+				const leavesSixteenthPair = time === '16n' && !this.pendingSixteenthPair;
+				const startsEighthTriplet = time === '8t' && this.pendingEighthTriplet === 0;
+				if (startsEighthTriplet && (elapsedUnits % 24 !== 0 || targetUnits < eighthTripletUnits)) {
+					return false;
+				}
+				const remainingUnits = leavesSixteenthPair
+					? targetUnits - durationUnits - sixteenthUnits
+					: startsEighthTriplet
+							? targetUnits - eighthTripletUnits
+						: targetUnits - durationUnits;
+				return remainingUnits >= 0 && this.canFill(remainingUnits);
+			});
+
+		if (validTimes.length === 0) {
+			const fittingTime = MelodyGenerator.NOTE_LENGTH
+				.slice(0, this.complexity + 1)
+				.filter(time =>
+					time !== '8t' &&
+					(time !== '16n' || this.pendingSixteenthPair),
+				)
+				.find(time => Math.round(MelodyGenerator.NOTE_DURATIONS[time] * 96) <= targetUnits);
+			return fittingTime || MelodyGenerator.NOTE_LENGTH[this.complexity];
+		}
+
+		return validTimes[this.randomNote(0, validTimes.length - 1)];
+	}
+
+	canFill(targetUnits) {
+		if (targetUnits === 0) {
+			return true;
+		}
+		if (targetUnits < 0) {
+			return false;
+		}
+
+		const durations = MelodyGenerator.NOTE_LENGTH
+			.slice(0, this.complexity + 1)
+			.filter(time => time !== '16n' && time !== '8t')
+			.map(time => Math.round(MelodyGenerator.NOTE_DURATIONS[time] * 96));
+		if (this.complexity >= 3) {
+			durations.push(Math.round(MelodyGenerator.NOTE_DURATIONS['16n'] * 96) * 2);
+		}
+		if (this.complexity >= 5) {
+			durations.push(Math.round(MelodyGenerator.NOTE_DURATIONS['8t'] * 96) * 3);
+		}
+		const reachable = new Array(targetUnits + 1).fill(false);
+		reachable[0] = true;
+
+		for (let units = 1; units <= targetUnits; units++) {
+			reachable[units] = durations.some(duration =>
+				duration <= units && reachable[units - duration],
+			);
+		}
+
+		return reachable[targetUnits];
 	}
 
 	calculateLeftTimeAndPushToMelody(bar, time, minimumRemaining = 0) {
@@ -188,6 +262,12 @@ class MelodyGenerator {
 	pushToMelody(time, note) {
 		this.melody.push({ note, time });
 		this.melodyIndex = this.melody.length - 1;
+		if (time === '16n') {
+			this.pendingSixteenthPair = !this.pendingSixteenthPair;
+		}
+		if (time === '8t') {
+			this.pendingEighthTriplet = (this.pendingEighthTriplet + 1) % 3;
+		}
 	}
 
 	setNote() {
@@ -265,6 +345,14 @@ class MelodyGenerator {
 
 	checkEnding() {
 		const endingDuration = MelodyGenerator.ENDING_DURATIONS[this.settings.beat];
+		const lastNote = this.melody[this.melody.length - 1];
+		const previousNote = this.melody[this.melody.length - 2];
+		if (this.pendingSixteenthPair && lastNote?.time === '16n' && previousNote?.time !== '16n') {
+			this.pushToMelody('16n', this.melody[this.melody.length - 1].note);
+		}
+		while (this.pendingEighthTriplet > 0) {
+			this.pushToMelody('8t', this.melody[this.melody.length - 1].note);
+		}
 		this.melody.push({ note: this.melody[0].note, time: endingDuration.notation });
 	}
 

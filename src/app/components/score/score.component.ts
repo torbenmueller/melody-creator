@@ -141,6 +141,7 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
       Accidental,
       KeySignature,
       Dot,
+      Tuplet,
       BarlineType,
     } = Vex.Flow;
 
@@ -185,6 +186,7 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
     let notesMeasure6: any[] = [];
     let notesMeasure7: any[] = [];
     let notesMeasure8: any[] = [];
+    const tripletGroups: any[][][] = [[], [], [], [], [], [], [], []];
 
     let staveMeasures = [
       staveMeasure1,
@@ -227,23 +229,15 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
       while (measure < beat) {
         const timeToken = this.composedMelody[index].time;
         let duration = '';
+        const isTriplet = timeToken.endsWith('t');
+        const baseToken = timeToken.replace(/[.t]$/, '');
 
-        // 1/2, 1/4 and 1/8 notes
-        if (timeToken.length === 2 && !timeToken.endsWith('t')) {
-          duration = timeToken.charAt(0);
-        }
-
-        // 1/16 and 1/32 notes
-        if (timeToken.length === 3 && !timeToken.endsWith('.')) {
-          duration = timeToken.substring(0, timeToken.length - 1);
-        }
-
-        // Dotted 1/8 notes
-        if (timeToken.length === 3 && timeToken.endsWith('.')) {
-          duration = timeToken.charAt(0);
-        }
+        duration = baseToken.endsWith('n')
+          ? baseToken.slice(0, -1)
+          : baseToken;
 
         const isDotted = timeToken.includes('.');
+        const notesBefore = notesMeasures[this.totalMeasures].length;
         let note = this.composedMelody[index].note;
         let noteLowerCase = this.firstCharToLowerCase(note);
         let keys = this.addSlash(noteLowerCase);
@@ -375,9 +369,20 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
           }
         }
 
-        let incr = 1 / +duration;
+        let incr = isTriplet ? 1 / (+duration * 1.5) : 1 / +duration;
         if (isDotted) incr *= 1.5;
         measure += incr;
+
+        if (isTriplet) {
+          const tripletNotes = notesMeasures[this.totalMeasures].slice(notesBefore);
+          const currentGroup = tripletGroups[this.totalMeasures];
+          const lastGroup = currentGroup[currentGroup.length - 1];
+          if (lastGroup && lastGroup.length < 3) {
+            lastGroup.push(...tripletNotes);
+          } else {
+            currentGroup.push(tripletNotes);
+          }
+        }
         index++;
       }
       /* if (this.totalMeasures < 4) ct = context; */
@@ -401,6 +406,13 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
       );
       beams.forEach((b) => {
         b.setContext(ct).draw();
+      });
+      tripletGroups[this.totalMeasures].forEach((group) => {
+        if (group.length === 3) {
+          new Tuplet(group, { num_notes: 3, notes_occupied: 2 })
+            .setContext(ct)
+            .draw();
+        }
       });
 
       this.totalMeasures++;

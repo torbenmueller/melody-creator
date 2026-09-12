@@ -43,6 +43,8 @@ exports.generateMelody = async (req, res, next) => {
 		if (authenticatedUser) {
 			await consumeCredit(authenticatedUser);
 		}
+
+		await new Promise(resolve => setTimeout(resolve, 1000));
 		
 		return res.status(200).json({
 			melody: result.melody,
@@ -262,7 +264,10 @@ const createNewMidiFile = (result) => {
 	const ticks = {
 		'2n': '2',
 		'4n': '4',
-		'8n': '8'
+		'8n': '8',
+		'8n.': '8.',
+		'16n': '16',
+		'8t': 'T8'
 	}
 
 	for (const obj of result.melody) {

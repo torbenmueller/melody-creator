@@ -12,7 +12,6 @@ export class MusicxmlConverterService {
   // map rhythmic tokens to quarter-note beats
   private durationBeatMap: { [k: string]: number } = {
     '64n': 1 / 16,
-    '32n': 1 / 8,
     '16n': 1 / 4,
     '8n': 1 / 2,
     '4n': 1,
@@ -94,8 +93,12 @@ export class MusicxmlConverterService {
     xml += `          <octave>${n.octave}</octave>\n        </pitch>\n`;
     xml += `        <duration>${durTicks}</duration>\n`;
 
-    // type element: map beats back to type (prefer common types). We'll use quarter-based types.
+    // type element: map beats back to type (prefer common types).
     xml += `        <type>${this.beatsToType(n.durationBeats)}</type>\n`;
+
+    if (n.isTriplet) {
+      xml += '        <time-modification>\n          <actual-notes>3</actual-notes>\n          <normal-notes>2</normal-notes>\n        </time-modification>\n';
+    }
 
     // accidental only if not already implied by key signature
     const sigAlter = this.currentKeyAlterMap[n.step] ?? 0;
@@ -138,6 +141,7 @@ export class MusicxmlConverterService {
     const map = [
       { name: '64th', beats: 1 / 16 },
       { name: '32nd', beats: 1 / 8 },
+      { name: '16th', beats: 3 / 16 },
       { name: '16th', beats: 1 / 4 },
       { name: 'eighth', beats: 1 / 2 },
       { name: 'quarter', beats: 1 },
@@ -164,14 +168,14 @@ export class MusicxmlConverterService {
     };
 
     for (const item of melody) {
-      const { isRest, beats, dotted } = this.timeTokenToBeats(item.time, beatsPerMeasure);
+      const { isRest, beats, dotted, isTriplet } = this.timeTokenToBeats(item.time, beatsPerMeasure);
       let left = beats;
       const isRestFlag = this.isRestToken(item.note);
 
       while (left > 0.000001) {
         if (left <= remainingBeats + 1e-9) {
           // fits into current measure
-          const seg = this.makeSegment(item.note, left, isRestFlag);
+          const seg = this.makeSegment(item.note, left, isRestFlag, isTriplet);
           // tie handling: if this is a continuation of a split from previous measure, mark ties
           if (left !== beats) seg.tie = 'stop';
           else if (beats > left) seg.tie = 'start';
@@ -181,7 +185,7 @@ export class MusicxmlConverterService {
           if (Math.abs(remainingBeats) < 1e-9) pushMeasure();
         } else {
           // doesn't fit: create segment for remainingBeats and tie
-          const seg = this.makeSegment(item.note, remainingBeats, isRestFlag);
+          const seg = this.makeSegment(item.note, remainingBeats, isRestFlag, isTriplet);
           seg.tie = 'start';
           currentMeasure.push(seg);
           left -= remainingBeats;
@@ -196,8 +200,8 @@ export class MusicxmlConverterService {
     return measures;
   }
 
-  private makeSegment(noteName: string, durationBeats: number, isRestFlag: boolean) {
-    if (isRestFlag) return { type: 'rest', durationBeats };
+  private makeSegment(noteName: string, durationBeats: number, isRestFlag: boolean, isTriplet = false) {
+    if (isRestFlag) return { type: 'rest', durationBeats, isTriplet };
     const pitch = this.parsePitch(noteName);
     return {
       type: 'note',
@@ -205,6 +209,7 @@ export class MusicxmlConverterService {
       alter: pitch.alter,
       octave: pitch.octave,
       durationBeats,
+      isTriplet,
       // tie can be 'start' | 'stop' | 'continue' or undefined; annotate so later assignments are type-compatible
       tie: undefined as 'start' | 'stop' | 'continue' | undefined,
     };
@@ -235,15 +240,16 @@ export class MusicxmlConverterService {
   // convert token like '4n', '2n.', '1m' to beats
   private timeTokenToBeats(token: string, beatsPerMeasure: number) {
     const dotted = token.endsWith('.');
-    const base = dotted ? token.slice(0, -1) : token;
+    const isTriplet = token.endsWith('t');
+    const base = (dotted || isTriplet) ? token.slice(0, -1) : token;
     if (base === '1m') {
       const beats = beatsPerMeasure;
-      return { beats: dotted ? beats * 1.5 : beats, isRest: false, dotted };
+      return { beats: dotted ? beats * 1.5 : beats, isRest: false, dotted, isTriplet };
     }
     const beatsBase = this.durationBeatMap[base];
     if (beatsBase == null || Number.isNaN(beatsBase)) throw new Error(`Unknown time token: ${token}`);
-    const beats = dotted ? beatsBase * 1.5 : beatsBase;
-    return { beats, isRest: false, dotted };
+    const beats = isTriplet ? beatsBase * (2 / 3) : dotted ? beatsBase * 1.5 : beatsBase;
+    return { beats, isRest: false, dotted, isTriplet };
   }
 
   // map key name to number of fifths for MusicXML

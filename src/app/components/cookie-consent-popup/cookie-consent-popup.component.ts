@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, Inject, AfterViewInit, OnInit, OnDestroy, ViewChild, PLATFORM_ID, DOCUMENT, effect } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, AfterViewInit, OnInit, OnDestroy, ViewChild, PLATFORM_ID, DOCUMENT, NgZone, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthService } from '../../auth/auth.service';
@@ -61,7 +61,8 @@ export class CookieConsentPopupComponent implements AfterViewInit, OnInit, OnDes
     @Inject(PLATFORM_ID) private platformId: Object,
     private authService: AuthService,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone,
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
 
@@ -107,19 +108,22 @@ export class CookieConsentPopupComponent implements AfterViewInit, OnInit, OnDes
   }
 
   private startInterval() {
-    this.countdown = setInterval(() => {
-      const remaining = this.expirationTimeMs - Date.now();
-      this.minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-      this.seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-      if (remaining <= 1000) {
-        this.closeAllDialogs();
-        clearInterval(this.countdown);
-        this.minutes = 0;
-        this.seconds = 0;
-        this.openConfirmationDialog();
-      }
-      // OnPush would need an explicit nudge; this component uses default CD so no markForCheck needed
-    }, 1000);
+    this.ngZone.runOutsideAngular(() => {
+      this.countdown = setInterval(() => {
+        this.ngZone.run(() => {
+          const remaining = this.expirationTimeMs - Date.now();
+          this.minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+          this.seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+          if (remaining <= 1000) {
+            this.closeAllDialogs();
+            clearInterval(this.countdown);
+            this.minutes = 0;
+            this.seconds = 0;
+            this.openConfirmationDialog();
+          }
+        });
+      }, 1000);
+    });
   }
 
   closeAllDialogs(): void {
