@@ -397,22 +397,47 @@ export class ScoreComponent implements OnInit, AfterViewInit, OnChanges {
         staveMeasures[this.totalMeasures].setEndBarType(BarlineType.END);
       }
 
-      const beams = Beam.generateBeams(notesMeasures[this.totalMeasures]);
+      const measureNotes = notesMeasures[this.totalMeasures];
+      const completeTripletGroups = tripletGroups[this.totalMeasures].filter(
+        (group) => group.length === 3,
+      );
+      const tripletNotes = new Set(completeTripletGroups.flat());
+      const beams: any[] = [];
+      let regularBeamRun: any[] = [];
+
+      const flushRegularBeamRun = () => {
+        if (regularBeamRun.length > 0) {
+          beams.push(...Beam.generateBeams(regularBeamRun));
+          regularBeamRun = [];
+        }
+      };
+
+      measureNotes.forEach((note) => {
+        if (tripletNotes.has(note)) {
+          flushRegularBeamRun();
+        } else {
+          regularBeamRun.push(note);
+        }
+      });
+      flushRegularBeamRun();
+
+      completeTripletGroups.forEach((group) => {
+        beams.push(new Beam(group));
+      });
+
       staveMeasures[this.totalMeasures].setContext(ct).draw();
       Formatter.FormatAndDraw(
         ct,
         staveMeasures[this.totalMeasures],
-        notesMeasures[this.totalMeasures],
+        measureNotes,
       );
       beams.forEach((b) => {
         b.setContext(ct).draw();
       });
-      tripletGroups[this.totalMeasures].forEach((group) => {
-        if (group.length === 3) {
-          new Tuplet(group, { num_notes: 3, notes_occupied: 2 })
-            .setContext(ct)
-            .draw();
-        }
+      completeTripletGroups.forEach((group) => {
+        new Tuplet(group, { num_notes: 3, notes_occupied: 2 })
+          .setContext(ct)
+          .draw();
       });
 
       this.totalMeasures++;
