@@ -465,16 +465,17 @@ class MelodyGenerator {
 
 	generatePitches(rhythm) {
 		const endingDuration = MelodyGenerator.ENDING_DURATIONS[this.settings.beat];
-		for (const time of rhythm) {
-			const note = time === endingDuration.notation && this.melody.length === rhythm.length - 1
+		for (let index = 0; index < rhythm.length; index++) {
+			const isCadence = rhythm[index] === endingDuration.notation && index === rhythm.length - 1;
+			const note = isCadence
 				? this.melody[0].note
-				: this.setNote();
-			this.melody.push({ note, time });
+				: this.setNote(index === rhythm.length - 2);
+			this.melody.push({ note, time: rhythm[index] });
 			this.melodyIndex = this.melody.length - 1;
 		}
 	}
 
-	setNote() {
+	setNote(isLastBeforeCadence = false) {
 		let searchScale = JSON.parse(JSON.stringify(this.scale));
 		let note = '';
 		
@@ -484,6 +485,10 @@ class MelodyGenerator {
 			searchScale = this.checkForQuantil(searchScale);
 			searchScale = this.notTripplet(searchScale);
 			searchScale = this.noteAfterQuint(searchScale);
+			searchScale = this.excludeRepeatedExtremes(searchScale);
+			if (isLastBeforeCadence) {
+				searchScale = this.ensureTonicIsNotExtreme(searchScale);
+			}
 			note = this.getRandomNoteOfScale(searchScale);
 		}
 		return note;
@@ -534,6 +539,39 @@ class MelodyGenerator {
 			}
 		}
 		return scale;
+	}
+
+	excludeRepeatedExtremes(scale) {
+		const noteIndexes = this.melody.map(note => this.scale.indexOf(note.note));
+		const lowestIndex = Math.min(...noteIndexes);
+		const highestIndex = Math.max(...noteIndexes);
+		const filteredScale = scale.filter(note => {
+			const noteIndex = this.scale.indexOf(note);
+			return noteIndex !== lowestIndex && noteIndex !== highestIndex;
+		});
+		return filteredScale.length > 0 ? filteredScale : scale;
+	}
+
+	ensureTonicIsNotExtreme(scale) {
+		const tonicIndex = this.scale.indexOf(this.melody[0].note);
+		const noteIndexes = this.melody.map(note => this.scale.indexOf(note.note));
+		const hasLowerNote = noteIndexes.some(noteIndex => noteIndex < tonicIndex);
+		const hasHigherNote = noteIndexes.some(noteIndex => noteIndex > tonicIndex);
+		const candidates = scale.filter(note => {
+			const noteIndex = this.scale.indexOf(note);
+			return (!hasLowerNote && noteIndex < tonicIndex)
+				|| (!hasHigherNote && noteIndex > tonicIndex);
+		});
+		if (candidates.length > 0) {
+			return candidates;
+		}
+
+		const scaleCandidates = this.scale.filter(note => {
+			const noteIndex = this.scale.indexOf(note);
+			return (!hasLowerNote && noteIndex < tonicIndex)
+				|| (!hasHigherNote && noteIndex > tonicIndex);
+		});
+		return scaleCandidates.length > 0 ? scaleCandidates : scale;
 	}
 
 	getRandomNoteOfScale(scale) {
