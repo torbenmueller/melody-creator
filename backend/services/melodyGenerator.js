@@ -157,10 +157,12 @@ class MelodyGenerator {
 		this.pendingEighthTriplet = 0;
 		this.currentBarRhythm = [];
 		this.consecutiveComplexBars = 0;
-		this.createNotes();
+		const rhythm = this.generateRhythm();
+		this.generatePitches(rhythm);
 	}
 
-	createNotes() {
+	generateRhythm() {
+		const rhythm = [];
 		let bar = 0;
 		let timeLeft = 0;
 		const endingDuration = MelodyGenerator.ENDING_DURATIONS[this.settings.beat];
@@ -193,13 +195,13 @@ class MelodyGenerator {
 				let barCheck = this.calculateLeftTimeAndPushToMelody(bar, time, timeLeft);
 				bar = barCheck.bar;
 				if (barCheck.moveOn === true) {
-					let note = this.setNote();
-					this.pushToMelody(time, note);
+					this.pushRhythm(rhythm, time);
 				}
 			}
 			this.bars -= 1;
 		}
-		this.checkEnding();
+		this.completeRhythm(rhythm);
+		return rhythm;
 	}
 
 	setTime(remaining, minimumRemaining = 0) {
@@ -450,15 +452,25 @@ class MelodyGenerator {
 		return { bar: moveOn ? nextBar : bar, moveOn };
 	}
 
-	pushToMelody(time, note) {
-		this.melody.push({ note, time });
-		this.melodyIndex = this.melody.length - 1;
+	pushRhythm(rhythm, time) {
+		rhythm.push(time);
 		this.currentRhythmPattern.push(time);
 		if (time === '16n') {
 			this.pendingSixteenthPair = !this.pendingSixteenthPair;
 		}
 		if (time === '8t') {
 			this.pendingEighthTriplet = (this.pendingEighthTriplet + 1) % 3;
+		}
+	}
+
+	generatePitches(rhythm) {
+		const endingDuration = MelodyGenerator.ENDING_DURATIONS[this.settings.beat];
+		for (const time of rhythm) {
+			const note = time === endingDuration.notation && this.melody.length === rhythm.length - 1
+				? this.melody[0].note
+				: this.setNote();
+			this.melody.push({ note, time });
+			this.melodyIndex = this.melody.length - 1;
 		}
 	}
 
@@ -535,17 +547,17 @@ class MelodyGenerator {
 		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
-	checkEnding() {
+	completeRhythm(rhythm) {
 		const endingDuration = MelodyGenerator.ENDING_DURATIONS[this.settings.beat];
-		const lastNote = this.melody[this.melody.length - 1];
-		const previousNote = this.melody[this.melody.length - 2];
-		if (this.pendingSixteenthPair && lastNote?.time === '16n' && previousNote?.time !== '16n') {
-			this.pushToMelody('16n', this.melody[this.melody.length - 1].note);
+		const lastTime = rhythm[rhythm.length - 1];
+		const previousTime = rhythm[rhythm.length - 2];
+		if (this.pendingSixteenthPair && lastTime === '16n' && previousTime !== '16n') {
+			this.pushRhythm(rhythm, '16n');
 		}
 		while (this.pendingEighthTriplet > 0) {
-			this.pushToMelody('8t', this.melody[this.melody.length - 1].note);
+			this.pushRhythm(rhythm, '8t');
 		}
-		this.melody.push({ note: this.melody[0].note, time: endingDuration.notation });
+		rhythm.push(endingDuration.notation);
 	}
 
 	getDifference(index1, index2) {
