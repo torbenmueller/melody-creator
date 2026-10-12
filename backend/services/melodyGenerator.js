@@ -482,9 +482,9 @@ class MelodyGenerator {
 		if (this.checkTonic()) {
 			note = this.setTonicNote();
 		} else {
-			searchScale = this.checkForQuantil(searchScale);
-			searchScale = this.notTripplet(searchScale);
-			searchScale = this.noteAfterQuint(searchScale);
+			searchScale = this.limitToNearbyNotes(searchScale);
+			searchScale = this.excludeThirdRepeatedNote(searchScale);
+			searchScale = this.noteAfterFifth(searchScale);
 			searchScale = this.excludeRepeatedExtremes(searchScale);
 			if (isLastBeforeCadence) {
 				searchScale = this.ensureTonicIsNotExtreme(searchScale);
@@ -502,7 +502,7 @@ class MelodyGenerator {
 		return this.scale[3];
 	}
 
-	checkForQuantil(scale) {
+	limitToNearbyNotes(scale) {
 		let foundNoteIndex = scale.indexOf(this.melody[this.melodyIndex].note);
 		let lowerIndex = foundNoteIndex - 4;
 		if (lowerIndex < 0) lowerIndex = 0;
@@ -511,7 +511,7 @@ class MelodyGenerator {
 		return scale.splice(lowerIndex, upperIndex);
 	}
 
-	notTripplet(scale) {
+	excludeThirdRepeatedNote(scale) {
 		if (this.melody.length >= 2) {
 			if (this.melody[this.melodyIndex].note === this.melody[this.melodyIndex - 1].note) {
 				let foundIndex = scale.indexOf(this.melody[this.melodyIndex].note);
@@ -523,7 +523,7 @@ class MelodyGenerator {
 		return scale;
 	}
 
-	noteAfterQuint(scale) {
+	noteAfterFifth(scale) {
 		if (this.melody.length >= 2) {
 			let firstNote = this.scale.indexOf(this.melody[this.melodyIndex - 1].note);
 			let secondNote = this.scale.indexOf(this.melody[this.melodyIndex].note);

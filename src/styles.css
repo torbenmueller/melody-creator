@@ -378,6 +378,10 @@ progress::-moz-progress-bar {
   row-gap: 20px;
 }
 
+.gap-16 {
+  gap: 16px;
+}
+
 .subheadline {
   font-size: 1rem;
   font-weight: bold;
@@ -547,10 +551,6 @@ progress::-moz-progress-bar {
 
 .mb-40 {
   margin-bottom: 40px;
-}
-
-.mb-1rem {
-  margin-bottom: 1rem;
 }
 
 .mt-2-5rem {

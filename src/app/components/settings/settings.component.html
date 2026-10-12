@@ -1,25 +1,8 @@
 <div class="container">
 	<div class="row title-row">
 		<div class="col-12">
-			<div class="flex-space-between align-flex-end mb-1rem">
-				<div>
-					<h2 class="purple-color">Customize Your Melody</h2>
-					<p class="white-color mb-0">Fine-tune your composition parameters</p>
-				</div>
-				<div class="custom-tooltip">
-					<button
-						id="resetSettings"
-						type="button"
-						class="btn btn-secondary"
-						aria-label="Reset settings to default"
-						[disabled]="isPlaying || isLoading"
-						(click)="resetSettings()"
-					>
-						<i class="fas fa-undo" aria-hidden="true"></i>
-					</button>
-					<span class="tooltiptext">Reset to default settings</span>
-				</div>
-			</div>
+			<h2 class="purple-color">Customize Your Melody</h2>
+			<p class="white-color">Fine-tune your composition parameters</p>
 		</div>
 	</div>
 	<div class="row">
@@ -54,27 +37,40 @@
 							[disabled]="isLoading" />
 					</div>
 				</div>
-				<div class="text-center mt-4">
-					<button id="create" [disabled]="isPlaying || isLoading" type="submit" class="btn primary-button">
-						@if (isLoading) {
-						<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-						Creating...
-						} @else {
-						Create
+				<div class="mt-4 flex-space-between">
+					<div class="d-flex flex-wrap gap-16">
+						<button id="create" [disabled]="isPlaying || isLoading" type="submit" class="btn primary-button">
+							<i class="fas fa-music me-2" aria-hidden="true"></i>
+							@if (isLoading) {
+							<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+							Creating...
+							} @else {
+							Create
+							}
+						</button>
+						<button id="playMelody" [disabled]="
+								  isPlaying || isLoading || !melody || melody.length === 0
+								" type="button" (click)="play()" class="btn btn-light">
+							<i class="fas fa-play me-2" aria-hidden="true"></i>Play
+						</button>
+						@if (userIsAuthenticated) {
+						<button [disabled]="
+								  isPlaying || isLoading || isSaving || melodySaved || !melody || melody.length === 0
+								" type="button" (click)="save()" class="btn btn-success">
+							<i class="fas fa-save me-2" aria-hidden="true"></i>{{ melodySaved ? 'Saved' : 'Save' }}
+						</button>
 						}
+					</div>
+					<button
+						id="resetSettings"
+						type="button"
+						class="btn btn-secondary"
+						aria-label="Reset settings to default"
+						[disabled]="isPlaying || isLoading"
+						(click)="resetSettings()"
+					>
+						<i class="fas fa-undo me-2" aria-hidden="true"></i>Reset
 					</button>
-					<button id="playMelody" [disabled]="
-              isPlaying || isLoading || !melody || melody.length === 0
-            " type="button" (click)="play()" class="btn btn-light ms-3">
-						Play
-					</button>
-					@if (userIsAuthenticated) {
-					<button [disabled]="
-              isPlaying || isLoading || isSaving || melodySaved || !melody || melody.length === 0
-            " type="button" (click)="save()" class="btn btn-success ms-3">
-						{{ melodySaved ? 'Saved' : 'Save' }}
-					</button>
-					}
 				</div>
 			</form>
 			@if (melody && melody.length > 0) {
