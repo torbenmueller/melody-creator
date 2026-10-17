@@ -26,7 +26,6 @@ export class CreationService implements OnDestroy {
   scoreSettings!: Settings;
   scale!: Scale;
   melody!: MelodyNote[];
-  intervalCheck: number[] = [];
   sampler!: Tone.Sampler;
   melodyCreatedWhileAuthenticated: boolean = false;
 
@@ -53,9 +52,6 @@ export class CreationService implements OnDestroy {
 
   fetchedMelodies: FetchedMelody[] = [];
   maxMelodies: number = 0;
-
-  isPlaying = new Subject<boolean>();
-  scoreData = new Subject<MelodyData>();
 
   readonly melodiesState = this.melodiesStateSignal.asReadonly();
   readonly isPlayingState = this.isPlayingSignalState.asReadonly();
@@ -135,7 +131,6 @@ export class CreationService implements OnDestroy {
           this.scale = result.scale;
           this.settings = result.settings;
           this.scoreSettings = result.settings;
-          this.intervalCheck = result.intervals;
           this.melodyCreatedWhileAuthenticated = isAuthenticated;
 
           // Notify components of new melody
@@ -170,12 +165,10 @@ export class CreationService implements OnDestroy {
       scale: this.scale,
     };
     this.scoreDataSignalState.set(currentScoreData);
-    this.scoreData.next(currentScoreData);
   }
 
   private setPlayingState(isPlaying: boolean) {
     this.isPlayingSignalState.set(isPlaying);
-    this.isPlaying.next(isPlaying);
   }
 
   playMelody() {
@@ -250,7 +243,6 @@ export class CreationService implements OnDestroy {
   resetMelody() {
     this.melody = [];
     this.scale = { notes: [] };
-    this.intervalCheck = [];
     this.melodyCreatedWhileAuthenticated = false;
     this.scoreDataSignalState.set(null);
   }
@@ -278,10 +270,6 @@ export class CreationService implements OnDestroy {
 
   ngOnDestroy(): void {
     try {
-      // Complete all Subjects
-      this.isPlaying.complete();
-      this.scoreData.complete();
-
       // Clear any running intervals
       if (this.countdownInterval) {
         clearInterval(this.countdownInterval);

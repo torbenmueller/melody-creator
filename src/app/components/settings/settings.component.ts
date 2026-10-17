@@ -102,7 +102,6 @@ export class SettingsComponent {
 
   settings!: Settings;
   melody!: any[];
-  intervals!: any[];
   melodyDescription: string = '';
 
   isLoading: boolean = false;
@@ -131,8 +130,9 @@ export class SettingsComponent {
       this.isLoading = false;
 
       if (!isAuthenticated) {
-        this.melody = [];
-        this.intervals = [];
+        // Keep a melody generated while logged out (e.g. after navigating away and back).
+        // On logout the service has already reset its melody.
+        this.melody = this.creationService.getMelody() ?? [];
         this.creationService.melodyCreatedWhileAuthenticated = false;
       }
 
@@ -257,7 +257,6 @@ export class SettingsComponent {
       .subscribe({
         next: (result) => {
           this.melody = result.melody;
-          this.intervals = result.intervals;
           this.isLoading = false;
           this.melodyDescription = this.setDescription(result.settings);
 
